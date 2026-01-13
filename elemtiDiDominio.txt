@@ -1,0 +1,55 @@
+Utente
+    - psw
+    - nikname
+    - mail
+    Elementi derivati
+    - Storico Ordini
+    - Panini preferiti
+
+admin
+    -psw
+    -mail
+    -nikname
+
+
+Ingredienti
+    - stato (valore binario 1 presente 0 finito)
+    - nome (stringa, nome esteso da mostrare agli utenti)
+    - sigla (stringa, nome contratto che usa l'operatore quando lavora)
+    - categoria/tipo (enumb, sotto che tipologia sta l'ingrediente pane, carne, formaggio, verdura, salsa, altro)
+
+
+TimeSlot
+    - orario inizio
+    - orario fine
+    - lista_ordini 
+
+OrarioLavorativo
+    - luogo (dove sto erogando il servizio)
+    - fasciaOraria (insieme di timeslot contigui)
+    - giorno (che giorno sto erogando il servizio es 23/01/2026)
+
+    //sono parametri legati al time slot pa all'interno dello stesso giorno sono condivisi da tutti
+    // i itme slot
+    - max_time (tempo prima dell'ora di prenotazione per modificare l'ordine )
+    - max_order (numero massimo di ordini per quella fascia oraria)
+
+Panino
+    - inisieme di ingredienti
+
+Ordini
+    - user (chi lo ha ordina)
+    - time_slot (in quale fascia oraria l'ho ordinato)
+    - panino
+    - statto (l'oridne può essere in 5 stati pending, confirmed, ready, piked_up, reject)
+
+
+
+
+
+
+
+
+
+
+
