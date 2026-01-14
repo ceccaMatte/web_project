@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Modello per rappresentare un giorno lavorativo.
@@ -34,4 +35,13 @@ class WorkingDay extends Model
         'max_orders' => 'integer',       // Assicura sia intero
         'max_time' => 'integer',         // Assicura sia intero
     ];
+
+    /**
+     * Relazione: ogni working_day ha molti time_slots.
+     * Gli slot vengono generati automaticamente alla creazione del working_day.
+     */
+    public function timeSlots(): HasMany
+    {
+        return $this->hasMany(TimeSlot::class);
+    }
 }

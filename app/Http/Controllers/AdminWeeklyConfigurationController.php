@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminWeeklyConfigurationRequest;
 use App\Models\WorkingDay;
+use App\Services\TimeSlotGeneratorService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,19 @@ use Illuminate\Support\Facades\DB;
  */
 class AdminWeeklyConfigurationController extends Controller
 {
+    /**
+     * Service per la generazione degli slot temporali.
+     */
+    private TimeSlotGeneratorService $timeSlotGenerator;
+
+    /**
+     * Costruttore: inietta le dipendenze necessarie.
+     */
+    public function __construct(TimeSlotGeneratorService $timeSlotGenerator)
+    {
+        $this->timeSlotGenerator = $timeSlotGenerator;
+    }
+
     /**
      * Aggiorna la configurazione settimanale dei giorni lavorativi.
      *
@@ -72,7 +86,7 @@ class AdminWeeklyConfigurationController extends Controller
                     // Il giorno deve essere abilitato
                     if (!$existingWorkingDay) {
                         // Non esiste, quindi crea un nuovo working_day
-                        WorkingDay::create([
+                        $workingDay = WorkingDay::create([
                             'day' => $nextDate,
                             'location' => $location,
                             'max_orders' => $maxOrders,
@@ -80,6 +94,10 @@ class AdminWeeklyConfigurationController extends Controller
                             'start_time' => $dayConfig['start_time'],
                             'end_time' => $dayConfig['end_time'],
                         ]);
+
+                        // Genera automaticamente gli slot temporali
+                        // Avviene nella stessa transazione per garantire atomicità
+                        $this->timeSlotGenerator->generate($workingDay);
                     }
                     // Se esiste già, NON lo aggiorniamo (regola fondamentale)
                 } else {
