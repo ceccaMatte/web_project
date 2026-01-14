@@ -52,8 +52,13 @@ class AdminWeeklyConfigurationController extends Controller
         DB::transaction(function () use ($daysConfig, $dayMappings, $today, $maxOrders, $maxTime, $location) {
             foreach ($daysConfig as $dayName => $dayConfig) {
                 // Calcola la prossima data per questo giorno della settimana
-                // Ad esempio, se oggi è mercoledì, per 'monday' prende il prossimo lunedì
-                $nextDate = $today->copy()->next($dayMappings[$dayName]);
+                $currentDayOfWeek = $today->dayOfWeek;
+                $targetDayOfWeek = $dayMappings[$dayName];
+                $daysToAdd = ($targetDayOfWeek - $currentDayOfWeek + 7) % 7;
+                if ($daysToAdd == 0) {
+                    $daysToAdd = 7; // prossimo settimana se stesso giorno
+                }
+                $nextDate = $today->copy()->addDays($daysToAdd);
 
                 // Salta se la data calcolata non è futura (non dovrebbe accadere, ma sicurezza)
                 if (!$nextDate->isFuture()) {
@@ -61,14 +66,14 @@ class AdminWeeklyConfigurationController extends Controller
                 }
 
                 // Verifica se esiste già un working_day per questa data
-                $existingWorkingDay = WorkingDay::where('day', $nextDate->toDateString())->first();
+                $existingWorkingDay = WorkingDay::whereDate('day', $nextDate)->first();
 
                 if ($dayConfig['enabled']) {
                     // Il giorno deve essere abilitato
                     if (!$existingWorkingDay) {
                         // Non esiste, quindi crea un nuovo working_day
                         WorkingDay::create([
-                            'day' => $nextDate->toDateString(),
+                            'day' => $nextDate,
                             'location' => $location,
                             'max_orders' => $maxOrders,
                             'max_time' => $maxTime,
