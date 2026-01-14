@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TimeSlot extends Model
 {
+    use HasFactory;
     /**
      * Campi assegnabili in massa.
      */
@@ -41,5 +43,16 @@ class TimeSlot extends Model
     public function workingDay(): BelongsTo
     {
         return $this->belongsTo(WorkingDay::class);
+    }
+
+    /**
+     * Relazione: un time_slot ha molti ordini.
+     * 
+     * Usato per contare gli ordini esistenti
+     * e verificare la capienza dello slot.
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

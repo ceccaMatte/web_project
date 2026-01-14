@@ -2,15 +2,40 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Constants\MiddlewareAlias; // Import della classe MiddlewareAlias
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\AdminWeeklyConfigurationController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Esempio di utilizzo del middleware 'admin'
-// Questo gruppo di route sarà protetto dal middleware AdminMiddleware
-// Solo utenti autenticati con ruolo 'admin' possono accedere
+// ========================================
+// ROUTES ORDINI UTENTE
+// ========================================
+// Protette da middleware auth: solo utenti autenticati
+Route::middleware('auth')->group(function () {
+    
+    // POST /orders - Crea un nuovo ordine
+    // Body: { time_slot_id: 1, ingredients: [1, 3, 5] }
+    Route::post('/orders', [OrderController::class, 'store'])
+        ->name('orders.store');
+    
+    // PUT /orders/{order} - Aggiorna un ordine (solo se pending)
+    // Body: { ingredients: [1, 3, 5] }
+    Route::put('/orders/{order}', [OrderController::class, 'update'])
+        ->name('orders.update');
+    
+    // DELETE /orders/{order} - Elimina un ordine (solo se pending)
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])
+        ->name('orders.destroy');
+});
+
+// ========================================
+// ROUTES ADMIN
+// ========================================
+// Protette da middleware admin: solo utenti admin
 Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
+    
     Route::get('/admin/dashboard', function () {
         return 'Benvenuto nella dashboard admin!';
     });
@@ -21,6 +46,12 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
 
     // Route per la configurazione settimanale
     // Permette all'admin di configurare i giorni lavorativi futuri
-    Route::post('/admin/weekly-configuration', [App\Http\Controllers\AdminWeeklyConfigurationController::class, 'updateWeeklyConfiguration'])
+    Route::post('/admin/weekly-configuration', [AdminWeeklyConfigurationController::class, 'updateWeeklyConfiguration'])
         ->name('admin.weekly-configuration.update');
+
+    // PUT /admin/orders/{order}/status - Cambia stato di un ordine
+    // Body: { status: "confirmed" }
+    Route::put('/admin/orders/{order}/status', [OrderController::class, 'changeStatus'])
+        ->name('admin.orders.changeStatus');
 });
+

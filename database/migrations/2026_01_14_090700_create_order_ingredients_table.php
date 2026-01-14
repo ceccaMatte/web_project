@@ -23,11 +23,14 @@ return new class extends Migration
                   ->cascadeOnDelete();
 
             // Nome dell'ingrediente al momento dell'ordine
-            // Snapshot testuale per preservare lo storico
-            $table->string('ingredient_name');
+            // IMPORTANTE: questo è uno SNAPSHOT, non una relazione live
+            // Se l'ingrediente viene rinominato o eliminato in futuro,
+            // questo valore resta immutato per preservare lo storico
+            $table->string('name');
 
             // Categoria dell'ingrediente al momento dell'ordine
-            $table->enum('ingredient_category', [
+            // Anche la categoria è uno snapshot
+            $table->enum('category', [
                 'bread',
                 'meat',
                 'cheese',
@@ -35,6 +38,9 @@ return new class extends Migration
                 'sauce',
                 'other'
             ]);
+
+            // NON esiste un timestamp su questa tabella
+            // perché usa i timestamp dell'ordine padre
 
         });
     }
