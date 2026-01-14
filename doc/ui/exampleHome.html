@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Campus Truck Home - Future Day Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3b82f6",
+                        "background-dark": "#0a0c10",
+                        "surface-dark": "#161b22",
+                        "border-dark": "#30363d",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "2xl": "1.25rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-background-dark text-slate-200 font-display;
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-dot {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="dark">
+<div class="relative flex min-h-screen w-full max-w-[430px] mx-auto flex-col bg-background-dark overflow-x-hidden">
+<header class="flex items-center bg-background-dark/80 backdrop-blur-md px-5 py-4 justify-between sticky top-0 z-30 border-b border-border-dark/50">
+<div class="flex items-center gap-3">
+<div class="flex size-9 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-2xl">local_shipping</span>
+</div>
+<div>
+<h1 class="text-white text-base font-bold leading-tight">Campus Truck</h1>
+<p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Student Service</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-surface-dark border border-border-dark text-slate-300">
+<span class="material-symbols-outlined text-[22px]">menu</span>
+</button>
+</div>
+</header>
+<main class="flex flex-col gap-6 pb-12">
+<section class="px-5 pt-4">
+<div class="relative overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-5 shadow-xl">
+<div class="flex justify-between items-start mb-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest">Live Now (Today)</span>
+</div>
+<h2 class="text-white text-lg font-bold">North Quad Station</h2>
+<p class="text-slate-400 text-xs">Open 11:00 AM – 4:00 PM</p>
+</div>
+<div class="size-20 rounded-xl bg-cover bg-center border border-border-dark" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDOC_dL1BQ6iMFUaLICs60Xqcis7zlzUQAGFTwZ-ACLzjhl_FvtzdZlng-8t71_qQGdGwzpR27S5T7j_Re9PTzxjutws3JCLAVhAKgrGzy1SEODU3mPOCZCqNbkSKM3LpizsuFCrgLW3hnQcsFx8DheqwUW1hepw0gh92Zq4KE5TAAVnLoyJqilGil1yJIyUQ3V1YbYGzHpc7SGM9Yar1zC--WJ7SotBE3gM9PmtB2WyRLXtGDKafQS46FKs_trIiSl12z7K8MXhQQC");'></div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl border border-border-dark/60 bg-background-dark/40">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
+<span class="material-symbols-outlined text-lg">person_pin_circle</span>
+</div>
+<div>
+<p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-0.5">Physical Queue</p>
+<p class="text-xs font-medium text-slate-400">Walk-up wait time</p>
+</div>
+</div>
+<div class="text-xl font-bold text-slate-300">12 min</div>
+</div>
+</div>
+</section>
+<section class="px-5 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Schedule</span>
+<span class="text-primary text-[10px] font-bold uppercase tracking-widest">October 2023</span>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-2xl p-2">
+<div class="flex justify-between gap-1">
+<div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl text-slate-600 opacity-40">
+<span class="text-[9px] font-medium uppercase mb-1">Mon</span>
+<span class="text-base font-bold">23</span>
+</div>
+<div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl border border-primary bg-primary/10 text-white">
+<span class="text-[9px] font-medium uppercase mb-1">Tue</span>
+<span class="text-base font-bold">24</span>
+<div class="mt-1 size-1 rounded-full bg-primary"></div>
+</div>
+<div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl text-slate-400">
+<span class="text-[9px] font-medium uppercase mb-1">Wed</span>
+<span class="text-base font-bold">25</span>
+</div>
+<div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl text-slate-400">
+<span class="text-[9px] font-medium uppercase mb-1">Thu</span>
+<span class="text-base font-bold">26</span>
+</div>
+<div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl text-slate-400">
+<span class="text-[9px] font-medium uppercase mb-1">Fri</span>
+<span class="text-base font-bold">27</span>
+</div>
+<div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl text-slate-700 opacity-30">
+<span class="text-[9px] font-medium uppercase mb-1">Sat</span>
+<span class="text-base font-bold">28</span>
+</div>
+<div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl text-slate-700 opacity-30">
+<span class="text-[9px] font-medium uppercase mb-1">Sun</span>
+<span class="text-base font-bold">29</span>
+</div>
+</div>
+</div>
+</section>
+<section class="px-5">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-white text-sm font-bold">Your Orders for Today</h3>
+<button class="text-primary text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
+                    View All
+                    <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+</div>
+<div class="relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform">
+<div class="absolute inset-0 top-4 mx-4 h-full rounded-xl border border-border-dark/30 bg-surface-dark/40 scale-[0.92] opacity-40 z-0"></div>
+<div class="absolute inset-0 top-2 mx-2 h-full rounded-xl border border-border-dark/60 bg-surface-dark/80 scale-[0.96] opacity-70 z-10"></div>
+<div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="size-11 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-emerald-500">receipt_long</span>
+</div>
+<div class="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border-2 border-surface-dark shadow-lg">
+                                3
+                            </div>
+</div>
+<div>
+<p class="text-white text-sm font-bold">Spicy Chicken Sub</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<p class="text-emerald-500 text-[10px] font-bold uppercase tracking-wider">Ready at 12:45 PM</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-8 w-px bg-border-dark/50"></div>
+<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-4">
+<div class="px-5">
+<h3 class="text-white text-sm font-bold mb-1">Pre-book for Tomorrow</h3>
+<p class="text-slate-500 text-xs">Wednesday, October 25 • Engineering Hub</p>
+</div>
+<div class="flex overflow-x-auto no-scrollbar gap-4 px-5">
+<div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg">
+<div>
+<p class="text-white text-base font-bold">11:00 AM</p>
+<p class="text-emerald-500 text-[10px] font-bold uppercase tracking-wider mt-1">12 Slots left</p>
+</div>
+<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20">Book Slot</button>
+</div>
+<div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg">
+<div>
+<p class="text-white text-base font-bold">11:30 AM</p>
+<p class="text-amber-500 text-[10px] font-bold uppercase tracking-wider mt-1">4 Slots left</p>
+</div>
+<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20">Book Slot</button>
+</div>
+<div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark/50 flex flex-col gap-4 opacity-60">
+<div>
+<p class="text-slate-400 text-base font-bold">12:00 PM</p>
+<p class="text-rose-500 text-[10px] font-bold uppercase tracking-wider mt-1">Fully Booked</p>
+</div>
+<button class="w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed" disabled="">Waitlist</button>
+</div>
+</div>
+</section>
+</main>
+<div class="fixed bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-700/50 rounded-full z-40"></div>
+</div>
+
+</body></html>

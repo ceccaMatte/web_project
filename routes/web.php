@@ -4,8 +4,20 @@ use Illuminate\Support\Facades\Route;
 use App\Constants\MiddlewareAlias; // Import della classe MiddlewareAlias
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminWeeklyConfigurationController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
+// ========================================
+// HOME PUBBLICA
+// ========================================
+// Route principale: mostra working days, slot, info
+// NON richiede autenticazione (pubblica)
+Route::get('/', [HomeController::class, 'index'])
+    ->name('home');
+
+// ========================================
+// PLACEHOLDER: Welcome originale (da rimuovere)
+// ========================================
+Route::get('/welcome', function () {
     return view('welcome');
 });
 
@@ -14,6 +26,10 @@ Route::get('/', function () {
 // ========================================
 // Protette da middleware auth: solo utenti autenticati
 Route::middleware('auth')->group(function () {
+    
+    // GET /orders - Lista ordini utente (TODO: implementare)
+    Route::get('/orders', [OrderController::class, 'index'])
+        ->name('orders.index');
     
     // POST /orders - Crea un nuovo ordine
     // Body: { time_slot_id: 1, ingredients: [1, 3, 5] }

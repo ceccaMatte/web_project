@@ -47,6 +47,24 @@ class OrderController extends Controller
     }
 
     /**
+     * Mostra lista ordini dell'utente autenticato.
+     * 
+     * TODO: Implementare view orders.index
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function index()
+    {
+        // Recupera ordini utente con relazioni
+        $orders = Order::where('user_id', Auth::id())
+            ->with(['timeSlot.workingDay', 'ingredients'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('orders.index', ['orders' => $orders]);
+    }
+
+    /**
      * Crea un nuovo ordine.
      * 
      * POST /orders
