@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Modello per rappresentare un giorno lavorativo.
+ * Ogni record corrisponde a un giorno in cui il servizio è attivo.
+ */
+class WorkingDay extends Model
+{
+    /**
+     * Campi che possono essere assegnati in massa.
+     * Protegge da mass assignment non autorizzato.
+     */
+    protected $fillable = [
+        'day',           // Data del giorno lavorativo
+        'location',      // Luogo del servizio
+        'max_orders',    // Numero massimo di ordini per slot
+        'max_time',      // Minuti limite per modifiche ordini
+        'start_time',    // Ora di inizio servizio
+        'end_time',      // Ora di fine servizio
+    ];
+
+    /**
+     * Cast automatici per i tipi di dati.
+     * Converte automaticamente i valori dal database.
+     */
+    protected $casts = [
+        'day' => 'date',        // Converte in oggetto Carbon/Date
+        'start_time' => 'datetime:H:i',  // Converte in oggetto Carbon per ora
+        'end_time' => 'datetime:H:i',    // Converte in oggetto Carbon per ora
+        'max_orders' => 'integer',       // Assicura sia intero
+        'max_time' => 'integer',         // Assicura sia intero
+    ];
+}

@@ -18,4 +18,9 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
     Route::get('/admin/users', function () {
         return 'Lista utenti (solo per admin)';
     });
+
+    // Route per la configurazione settimanale
+    // Permette all'admin di configurare i giorni lavorativi futuri
+    Route::post('/admin/weekly-configuration', [App\Http\Controllers\AdminWeeklyConfigurationController::class, 'updateWeeklyConfiguration'])
+        ->name('admin.weekly-configuration.update');
 });
