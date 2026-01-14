@@ -113,10 +113,10 @@
                     <span class="font-bold">{{ $item['label'] }}</span>
                 </a>
             @else
-                {{-- Voce Menu Disabilitata --}}
+                {{-- Voce Menu Disabilitata: mostra sempre icona --}}
                 <div class="flex items-center gap-4 p-4 rounded-xl text-slate-600 opacity-50 cursor-not-allowed">
                     <span class="material-symbols-outlined">
-                        {{ config('ui.icons.' . $item['icon']) }}
+                        {{ config('ui.icons.' . $item['icon'], $item['icon']) }}
                     </span>
                     <span class="font-bold">{{ $item['label'] }}</span>
                     <span class="ml-auto text-[9px] uppercase tracking-wider bg-slate-800 px-2 py-0.5 rounded">
