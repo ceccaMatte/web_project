@@ -28,14 +28,14 @@
 
 {{--
     Container Sidebar
-    - Inizialmente chiusa: -translate-x-full
+    - Inizialmente chiusa: translate-x-full (DESTRA)
     - JS aggiunge/rimuove questa classe
     - Transizione smooth: transition-transform duration-300
     - z-50: sopra l'overlay
 --}}
 <aside 
     data-sidebar
-    class="fixed top-0 left-0 h-full w-{{ config('ui.sidebar_width') }} bg-surface-dark border-r border-border-dark flex flex-col p-6 shadow-2xl z-50 -translate-x-full transition-transform duration-300 ease-in-out"
+    class="fixed top-0 right-0 h-full w-[80%] max-w-[320px] bg-[#141925] border-l border-[#1e2536] flex flex-col p-6 shadow-2xl z-50 translate-x-full transition-transform duration-300 ease-out"
 >
     
     {{-- Header Sidebar --}}

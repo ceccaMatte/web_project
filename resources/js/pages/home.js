@@ -105,18 +105,12 @@ const homeView = {
         }
 
         if (isOpen) {
-            // APRI SIDEBAR
-            // Rimuove classe che nasconde sidebar (translate-x-full negativo)
-            this.refs.sidebar.classList.remove('-translate-x-full');
-            
-            // Mostra overlay (rimuove hidden)
+            // APRI SIDEBAR (da DESTRA)
+            this.refs.sidebar.classList.remove('translate-x-full');
             this.refs.overlay.classList.remove('hidden');
         } else {
-            // CHIUDI SIDEBAR
-            // Aggiunge classe che nasconde sidebar
-            this.refs.sidebar.classList.add('-translate-x-full');
-            
-            // Nasconde overlay
+            // CHIUDI SIDEBAR (verso DESTRA)
+            this.refs.sidebar.classList.add('translate-x-full');
             this.refs.overlay.classList.add('hidden');
         }
     },

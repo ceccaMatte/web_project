@@ -6,6 +6,35 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Lexend', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    
+    /* Dark Theme Colors - Campus Truck Design */
+    --color-background-dark: #0a0e1a;
+    --color-surface-dark: #141925;
+    --color-border-dark: #1e2536;
+    --color-primary: #3b82f6;
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #94a3b8;
+    --color-emerald: #10b981;
+    --color-amber: #f59e0b;
+    --color-rose: #f43f5e;
+}
+
+@layer base {
+    body {
+        font-family: 'Lexend', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 }
