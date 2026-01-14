@@ -1,10 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Constants\MiddlewareAlias; // Import della classe MiddlewareAlias
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminWeeklyConfigurationController;
 use App\Http\Controllers\HomeController;
+
+// ========================================
+// AUTH ROUTES
+// ========================================
+Auth::routes();
 
 // ========================================
 // HOME PUBBLICA
