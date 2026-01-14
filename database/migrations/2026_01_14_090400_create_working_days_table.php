@@ -1,3 +1,5 @@
+<?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,17 +11,16 @@ return new class extends Migration
         Schema::create('working_days', function (Blueprint $table) {
             $table->id();
 
-            // Giorno di lavoro (es. 2026-01-23)
-            // Un giorno può comparire una sola volta
+            // Giorno lavorativo (es. 2026-01-23)
             $table->date('day')->unique();
 
-            // Luogo in cui viene erogato il servizio
+            // Luogo del servizio (es. "Piazza Centrale")
             $table->string('location');
 
-            // Numero massimo di ordini per ciascun time slot
+            // Numero massimo di ordini per slot
             $table->unsignedInteger('max_orders');
 
-            // Minuti prima dello slot oltre i quali l'ordine non è modificabile
+            // Minuti prima dello slot oltre i quali l’ordine non è modificabile
             $table->unsignedInteger('max_time');
 
             $table->timestamps();
