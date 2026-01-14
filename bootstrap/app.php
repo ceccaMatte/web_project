@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Constants\MiddlewareAlias; // Import della classe MiddlewareAlias
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,10 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Registrazione del middleware personalizzato 'admin'
-        // Questo permette di usare 'admin' come alias nelle route
-        // Ad esempio: Route::middleware('admin')->get('/admin', ...)
+        // Questo permette di usare MiddlewareAlias::ADMIN come alias nelle route
+        // Ad esempio: Route::middleware(MiddlewareAlias::ADMIN)->get('/admin', ...)
         $middleware->alias([
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            MiddlewareAlias::ADMIN => \App\Http\Middleware\AdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

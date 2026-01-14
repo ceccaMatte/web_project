@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Constants\Role; // Import della classe Role per usare le costanti
 
 class AdminMiddleware
 {
@@ -32,8 +33,9 @@ class AdminMiddleware
         // Secondo controllo: l'utente autenticato deve avere ruolo 'admin'
         // auth()->user() restituisce l'istanza dell'utente corrente
         // Accediamo al campo 'role' del modello User
+        // Confrontiamo con Role::ADMIN per evitare errori di digitazione
         // Se il ruolo non è 'admin', blocchiamo con errore 403 (Forbidden)
-        if (auth()->user()->role !== 'admin') {
+        if (auth()->user()->role !== Role::ADMIN) {
             abort(403, 'Accesso negato: solo gli amministratori possono accedere a questa risorsa.');
         }
 
