@@ -22,6 +22,8 @@ import { homeState, mutateSidebar, mutateSelectedDay } from './home.state.js';
 import { fetchBookingForDay } from './home.api.js';
 import { renderHome } from './home.render.js';
 import { renderSidebar } from '../../components/sidebar/sidebar.component.js';
+import { renderTopBar } from '../../components/topbar/topbar.component.js';
+import { renderWeekScheduler } from '../../components/weekScheduler/weekScheduler.component.js';
 import { homeView } from './home.view.js';
 
 /**
@@ -45,7 +47,6 @@ export function openSidebar() {
     );
 
     // Re-render topbar per cambiare icona
-    const { renderTopBar } = require('../../components/topbar/topbar.component.js');
     renderTopBar(
         homeView.refs.topBar,
         { user: homeState.user, sidebarOpen: true },
@@ -74,7 +75,6 @@ export function closeSidebar() {
     );
 
     // Re-render topbar per cambiare icona
-    const { renderTopBar } = require('../../components/topbar/topbar.component.js');
     renderTopBar(
         homeView.refs.topBar,
         { user: homeState.user, sidebarOpen: false },
@@ -103,26 +103,14 @@ export async function selectDay(dayId) {
 
     // 1. Aggiorna state
     mutateSelectedDay(dayId);
+    console.log('[Actions] State updated, weekDays:', homeState.weekDays.map(d => ({id: d.id, isSelected: d.isSelected})));
 
     // 2. Re-render scheduler
-    const { renderWeekScheduler } = require('../../components/weekScheduler/weekScheduler.component.js');
     renderWeekScheduler(
         homeView.refs.schedulerSection,
         { monthLabel: homeState.monthLabel, weekDays: homeState.weekDays },
         { onDaySelected: selectDay }
     );
-
-    // 3. TODO: Fetch booking per giorno selezionato
-    // try {
-    //     const bookingData = await fetchBookingForDay(dayId);
-    //     homeState.booking = bookingData;
-    //     
-    //     // Re-render booking slots
-    //     const { renderTimeSlotsList } = require('../../components/timeSlotCard/timeSlotCard.component.js');
-    //     renderTimeSlotsList(homeView.refs.bookingSlotsContainer, homeState.booking, {});
-    // } catch (error) {
-    //     console.error('[Actions] Failed to fetch booking for day:', error);
-    // }
 
     console.log(`[Actions] Day selected: ${dayId}`);
 }

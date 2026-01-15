@@ -79,8 +79,11 @@
         @json($bookingSlotsData ?? $defaultBookingData)
     </script>
 
-    {{-- TopBar --}}
-    @include('components.top-bar')
+    {{-- TopBar Container --}}
+    <div data-top-bar>
+        {{-- Popolato da JavaScript: renderTopBar() --}}
+        @include('components.top-bar')
+    </div>
 
     {{--
         Overlay Mobile

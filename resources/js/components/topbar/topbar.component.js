@@ -27,6 +27,9 @@ import { icons, labels, a11y } from '../../config/ui.config.js';
 import { safeInnerHTML, listen } from '../../utils/dom.js';
 import { setAriaAttributes } from '../../utils/a11y.js';
 
+// Traccia listener per evitare duplicati
+let cleanupListener = null;
+
 /**
  * Render TopBar component
  * 
@@ -87,13 +90,29 @@ export function renderTopBar(container, props, callbacks) {
     // Mount HTML
     safeInnerHTML(container, html);
 
+    console.log('[TopBar] HTML mounted, registering event listeners...');
+    console.log('[TopBar] onToggleSidebar callback:', typeof onToggleSidebar);
+
+    // Rimuovi listener precedente per evitare duplicati
+    if (cleanupListener) {
+        console.log('[TopBar] Removing previous listener');
+        cleanupListener();
+    }
+
     // Event delegation: click sul bottone hamburger
     const button = container.querySelector('[data-action]');
+    console.log('[TopBar] Button found:', button);
+    
     if (button && onToggleSidebar) {
-        listen(button, 'click', () => {
+        cleanupListener = listen(button, 'click', () => {
+            console.log('[TopBar] Button clicked! Current sidebarOpen:', sidebarOpen);
             const newState = !sidebarOpen;
+            console.log('[TopBar] Calling onToggleSidebar with:', newState);
             onToggleSidebar(newState);
         });
+        console.log('[TopBar] Event listener registered');
+    } else {
+        console.warn('[TopBar] Cannot register listener - button:', button, 'callback:', onToggleSidebar);
     }
 
     console.log('[TopBar] Rendered');

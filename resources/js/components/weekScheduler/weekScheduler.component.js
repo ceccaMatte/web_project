@@ -17,6 +17,9 @@
 import { labels, a11y } from '../../config/ui.config.js';
 import { safeInnerHTML, listen } from '../../utils/dom.js';
 
+// Traccia listener per evitare duplicati
+let cleanupListener = null;
+
 export function renderWeekScheduler(container, props, callbacks) {
     if (!container) return;
 
@@ -98,15 +101,30 @@ export function renderWeekScheduler(container, props, callbacks) {
     // Mount
     safeInnerHTML(container, headerHTML + daysHTML);
 
+    console.log('[WeekScheduler] HTML mounted, registering event listeners...');
+    console.log('[WeekScheduler] onDaySelected callback:', typeof onDaySelected);
+
+    // Rimuovi listener precedente per evitare duplicati
+    if (cleanupListener) {
+        console.log('[WeekScheduler] Removing previous listener');
+        cleanupListener();
+    }
+
     // Event delegation: click sui giorni
     if (onDaySelected) {
-        listen(container, 'click', (e) => {
+        cleanupListener = listen(container, 'click', (e) => {
+            console.log('[WeekScheduler] Container clicked, target:', e.target);
             const button = e.target.closest('[data-day-id]');
+            console.log('[WeekScheduler] Closest button:', button);
             if (button) {
                 const dayId = button.dataset.dayId;
+                console.log('[WeekScheduler] Calling onDaySelected with:', dayId);
                 onDaySelected(dayId);
             }
         });
+        console.log('[WeekScheduler] Event listener registered on container');
+    } else {
+        console.warn('[WeekScheduler] Cannot register listener - callback missing');
     }
 
     console.log(`[WeekScheduler] Rendered (${weekDays.length} days)`);

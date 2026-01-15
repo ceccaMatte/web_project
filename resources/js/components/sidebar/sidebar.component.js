@@ -26,6 +26,7 @@ import { createFocusTrap, handleEscapeKey } from '../../utils/a11y.js';
 // Store cleanup functions per gestione focus trap
 let focusTrap = null;
 let escapeCleanup = null;
+let overlayCleanup = null;
 
 /**
  * Render Sidebar component
@@ -60,9 +61,12 @@ export function renderSidebar(container, overlay, props, callbacks) {
             escapeCleanup = handleEscapeKey(onClose);
         }
 
-        // Overlay click per chiudere
+        // Overlay click per chiudere (rimuovi listener precedente)
+        if (overlayCleanup) {
+            overlayCleanup();
+        }
         if (overlay && onClose) {
-            listen(overlay, 'click', onClose);
+            overlayCleanup = listen(overlay, 'click', onClose);
         }
     } else {
         addClass(container, 'translate-x-full');
@@ -75,6 +79,10 @@ export function renderSidebar(container, overlay, props, callbacks) {
         if (escapeCleanup) {
             escapeCleanup();
             escapeCleanup = null;
+        }
+        if (overlayCleanup) {
+            overlayCleanup();
+            overlayCleanup = null;
         }
     }
 
