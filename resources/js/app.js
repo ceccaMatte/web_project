@@ -25,7 +25,7 @@ console.log('[App] Script loaded - checking if JS is working');
  */
 const pageRegistry = {
     home: async () => {
-        const { initHomePage } = await import('./pages/home.js');
+        const { initHomePage } = await import('./pages/home/home.js');
         return initHomePage;
     },
     'order-form': async () => {
