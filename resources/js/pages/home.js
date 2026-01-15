@@ -103,6 +103,28 @@ const homeState = {
         ordersCount: 0,
         selectedOrder: null,
     },
+
+    /**
+     * Booking Slots state (per sezione "Pre-book for Tomorrow")
+     * 
+     * STRUTTURA:
+     * - dateLabel: string (es. "Friday, January 16")
+     * - locationLabel: string (es. "Engineering Hub")
+     * - slots: array di oggetti con struttura:
+     *   {
+     *     id: string|number,
+     *     timeLabel: string (es. "11:00 AM"),
+     *     slotsLeft: number,
+     *     href: string (URL per navigare a create order con slot preselezionato),
+     *     isDisabled: boolean
+     *   }
+     */
+    // popola con dei dati fittizzi
+    booking: {
+        dateLabel: null,
+        locationLabel: null,
+        slots: [],
+    },
 };
 
 /**
@@ -126,6 +148,10 @@ const homeView = {
         orderPreviewSection: null,
         orderPreviewContainer: null,
         viewAllButton: null,
+        // Booking slots refs
+        bookingSection: null,
+        bookingSubtitle: null,
+        bookingSlotsContainer: null,
     },
 
     /**
@@ -140,6 +166,10 @@ const homeView = {
         this.refs.orderPreviewSection = document.querySelector('[data-order-preview-section]');
         this.refs.orderPreviewContainer = document.querySelector('[data-order-preview-container]');
         this.refs.viewAllButton = document.querySelector('[data-view-all-button]');
+        // Booking slots refs
+        this.refs.bookingSection = document.querySelector('[data-booking-section]');
+        this.refs.bookingSubtitle = document.querySelector('[data-booking-subtitle]');
+        this.refs.bookingSlotsContainer = document.querySelector('[data-booking-slots-container]');
 
         if (!this.refs.sidebar) {
             console.error('[Home] Sidebar element not found');
@@ -158,6 +188,9 @@ const homeView = {
         }
         if (!this.refs.orderPreviewContainer) {
             console.error('[Home] Order preview container not found');
+        }
+        if (!this.refs.bookingSlotsContainer) {
+            console.error('[Home] Booking slots container not found');
         }
     },
 
@@ -668,6 +701,154 @@ const homeView = {
 
         console.log('[Home] Order preview rendered:', variant, ordersCount ? `(${ordersCount} orders)` : '');
     },
+
+    /**
+     * Renderizza la sezione Booking Slots ("Pre-book for Tomorrow").
+     * 
+     * RESPONSABILITÀ:
+     * - Legge SOLO da homeState.booking
+     * - Aggiorna sottotitolo con data e location
+     * - Genera HTML per ogni slot usando TimeSlotCard variant="home"
+     * 
+     * COSA NON FA:
+     * - NON fa fetch
+     * - NON modifica homeState
+     * - NON calcola disponibilità (arriva dalle props)
+     */
+    renderBookingSlots() {
+        if (!this.refs.bookingSlotsContainer) {
+            console.warn('[Home] Cannot render booking slots: container not found');
+            return;
+        }
+
+        const { dateLabel, locationLabel, slots } = homeState.booking;
+
+        // Aggiorna sottotitolo con data e location
+        if (this.refs.bookingSubtitle && dateLabel && locationLabel) {
+            this.refs.bookingSubtitle.textContent = `${dateLabel} • ${locationLabel}`;
+        }
+
+        // Se non ci sono slot, mostra messaggio
+        if (!slots || slots.length === 0) {
+            this.refs.bookingSlotsContainer.innerHTML = `
+                <div class="flex items-center justify-center w-full py-8">
+                    <p class="text-slate-500 text-sm">No slots available</p>
+                </div>
+            `;
+            console.log('[Home] Booking slots rendered: no slots available');
+            return;
+        }
+
+        // Configurazione labels (stesse di config/ui.php)
+        const labels = {
+            book_cta: 'Book Slot',
+            slots_left: 'Slots left',
+            fully_booked: 'Fully booked',
+            waitlist: 'Waitlist',
+        };
+
+        // Soglia per "pochi posti" (colore amber)
+        const lowThreshold = 4;
+
+        // Genera HTML per ogni slot
+        let slotsHTML = '';
+
+        slots.forEach(slot => {
+            const { id, timeLabel, slotsLeft, href, isDisabled } = slot;
+
+            const isFullyBooked = slotsLeft === 0;
+            const isLowSlots = slotsLeft > 0 && slotsLeft <= lowThreshold;
+
+            // Aria label
+            let ariaLabel;
+            if (isFullyBooked) {
+                ariaLabel = `Slot at ${timeLabel} is fully booked`;
+            } else {
+                ariaLabel = `Book slot at ${timeLabel}, ${slotsLeft} slots left`;
+            }
+
+            // Card container classes
+            const cardClasses = isFullyBooked 
+                ? 'min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark/50 flex flex-col gap-4 shadow-lg opacity-60'
+                : 'min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg';
+
+            // Colore testo slotsLeft
+            let slotsColor;
+            if (isFullyBooked) {
+                slotsColor = 'text-rose-500';
+            } else if (isLowSlots) {
+                slotsColor = 'text-amber-500';
+            } else {
+                slotsColor = 'text-emerald-500';
+            }
+
+            // Testo disponibilità
+            const availabilityText = isFullyBooked 
+                ? labels.fully_booked 
+                : `${slotsLeft} ${labels.slots_left}`;
+
+            // CTA button/link
+            let ctaHTML;
+            if (isFullyBooked || isDisabled) {
+                ctaHTML = `
+                    <button 
+                        type="button"
+                        class="w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed"
+                        disabled
+                        aria-disabled="true"
+                        aria-label="${ariaLabel}"
+                    >
+                        ${labels.waitlist}
+                    </button>
+                `;
+            } else if (href) {
+                ctaHTML = `
+                    <a 
+                        href="${href}"
+                        class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg text-center
+                               active:scale-95 transition-transform shadow-lg shadow-primary/20
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark"
+                        aria-label="${ariaLabel}"
+                    >
+                        ${labels.book_cta}
+                    </a>
+                `;
+            } else {
+                ctaHTML = `
+                    <button 
+                        type="button"
+                        class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg
+                               active:scale-95 transition-transform shadow-lg shadow-primary/20
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark"
+                        aria-label="${ariaLabel}"
+                    >
+                        ${labels.book_cta}
+                    </button>
+                `;
+            }
+
+            slotsHTML += `
+                <div 
+                    class="${cardClasses}"
+                    data-slot-id="${id}"
+                    role="listitem"
+                >
+                    <div>
+                        <p class="${isFullyBooked ? 'text-slate-400' : 'text-white'} text-base font-bold">${timeLabel}</p>
+                        <p class="${slotsColor} text-[10px] font-bold uppercase tracking-wider mt-1">
+                            ${availabilityText}
+                        </p>
+                    </div>
+                    ${ctaHTML}
+                </div>
+            `;
+        });
+
+        // Monta gli slot nel container
+        this.refs.bookingSlotsContainer.innerHTML = slotsHTML;
+
+        console.log('[Home] Booking slots rendered:', slots.length, 'slots');
+    },
 };
 
 /**
@@ -1023,7 +1204,31 @@ export function initHomePage() {
         initOrderPreview({ orders: [] });
     }
 
-    // 7. Event delegation su document
+    // 7. Leggi dati booking slots dal backend (passato via Blade)
+    // Cerca elemento con data-booking-slots (JSON inline)
+    const bookingSlotsElement = document.querySelector('[data-booking-slots]');
+    if (bookingSlotsElement) {
+        try {
+            const bookingData = JSON.parse(bookingSlotsElement.textContent);
+            homeState.booking = {
+                dateLabel: bookingData.dateLabel || null,
+                locationLabel: bookingData.locationLabel || null,
+                slots: bookingData.slots || [],
+            };
+            homeView.renderBookingSlots();
+            console.log('[Home] Booking slots loaded:', homeState.booking.slots.length, 'slots');
+        } catch (error) {
+            console.error('[Home] Failed to parse booking slots:', error);
+            // Fallback: inizializza con array vuoto
+            homeState.booking = { dateLabel: null, locationLabel: null, slots: [] };
+            homeView.renderBookingSlots();
+        }
+    } else {
+        // Nessun dato slot: render comunque (mostrerà "no slots")
+        homeView.renderBookingSlots();
+    }
+
+    // 8. Event delegation su document
     // Tutti i click passano per handleAction
     // Gestisce: data-action (sidebar), data-day-id (scheduler)
     document.addEventListener('click', (event) => {

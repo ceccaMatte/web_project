@@ -197,4 +197,70 @@ return [
             'dot' => 'bg-rose-500',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Time Slot Card Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configurazione per il componente TimeSlotCard riusabile.
+    | Supporta variant="home" (con slots left + CTA) e variant="order" (selected/full/available).
+    |
+    */
+    'time_slot' => [
+        /*
+        |--------------------------------------------------------------------------
+        | Labels
+        |--------------------------------------------------------------------------
+        */
+        'labels' => [
+            'book_cta' => 'Book Slot',
+            'selected' => 'Selected',
+            'full' => 'Full',
+            'available' => 'Available',
+            'slots_left' => 'Slots left',
+            'fully_booked' => 'Fully booked',
+            'waitlist' => 'Waitlist',
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Aria Labels (WCAG AAA)
+        |--------------------------------------------------------------------------
+        | 
+        | Placeholder :time verrà sostituito con l'orario.
+        | Placeholder :slots verrà sostituito con il numero di slot.
+        |
+        */
+        'aria' => [
+            'book_slot' => 'Book slot at :time, :slots slots left',
+            'fully_booked' => 'Slot at :time is fully booked',
+            'selected' => 'Pickup time :time, selected',
+            'full' => 'Pickup time :time, full',
+            'available' => 'Pickup time :time, available',
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Soglie
+        |--------------------------------------------------------------------------
+        |
+        | low_slots_threshold: sotto questa soglia si usa colore "urgenza" (amber).
+        |
+        */
+        'low_slots_threshold' => 4,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pre-book Section (Home)
+    |--------------------------------------------------------------------------
+    |
+    | Configurazione per la sezione "Pre-book for Tomorrow" nella home.
+    |
+    */
+    'prebook_section' => [
+        'title' => 'Pre-book for Tomorrow',
+        'aria_scroll' => 'Available time slots for booking',
+    ],
 ];

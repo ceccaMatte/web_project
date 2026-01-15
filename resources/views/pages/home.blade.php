@@ -62,6 +62,23 @@
         @json($ordersPreviewData ?? ['orders' => []])
     </script>
 
+    {{--
+        Booking Slots Data per JavaScript
+        - Dati per la sezione "Pre-book for Tomorrow"
+        - Contiene data, location e array di slot disponibili
+        - Letto da home.js e salvato in homeState.booking
+    --}}
+    @php
+        $defaultBookingData = [
+            'dateLabel' => now()->addDay()->format('l, F d'),
+            'locationLabel' => 'Engineering Hub',
+            'slots' => []
+        ];
+    @endphp
+    <script type="application/json" data-booking-slots>
+        @json($bookingSlotsData ?? $defaultBookingData)
+    </script>
+
     {{-- TopBar --}}
     @include('components.top-bar')
 
@@ -148,57 +165,29 @@
 
         {{--
             SEZIONE 4: Pre-book Slots Futuri
-            - Scroll orizzontale
+            - Container renderizzato dinamicamente da home.js
             - Mostra slot disponibili per domani/prossimi giorni
+            - Header con data e location + scroll orizzontale di TimeSlotCard
         --}}
-        <section class="flex flex-col gap-4">
-            <div class="px-5">
-                <h3 class="text-white text-sm font-bold mb-1">Pre-book for Tomorrow</h3>
-                <p class="text-slate-500 text-xs">
-                    {{ now()->addDay()->format('l, F d') }} • Engineering Hub
+        <section class="flex flex-col gap-4" data-booking-section>
+            {{-- Header sezione (popolato da renderBookingSlots) --}}
+            <div class="px-5" data-booking-header>
+                <h3 class="text-white text-sm font-bold mb-1">
+                    {{ config('ui.prebook_section.title') }}
+                </h3>
+                <p class="text-slate-500 text-xs" data-booking-subtitle>
+                    {{-- Popolato da JS con dateLabel • locationLabel --}}
                 </p>
             </div>
 
-            {{-- Scroll Orizzontale Slot --}}
-            <div class="flex overflow-x-auto no-scrollbar gap-4 px-5">
-                {{-- Slot Disponibile --}}
-                <div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg">
-                    <div>
-                        <p class="text-white text-base font-bold">11:00 AM</p>
-                        <p class="text-emerald-500 text-[10px] font-bold uppercase tracking-wider mt-1">
-                            12 Slots left
-                        </p>
-                    </div>
-                    <button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20">
-                        Book Slot
-                    </button>
-                </div>
-
-                {{-- Slot Quasi Pieno --}}
-                <div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg">
-                    <div>
-                        <p class="text-white text-base font-bold">11:30 AM</p>
-                        <p class="text-amber-500 text-[10px] font-bold uppercase tracking-wider mt-1">
-                            4 Slots left
-                        </p>
-                    </div>
-                    <button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20">
-                        Book Slot
-                    </button>
-                </div>
-
-                {{-- Slot Pieno --}}
-                <div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark/50 flex flex-col gap-4 opacity-60">
-                    <div>
-                        <p class="text-slate-400 text-base font-bold">12:00 PM</p>
-                        <p class="text-rose-500 text-[10px] font-bold uppercase tracking-wider mt-1">
-                            Fully Booked
-                        </p>
-                    </div>
-                    <button class="w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed" disabled>
-                        Waitlist
-                    </button>
-                </div>
+            {{-- Scroll Orizzontale Slot (popolato da renderBookingSlots) --}}
+            <div 
+                class="flex overflow-x-auto no-scrollbar gap-4 px-5"
+                data-booking-slots-container
+                role="list"
+                aria-label="{{ config('ui.prebook_section.aria_scroll') }}"
+            >
+                {{-- Il contenuto viene popolato da renderBookingSlots() in home.js --}}
             </div>
         </section>
 

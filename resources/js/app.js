@@ -28,6 +28,10 @@ const pageRegistry = {
         const { initHomePage } = await import('./pages/home.js');
         return initHomePage;
     },
+    'order-form': async () => {
+        const { initOrderFormPage } = await import('./pages/order-form.js');
+        return initOrderFormPage;
+    },
     // TODO: Aggiungere altre pagine qui
     // orders: async () => { ... },
     // admin: async () => { ... },
