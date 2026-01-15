@@ -52,6 +52,16 @@
         @json($weekDaysData)
     </script>
 
+    {{--
+        Orders Preview Data per JavaScript
+        - Dati per order-preview-card
+        - Contiene array di ordini dell'utente per oggi
+        - Letto da home.js e processato da computeOrdersPreviewState
+    --}}
+    <script type="application/json" data-orders-preview>
+        @json($ordersPreviewData ?? ['orders' => []])
+    </script>
+
     {{-- TopBar --}}
     @include('components.top-bar')
 
@@ -99,55 +109,42 @@
         </section>
 
         {{--
-            SEZIONE 3: Ordini Utente (se autenticato)
-            - Stack di card ordini
-            - Solo per utenti autenticati e abilitati
+            SEZIONE 3: Order Preview Card (dinamica)
+            - Renderizzata dinamicamente da home.js in base a:
+              - Utente loggato/non loggato
+              - Numero ordini (0, 1, 2+)
+            - Il container viene popolato da renderOrderPreview()
+            - Header con titolo e bottone "View All"
         --}}
-        @if($user['authenticated'] && $user['enabled'])
-            <section class="px-5">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-white text-sm font-bold">Your Orders for Today</h3>
-                    <button class="text-primary text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                        View All
-                        <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                    </button>
-                </div>
-
-                {{-- Placeholder Order Stack --}}
-                <div class="relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform">
-                    {{-- Layers dietro (effetto stack) --}}
-                    <div class="absolute inset-0 top-4 mx-4 h-full rounded-xl border border-border-dark/30 bg-surface-dark/40 scale-[0.92] opacity-40 z-0"></div>
-                    <div class="absolute inset-0 top-2 mx-2 h-full rounded-xl border border-border-dark/60 bg-surface-dark/80 scale-[0.96] opacity-70 z-10"></div>
-                    
-                    {{-- Card principale --}}
-                    <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
-                        <div class="flex items-center gap-3">
-                            <div class="relative">
-                                <div class="size-11 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-emerald-500">receipt_long</span>
-                                </div>
-                                <div class="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border-2 border-surface-dark shadow-lg">
-                                    3
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-white text-sm font-bold">Panino del Giorno</p>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <p class="text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
-                                        Ready at 12:45 PM
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="h-8 w-px bg-border-dark/50"></div>
-                            <span class="material-symbols-outlined text-slate-400">chevron_right</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        @endif
+        <section class="px-5" data-order-preview-section>
+            {{-- Header sezione --}}
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-white text-sm font-bold">
+                    {{ config('ui.labels.order_preview.section_title') }}
+                </h3>
+                {{-- 
+                    Bottone View All
+                    - data-view-all-button: riferimento per JS
+                    - href dinamico gestito da JS in base a isAuthenticated
+                --}}
+                <a 
+                    href="{{ route('orders.index') }}"
+                    data-view-all-button
+                    class="text-primary text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded"
+                    aria-label="{{ config('ui.labels.order_preview.view_all') }}"
+                >
+                    {{ config('ui.labels.order_preview.view_all') }}
+                    <span class="material-symbols-outlined text-xs" aria-hidden="true">
+                        {{ config('ui.order_preview_icons.arrow_forward') }}
+                    </span>
+                </a>
+            </div>
+            
+            {{-- Container per la card dinamica --}}
+            <div data-order-preview-container>
+                {{-- Il contenuto viene popolato da renderOrderPreview() in home.js --}}
+            </div>
+        </section>
 
         {{--
             SEZIONE 4: Pre-book Slots Futuri

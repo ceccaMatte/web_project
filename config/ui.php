@@ -106,5 +106,95 @@ return [
             'title' => 'Schedule',
             'week_selector' => 'Week day selector',
         ],
+        /*
+        |--------------------------------------------------------------------------
+        | Order Preview Card Labels
+        |--------------------------------------------------------------------------
+        |
+        | Testi e label per la sezione "Your Orders for Today".
+        | Utilizzati dal componente order-preview-card.blade.php
+        |
+        */
+        'order_preview' => [
+            'section_title' => 'Your Orders for Today',
+            'view_all' => 'View All',
+            'book_sandwich' => 'Book sandwich',
+            'no_orders' => 'No orders yet',
+            'login_cta' => 'Log in to book and track your orders',
+            // Aria labels per accessibilità WCAG AAA
+            'aria_login' => 'Go to login',
+            'aria_empty' => 'Create a new order',
+            'aria_orders' => 'View your orders',
+            'aria_orders_count' => 'You have :count orders',
+        ],
+        /*
+        |--------------------------------------------------------------------------
+        | Order Status Labels
+        |--------------------------------------------------------------------------
+        |
+        | Label degli stati degli ordini.
+        | Utilizzati per costruire la statusLabel visualizzata nella card.
+        |
+        */
+        'order_status' => [
+            'pending' => 'PENDING',
+            'confirmed' => 'CONFIRMED',
+            'ready' => 'READY',
+            'picked_up' => 'PICKED UP',
+            'rejected' => 'REJECTED',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Icone Order Preview
+    |--------------------------------------------------------------------------
+    |
+    | Icone Material Symbols per la Order Preview Card.
+    |
+    */
+    'order_preview_icons' => [
+        'receipt' => 'receipt_long',
+        'chevron_right' => 'chevron_right',
+        'arrow_forward' => 'arrow_forward',
+        'login' => 'login',
+        'add_circle' => 'add_circle',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Order Status Colors
+    |--------------------------------------------------------------------------
+    |
+    | Colori associati agli stati degli ordini.
+    | Utilizzati per personalizzare l'aspetto della card.
+    |
+    */
+    'order_status_colors' => [
+        'pending' => [
+            'bg' => 'bg-amber-500/10',
+            'text' => 'text-amber-500',
+            'dot' => 'bg-amber-500',
+        ],
+        'confirmed' => [
+            'bg' => 'bg-blue-500/10',
+            'text' => 'text-blue-500',
+            'dot' => 'bg-blue-500',
+        ],
+        'ready' => [
+            'bg' => 'bg-emerald-500/10',
+            'text' => 'text-emerald-500',
+            'dot' => 'bg-emerald-500',
+        ],
+        'picked_up' => [
+            'bg' => 'bg-slate-500/10',
+            'text' => 'text-slate-400',
+            'dot' => 'bg-slate-400',
+        ],
+        'rejected' => [
+            'bg' => 'bg-rose-500/10',
+            'text' => 'text-rose-500',
+            'dot' => 'bg-rose-500',
+        ],
     ],
 ];

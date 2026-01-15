@@ -82,10 +82,27 @@ const homeState = {
     weekDays: [],
 
     /**
-     * TODO: Aggiungere in futuro
-     * - timeSlots: []
-     * - userOrders: []
+     * Order Preview state (computato da computeOrdersPreviewState)
+     * 
+     * VARIANTI (mutuamente esclusive):
+     * - login-cta: utente non loggato
+     * - empty: utente loggato, 0 ordini
+     * - single: utente loggato, 1 ordine
+     * - multi: utente loggato, 2+ ordini
+     * 
+     * STRUTTURA:
+     * - variant: 'login-cta' | 'empty' | 'single' | 'multi'
+     * - ordersCount: numero totale ordini
+     * - selectedOrder: ordine più rilevante (null se login-cta o empty)
+     *   - id: string|number
+     *   - status: 'rejected'|'ready'|'confirmed'|'pending'|'picked_up'
+     *   - statusLabel: string preformattata (es. "READY AT 12:45 PM")
      */
+    ordersPreview: {
+        variant: 'login-cta',
+        ordersCount: 0,
+        selectedOrder: null,
+    },
 };
 
 /**
@@ -106,6 +123,9 @@ const homeView = {
         overlay: null,
         truckStatusSection: null,
         schedulerSection: null,
+        orderPreviewSection: null,
+        orderPreviewContainer: null,
+        viewAllButton: null,
     },
 
     /**
@@ -117,6 +137,9 @@ const homeView = {
         this.refs.overlay = document.querySelector('[data-overlay]');
         this.refs.truckStatusSection = document.querySelector('[data-truck-status-section]');
         this.refs.schedulerSection = document.querySelector('[data-scheduler-section]');
+        this.refs.orderPreviewSection = document.querySelector('[data-order-preview-section]');
+        this.refs.orderPreviewContainer = document.querySelector('[data-order-preview-container]');
+        this.refs.viewAllButton = document.querySelector('[data-view-all-button]');
 
         if (!this.refs.sidebar) {
             console.error('[Home] Sidebar element not found');
@@ -129,6 +152,12 @@ const homeView = {
         }
         if (!this.refs.schedulerSection) {
             console.error('[Home] Scheduler section not found');
+        }
+        if (!this.refs.orderPreviewSection) {
+            console.error('[Home] Order preview section not found');
+        }
+        if (!this.refs.orderPreviewContainer) {
+            console.error('[Home] Order preview container not found');
         }
     },
 
@@ -386,6 +415,259 @@ const homeView = {
 
         console.log('[Home] Scheduler rendered with', weekDays.length, 'days');
     },
+
+    /**
+     * Renderizza la Order Preview Card basandosi su homeState.ordersPreview.
+     * 
+     * RESPONSABILITÀ:
+     * - Legge SOLO da homeState.ordersPreview (mai da DOM)
+     * - Costruisce l'HTML del componente order-preview-card
+     * - Applica stili e contenuti in base alla variant
+     * 
+     * COSA NON FA:
+     * - NON fa fetch
+     * - NON modifica homeState
+     * - NON calcola la variant (già computata)
+     * - NON seleziona l'ordine più rilevante (già fatto)
+     * 
+     * SUPPORTA CHIAMATE MULTIPLE:
+     * - Può essere chiamata N volte per aggiornare il render
+     * - Sostituisce sempre il contenuto del container
+     */
+    renderOrderPreview() {
+        if (!this.refs.orderPreviewContainer) {
+            console.warn('[Home] Cannot render order preview: container not found');
+            return;
+        }
+
+        const { variant, ordersCount, selectedOrder } = homeState.ordersPreview;
+
+        // Configurazione icone (stesse di config/ui.php)
+        const icons = {
+            receipt: 'receipt_long',
+            chevron_right: 'chevron_right',
+            login: 'login',
+            add_circle: 'add_circle',
+        };
+
+        // Configurazione labels (stesse di config/ui.php)
+        const labels = {
+            login_cta: 'Log in to book and track your orders',
+            no_orders: 'No orders yet',
+            book_sandwich: 'Book sandwich',
+            aria_login: 'Go to login',
+            aria_empty: 'Create a new order',
+            aria_orders: 'View your orders',
+        };
+
+        // Configurazione colori per stato
+        const statusColors = {
+            pending: { bg: 'bg-amber-500/10', text: 'text-amber-500', dot: 'bg-amber-500' },
+            confirmed: { bg: 'bg-blue-500/10', text: 'text-blue-500', dot: 'bg-blue-500' },
+            ready: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', dot: 'bg-emerald-500' },
+            picked_up: { bg: 'bg-slate-500/10', text: 'text-slate-400', dot: 'bg-slate-400' },
+            rejected: { bg: 'bg-rose-500/10', text: 'text-rose-500', dot: 'bg-rose-500' },
+        };
+
+        // Determina URL destinazione
+        const getHref = () => {
+            switch (variant) {
+                case 'login-cta': return '/login';
+                case 'empty': return '/orders'; // TODO: sostituire con route creazione ordine
+                case 'single':
+                case 'multi':
+                default: return '/orders';
+            }
+        };
+
+        // Determina aria-label
+        const getAriaLabel = () => {
+            switch (variant) {
+                case 'login-cta': return labels.aria_login;
+                case 'empty': return labels.aria_empty;
+                default: return labels.aria_orders;
+            }
+        };
+
+        let componentHTML = '';
+        const href = getHref();
+        const ariaLabel = getAriaLabel();
+
+        // =====================================================
+        // VARIANT: LOGIN-CTA
+        // =====================================================
+        if (variant === 'login-cta') {
+            componentHTML = `
+                <a 
+                    href="${href}"
+                    class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark rounded-xl"
+                    aria-label="${ariaLabel}"
+                >
+                    <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="size-11 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary" aria-hidden="true">
+                                    ${icons.login}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-white text-sm font-bold">${labels.login_cta}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-px bg-border-dark/50"></div>
+                            <span class="material-symbols-outlined text-slate-400" aria-hidden="true">
+                                ${icons.chevron_right}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+        // =====================================================
+        // VARIANT: EMPTY
+        // =====================================================
+        else if (variant === 'empty') {
+            componentHTML = `
+                <a 
+                    href="${href}"
+                    class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark rounded-xl"
+                    aria-label="${ariaLabel}"
+                >
+                    <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="size-11 rounded-lg bg-slate-500/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-slate-400" aria-hidden="true">
+                                    ${icons.add_circle}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">${labels.no_orders}</p>
+                                <p class="text-primary text-xs font-bold mt-0.5">${labels.book_sandwich}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-px bg-border-dark/50"></div>
+                            <span class="material-symbols-outlined text-slate-400" aria-hidden="true">
+                                ${icons.chevron_right}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+        // =====================================================
+        // VARIANT: SINGLE
+        // =====================================================
+        else if (variant === 'single' && selectedOrder) {
+            const colors = statusColors[selectedOrder.status] || statusColors.pending;
+            const pulseClass = selectedOrder.status === 'ready' ? 'animate-pulse' : '';
+
+            componentHTML = `
+                <a 
+                    href="${href}"
+                    class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark rounded-xl"
+                    aria-label="${ariaLabel}"
+                >
+                    <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <div class="size-11 rounded-lg ${colors.bg} flex items-center justify-center">
+                                    <span class="material-symbols-outlined ${colors.text}" aria-hidden="true">
+                                        ${icons.receipt}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-white text-sm font-bold">#${selectedOrder.id}</p>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="size-1.5 rounded-full ${colors.dot} ${pulseClass}" aria-hidden="true"></span>
+                                    <p class="${colors.text} text-[10px] font-bold uppercase tracking-wider">
+                                        ${selectedOrder.statusLabel}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-px bg-border-dark/50"></div>
+                            <span class="material-symbols-outlined text-slate-400" aria-hidden="true">
+                                ${icons.chevron_right}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+        // =====================================================
+        // VARIANT: MULTI
+        // =====================================================
+        else if (variant === 'multi' && selectedOrder) {
+            const colors = statusColors[selectedOrder.status] || statusColors.pending;
+            const pulseClass = selectedOrder.status === 'ready' ? 'animate-pulse' : '';
+
+            componentHTML = `
+                <a 
+                    href="${href}"
+                    class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background-dark rounded-xl"
+                    aria-label="${ariaLabel}"
+                >
+                    <!-- Testo nascosto per screen reader con conteggio ordini -->
+                    <span class="sr-only">You have ${ordersCount} orders</span>
+                    
+                    <!-- Layer 1: shadow card più lontana -->
+                    <div class="absolute inset-0 top-4 mx-4 h-full rounded-xl border border-border-dark/30 bg-surface-dark/40 scale-[0.92] opacity-40 z-0" aria-hidden="true"></div>
+                    
+                    <!-- Layer 2: shadow card intermedia -->
+                    <div class="absolute inset-0 top-2 mx-2 h-full rounded-xl border border-border-dark/60 bg-surface-dark/80 scale-[0.96] opacity-70 z-10" aria-hidden="true"></div>
+                    
+                    <!-- Card principale -->
+                    <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <div class="size-11 rounded-lg ${colors.bg} flex items-center justify-center">
+                                    <span class="material-symbols-outlined ${colors.text}" aria-hidden="true">
+                                        ${icons.receipt}
+                                    </span>
+                                </div>
+                                <!-- Badge numerico ordini -->
+                                <div 
+                                    class="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border-2 border-surface-dark shadow-lg min-w-[20px] text-center"
+                                    aria-hidden="true"
+                                >
+                                    ${ordersCount}
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-white text-sm font-bold">#${selectedOrder.id}</p>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="size-1.5 rounded-full ${colors.dot} ${pulseClass}" aria-hidden="true"></span>
+                                    <p class="${colors.text} text-[10px] font-bold uppercase tracking-wider">
+                                        ${selectedOrder.statusLabel}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-px bg-border-dark/50"></div>
+                            <span class="material-symbols-outlined text-slate-400" aria-hidden="true">
+                                ${icons.chevron_right}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+
+        // Monta il componente nel container
+        this.refs.orderPreviewContainer.innerHTML = componentHTML;
+
+        // Aggiorna href del bottone "View All" in base a isAuthenticated
+        if (this.refs.viewAllButton) {
+            this.refs.viewAllButton.href = homeState.user.authenticated ? '/orders' : '/login';
+        }
+
+        console.log('[Home] Order preview rendered:', variant, ordersCount ? `(${ordersCount} orders)` : '');
+    },
 };
 
 /**
@@ -489,6 +771,181 @@ const homeHandlers = {
     },
 };
 
+// =============================================================================
+// ORDER PREVIEW LOGIC FUNCTIONS
+// =============================================================================
+
+/**
+ * Seleziona l'ordine più rilevante da un array di ordini.
+ * 
+ * PRIORITÀ STATI (dal più importante al meno importante):
+ * 1. rejected - L'utente deve accorgersene subito
+ * 2. ready - L'ordine è pronto per il ritiro
+ * 3. confirmed - L'ordine è confermato, in preparazione
+ * 4. pending - In attesa di conferma
+ * 5. picked_up - Già ritirato (meno urgente)
+ * 
+ * TIE-BREAK: se più ordini hanno lo stesso stato, 
+ * viene scelto il primo nell'array (indice minore).
+ * 
+ * @param {Array} ordersArray - Array di ordini con id, status, etc.
+ * @returns {Object|null} - L'ordine più rilevante o null se array vuoto
+ */
+function selectMostRelevantOrder(ordersArray) {
+    if (!ordersArray || ordersArray.length === 0) {
+        return null;
+    }
+
+    // Priorità stati: indice più basso = priorità più alta
+    const statusPriority = {
+        'rejected': 0,
+        'ready': 1,
+        'confirmed': 2,
+        'pending': 3,
+        'picked_up': 4,
+    };
+
+    // Trova l'ordine con priorità più alta
+    let mostRelevant = ordersArray[0];
+    let highestPriority = statusPriority[mostRelevant.status] ?? 999;
+
+    for (let i = 1; i < ordersArray.length; i++) {
+        const order = ordersArray[i];
+        const priority = statusPriority[order.status] ?? 999;
+
+        // Se questo ordine ha priorità più alta (numero più basso), lo selezioniamo
+        // In caso di parità, manteniamo il primo trovato (tie-break)
+        if (priority < highestPriority) {
+            mostRelevant = order;
+            highestPriority = priority;
+        }
+    }
+
+    return mostRelevant;
+}
+
+/**
+ * Costruisce la statusLabel formattata per un ordine.
+ * 
+ * @param {string} status - Stato dell'ordine
+ * @param {string|null} pickupTime - Orario di ritiro (opzionale, formato HH:MM)
+ * @returns {string} - Label formattata (es. "READY AT 12:45 PM")
+ */
+function buildStatusLabel(status, pickupTime = null) {
+    // Label base per ogni stato
+    const baseLabels = {
+        'pending': 'PENDING',
+        'confirmed': 'CONFIRMED',
+        'ready': 'READY',
+        'picked_up': 'PICKED UP',
+        'rejected': 'REJECTED',
+    };
+
+    const baseLabel = baseLabels[status] || status.toUpperCase();
+
+    // Se ready e abbiamo un pickup time, aggiungiamolo
+    if (status === 'ready' && pickupTime) {
+        return `READY AT ${pickupTime}`;
+    }
+
+    // Se confirmed e abbiamo un pickup time, mostriamo l'orario previsto
+    if (status === 'confirmed' && pickupTime) {
+        return `PICKUP AT ${pickupTime}`;
+    }
+
+    return baseLabel;
+}
+
+/**
+ * Computa lo stato completo di ordersPreview basandosi sui dati raw.
+ * 
+ * LOGICA DI DECISIONE VARIANT:
+ * - Se !isAuthenticated → 'login-cta'
+ * - Se 0 ordini → 'empty'
+ * - Se 1 ordine → 'single'
+ * - Se >=2 ordini → 'multi'
+ * 
+ * @param {Array} rawOrders - Array di ordini dal backend
+ * @param {boolean} isAuthenticated - Se l'utente è autenticato
+ * @returns {Object} - Oggetto da assegnare a homeState.ordersPreview
+ */
+function computeOrdersPreviewState(rawOrders, isAuthenticated) {
+    // CASO A: Utente non loggato
+    if (!isAuthenticated) {
+        return {
+            variant: 'login-cta',
+            ordersCount: 0,
+            selectedOrder: null,
+        };
+    }
+
+    const orders = rawOrders || [];
+    const ordersCount = orders.length;
+
+    // CASO B: Utente loggato, 0 ordini
+    if (ordersCount === 0) {
+        return {
+            variant: 'empty',
+            ordersCount: 0,
+            selectedOrder: null,
+        };
+    }
+
+    // CASO C: Utente loggato, 1 ordine
+    if (ordersCount === 1) {
+        const order = orders[0];
+        return {
+            variant: 'single',
+            ordersCount: 1,
+            selectedOrder: {
+                id: order.id,
+                status: order.status,
+                statusLabel: buildStatusLabel(order.status, order.pickup_time || null),
+            },
+        };
+    }
+
+    // CASO D: Utente loggato, 2+ ordini
+    const mostRelevant = selectMostRelevantOrder(orders);
+    return {
+        variant: 'multi',
+        ordersCount: ordersCount,
+        selectedOrder: {
+            id: mostRelevant.id,
+            status: mostRelevant.status,
+            statusLabel: buildStatusLabel(mostRelevant.status, mostRelevant.pickup_time || null),
+        },
+    };
+}
+
+/**
+ * Inizializza la sezione Order Preview.
+ * 
+ * WORKFLOW:
+ * 1. Legge dati ordini iniettati dal backend (JSON inline)
+ * 2. Computa lo stato via computeOrdersPreviewState
+ * 3. Aggiorna homeState.ordersPreview
+ * 4. Chiama renderOrderPreview
+ * 
+ * @param {Object} ordersData - Dati dal backend { orders: [...] }
+ */
+function initOrderPreview(ordersData) {
+    const orders = ordersData?.orders || [];
+    const isAuthenticated = homeState.user.authenticated;
+
+    // Computa lo stato
+    homeState.ordersPreview = computeOrdersPreviewState(orders, isAuthenticated);
+
+    // Render
+    homeView.renderOrderPreview();
+
+    console.log('[Home] Order preview initialized:', homeState.ordersPreview.variant);
+}
+
+// =============================================================================
+// PAGE INITIALIZATION
+// =============================================================================
+
 /**
  * INIZIALIZZAZIONE PAGINA
  * 
@@ -549,7 +1006,24 @@ export function initHomePage() {
         weekDays: homeState.weekDays,
     });
 
-    // 6. Event delegation su document
+    // 6. Leggi dati orders preview dal backend (passato via Blade)
+    // Cerca elemento con data-orders-preview (JSON inline)
+    const ordersPreviewElement = document.querySelector('[data-orders-preview]');
+    if (ordersPreviewElement) {
+        try {
+            const ordersData = JSON.parse(ordersPreviewElement.textContent);
+            initOrderPreview(ordersData);
+        } catch (error) {
+            console.error('[Home] Failed to parse orders preview:', error);
+            // Fallback: inizializza con array vuoto
+            initOrderPreview({ orders: [] });
+        }
+    } else {
+        // Nessun dato ordini: inizializza comunque (mostrerà login-cta o empty)
+        initOrderPreview({ orders: [] });
+    }
+
+    // 7. Event delegation su document
     // Tutti i click passano per handleAction
     // Gestisce: data-action (sidebar), data-day-id (scheduler)
     document.addEventListener('click', (event) => {
