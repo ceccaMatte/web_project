@@ -84,4 +84,27 @@ return [
             'requires_enabled' => true,
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Labels Componenti
+    |--------------------------------------------------------------------------
+    |
+    | Stringhe usate nei componenti UI.
+    | Centralizzate per internazionalizzazione futura.
+    |
+    */
+    'labels' => [
+        'truck_status' => [
+            'live_now' => 'LIVE NOW (TODAY)',
+            'service_unavailable' => 'SERVICE NOT AVAILABLE',
+            'coming_soon' => 'Coming soon',
+            'physical_queue' => 'Physical Queue',
+            'queue_wait_time' => 'Walk-up wait time',
+        ],
+        'scheduler' => [
+            'title' => 'Schedule',
+            'week_selector' => 'Week day selector',
+        ],
+    ],
 ];

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orders Management - Campus Sandwich</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#136dec",
+                "background-light": "#f6f7f8",
+                "background-dark": "#101822",
+                "card-dark": "#1a2432",
+              },
+              fontFamily: {
+                "display": ["Lexend"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+<!-- iOS Status Bar Spacer -->
+<div class="h-12 w-full bg-background-light dark:bg-background-dark sticky top-0 z-50"></div>
+<!-- Header Section -->
+<header class="px-5 pb-4 bg-background-light dark:bg-background-dark sticky top-12 z-40 border-b border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-end">
+<div>
+<p class="text-xs font-semibold text-primary uppercase tracking-widest mb-1">Campus Truck</p>
+<h1 class="text-3xl font-bold tracking-tight">Your Orders</h1>
+</div>
+<div class="bg-primary/10 p-2 rounded-full">
+<span class="material-icons text-primary">receipt_long</span>
+</div>
+</div>
+</header>
+<main class="pb-32">
+<!-- 7-Day Timeline Picker -->
+<section class="py-6 px-5">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Schedule</h2>
+<span class="text-xs font-medium text-primary">October 2023</span>
+</div>
+<div class="flex justify-between items-center bg-white dark:bg-card-dark p-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+<!-- Sunday -->
+<div class="flex flex-col items-center opacity-40">
+<span class="text-[10px] font-bold mb-2">SUN</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">08</div>
+</div>
+<!-- Monday (Active/Today) -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2 text-primary">MON</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30">09</div>
+</div>
+<!-- Tuesday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">TUE</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">10</div>
+</div>
+<!-- Wednesday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">WED</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">11</div>
+</div>
+<!-- Thursday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">THU</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">12</div>
+</div>
+<!-- Friday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">FRI</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">13</div>
+</div>
+<!-- Saturday -->
+<div class="flex flex-col items-center opacity-40">
+<span class="text-[10px] font-bold mb-2">SAT</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">14</div>
+</div>
+</div>
+</section>
+<!-- Active Orders Section (Empty State with Fixed Height) -->
+<section class="px-5 mb-8">
+<h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center">
+                Active Orders
+                <span class="ml-2 w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+</h2>
+<!-- Empty State Container - Fixed height to prevent layout shift -->
+<div class="h-[180px] w-full bg-slate-100 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center p-6 text-center">
+<div class="mb-4">
+<span class="material-icons text-slate-400 dark:text-slate-600 text-4xl">shopping_basket</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium mb-4">Hungry? No active orders for today.</p>
+<button class="w-full max-w-xs bg-primary text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-icons text-sm">add</span>
+                    Order Now
+                </button>
+</div>
+</section>
+<!-- Order History Section (Expanded) -->
+<section class="px-5">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Recently Ordered</h2>
+<button class="text-xs font-bold text-primary">View All</button>
+</div>
+<div class="space-y-4">
+<!-- Reorder Card 1 -->
+<div class="bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-200 dark:bg-slate-800">
+<img alt="Campus Melt Sandwich" class="w-full h-full object-cover" data-alt="Gourmet toasted sandwich with melted cheese and ham" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCPE8bEQRaoAhrA5TZGv6vHOr07yC3vq8PrMCKP8mkSXMj5vAP3cL44QU8ooQ45EYAniEglD1taczo3UGuNEydbPT2gWD90SRrP0uBenawg0PQTXDbTxSNDidLnWktYvPXjd502gHpMk4JePUMOn1RORzrbVtnI10E40yI18apwz0Oj2QBrX8-LxCqnTFk3Hgj5yrotS99SpNi8zGKZKor4xNMBST7BfOmEvYtSxKiLfo5gEhJTfebVpeRPe1QME_9scSO2Q-HFMFI"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-base leading-tight">The Campus Melt</h3>
+<span class="text-xs font-mono text-slate-500">#4829</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Ordered Oct 07 • $12.50</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-card-dark bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-[8px] font-bold">🥓</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-card-dark bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-[8px] font-bold">🧀</span>
+</div>
+</div>
+<button class="bg-primary/10 text-primary text-[10px] font-bold uppercase py-1.5 px-3 rounded-lg flex items-center gap-1 active:bg-primary active:text-white transition-colors">
+<span class="material-icons text-xs">refresh</span>
+                                Reorder
+                            </button>
+</div>
+</div>
+</div>
+<!-- Reorder Card 2 -->
+<div class="bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-200 dark:bg-slate-800">
+<img alt="Spicy Chicken Sub" class="w-full h-full object-cover" data-alt="Long spicy chicken sub sandwich with fresh lettuce" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANDfyEV1gE3kRCS1UBnwhcEX7PxMMUFappybFPDsXFEu9AKdShZjwHIiIccrMX1b-XOtggZYUdJebaQk--u5eKGDWAWcI_Or-SjIsHCLVLWwI6ABKh-Ys6Zdgg3c54ludhSqaGdcTC-UhqV5Hx0j-d7l6KIrL-Zgc-KYwcKn6FzFYiL-FQaBJORKAfsx3G3-Y5HQLWFm_LFQi7VpQyl3lGROhxJE1b3jOJEBT_U9qatXPvnEunJp8ButI8-TmiCtqipffTt04tg1cm"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-base leading-tight">Spicy Buffalo Sub</h3>
+<span class="text-xs font-mono text-slate-500">#4711</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Ordered Oct 05 • $14.00</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-card-dark bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-[8px] font-bold">🌶️</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-card-dark bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-[8px] font-bold">🍗</span>
+</div>
+</div>
+<button class="bg-primary/10 text-primary text-[10px] font-bold uppercase py-1.5 px-3 rounded-lg flex items-center gap-1 active:bg-primary active:text-white transition-colors">
+<span class="material-icons text-xs">refresh</span>
+                                Reorder
+                            </button>
+</div>
+</div>
+</div>
+<!-- Reorder Card 3 -->
+<div class="bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-200 dark:bg-slate-800">
+<img alt="Veggie Deluxe" class="w-full h-full object-cover" data-alt="Fresh vegetable sandwich with avocado and sprouts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXFOqJchQgqDjNEcCbGcDQK-i5NEZpx7pnUJc2JhG7oMm2wKmRevfyOhraIMj3-m0qEs2Gn3OLkmcpdc2Vm2ZsSVnHx8cYmNpU_HZAy6gg0Tnogxs3Xv0fOcSfx38VkbJq3HPpxb4c2W_2cOb3ezzgmzZdleaxisdK8RtQwR_CQeWuIkz1Qz9swb_ptfz53AB1iL_Z0U0eXFDw71M4SYJg3L6ACIyMX7ygC9X9gdL4lVtoB1kAGkQmrnANctZSaT5ukT10PYt_O1vE"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-base leading-tight">Garden Deluxe</h3>
+<span class="text-xs font-mono text-slate-500">#4580</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Ordered Oct 02 • $11.00</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-card-dark bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-[8px] font-bold">🥑</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-card-dark bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-[8px] font-bold">🥗</span>
+</div>
+</div>
+<button class="bg-primary/10 text-primary text-[10px] font-bold uppercase py-1.5 px-3 rounded-lg flex items-center gap-1 active:bg-primary active:text-white transition-colors">
+<span class="material-icons text-xs">refresh</span>
+                                Reorder
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 ios-blur border-t border-slate-200 dark:border-slate-800 px-6 pt-3 pb-8 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-icons">restaurant_menu</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Menu</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-icons">list_alt</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Orders</span>
+</button>
+<div class="relative -top-6">
+<button class="w-14 h-14 bg-primary rounded-full shadow-xl shadow-primary/40 flex items-center justify-center text-white border-4 border-background-light dark:border-background-dark">
+<span class="material-icons text-3xl">qr_code_scanner</span>
+</button>
+</div>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-icons">local_shipping</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Truck</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-icons">person_outline</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Profile</span>
+</button>
+</nav>
+<!-- iOS Home Indicator -->
+<div class="fixed bottom-1 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full z-[60]"></div>
+</body></html>

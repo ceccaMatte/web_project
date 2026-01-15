@@ -43,6 +43,15 @@
         @json($todayServiceData)
     </script>
 
+    {{--
+        Week Days Data per JavaScript
+        - Dati per week-scheduler
+        - Letto da home.js e salvato in homeState.weekDays + selectedDayId
+    --}}
+    <script type="application/json" data-week-days>
+        @json($weekDaysData)
+    </script>
+
     {{-- TopBar --}}
     @include('components.top-bar')
 
@@ -78,46 +87,14 @@
         </section>
 
         {{--
-            SEZIONE 2: Calendario Settimanale
-            - Mostra giorni della settimana
-            - Evidenzia giorno corrente
-            - Click su giorno mostra slot disponibili (TODO: JS)
+            SEZIONE 2: Week Scheduler
+            - Container renderizzato dinamicamente da home.js
+            - NON contiene dati hard-coded
+            - Il rendering avviene dopo caricamento dati in homeState
         --}}
-        <section class="px-5 flex flex-col gap-3">
-            <div class="flex items-center justify-between">
-                <span class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                    Schedule
-                </span>
-                <span class="text-primary text-[10px] font-bold uppercase tracking-widest">
-                    {{ now()->format('F Y') }}
-                </span>
-            </div>
-
-            {{-- Calendario (Placeholder) --}}
-            <div class="bg-surface-dark border border-border-dark rounded-2xl p-2">
-                <div class="flex justify-between gap-1">
-                    {{-- Esempio giorni settimana (TODO: dinamico) --}}
-                    @for($i = 0; $i < 7; $i++)
-                        @php
-                            $date = now()->addDays($i);
-                            $isToday = $date->isToday();
-                            $isWeekend = $date->isWeekend();
-                        @endphp
-                        <div class="flex flex-col items-center justify-center flex-1 py-3 rounded-xl 
-                            {{ $isToday ? 'border border-primary bg-primary/10 text-white' : ($isWeekend ? 'text-slate-700 opacity-30' : 'text-slate-400') }}
-                        ">
-                            <span class="text-[9px] font-medium uppercase mb-1">
-                                {{ $date->format('D') }}
-                            </span>
-                            <span class="text-base font-bold">
-                                {{ $date->format('d') }}
-                            </span>
-                            @if($isToday)
-                                <div class="mt-1 size-1 rounded-full bg-primary"></div>
-                            @endif
-                        </div>
-                    @endfor
-                </div>
+        <section class="px-5">
+            <div id="scheduler-section" data-scheduler-section>
+                {{-- Il contenuto viene popolato da renderScheduler() in home.js --}}
             </div>
         </section>
 

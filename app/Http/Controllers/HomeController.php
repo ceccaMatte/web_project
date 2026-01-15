@@ -46,11 +46,15 @@ class HomeController extends Controller
         // 4. Prepara dati per truck-status-card
         $todayServiceData = $this->getTodayServiceData($todayWorkingDay);
 
+        // 5. Prepara dati per week-scheduler
+        $weekDaysData = $this->getWeekDaysData($todayWorkingDay, $futureWorkingDays);
+
         return view('pages.home', [
             'user' => $user,
             'todayWorkingDay' => $todayWorkingDay,
             'futureWorkingDays' => $futureWorkingDays,
             'todayServiceData' => $todayServiceData,
+            'weekDaysData' => $weekDaysData,
         ]);
     }
 
@@ -153,4 +157,63 @@ class HomeController extends Controller
             'queueTime' => null,
         ];
     }
+
+    /**
+     * Prepara dati per week-scheduler (7 giorni).
+     * 
+     * LOGICA:
+     * - Parte da oggi (today)
+     * - Genera 7 giorni consecutivi
+     * - Per ogni giorno calcola: isToday, isActive, isDisabled, isSelected
+     * 
+     * STATI:
+     * - isToday: giorno === oggi
+     * - isActive: giorno presente/futuro E servizio disponibile
+     * - isDisabled: passato O futuro senza servizio
+     * - isSelected: today di default (anche se disabled)
+     * 
+     * @param array|null $todayWorkingDay
+     * @param array $futureWorkingDays
+     * @return array
+     */
+    private function getWeekDaysData(?array $todayWorkingDay, array $futureWorkingDays): array
+    {
+        $today = today();
+        $days = [];
+        
+        // Simula giorni attivi (TODO: usare $futureWorkingDays reali)
+        // Per ora: lun-ven attivi, weekend no
+        $activeDays = [
+            $today->copy()->format('Y-m-d'), // Oggi
+            $today->copy()->addDays(1)->format('Y-m-d'),
+            $today->copy()->addDays(2)->format('Y-m-d'),
+            $today->copy()->addDays(4)->format('Y-m-d'), // Salta weekend
+        ];
+
+        for ($i = 0; $i < 7; $i++) {
+            $date = $today->copy()->addDays($i);
+            $dateString = $date->format('Y-m-d');
+            $isToday = $i === 0;
+            $isPast = $date->isPast() && !$isToday;
+            $isActive = in_array($dateString, $activeDays) && !$isPast;
+            $isDisabled = $isPast || !$isActive;
+
+            $days[] = [
+                'id' => $dateString,
+                'weekday' => strtoupper($date->format('D')),
+                'dayNumber' => $date->format('d'),
+                'isToday' => $isToday,
+                'isActive' => $isActive,
+                'isDisabled' => $isDisabled,
+                'isSelected' => $isToday, // Default: today è selezionato
+            ];
+        }
+
+        return [
+            'monthLabel' => $today->format('F Y'),
+            'days' => $days,
+            'selectedDayId' => $today->format('Y-m-d'), // Default selection
+        ];
+    }
 }
+

@@ -61,11 +61,30 @@ const homeState = {
     },
 
     /**
+     * Week Scheduler state (ricevuto dal backend via Blade)
+     * - selectedDayId: string (YYYY-MM-DD) - giorno attualmente visualizzato
+     * - monthLabel: string (es. "January 2026")
+     * - weekDays: array di 7 oggetti con struttura:
+     *   {
+     *     id: "2026-01-15",
+     *     weekday: "WED",
+     *     dayNumber: "15",
+     *     isToday: bool,
+     *     isActive: bool,
+     *     isDisabled: bool,
+     *     isSelected: bool
+     *   }
+     * 
+     * IMPORTANTE: selectedDayId cambia al click su un giorno.
+     */
+    selectedDayId: null,
+    monthLabel: null,
+    weekDays: [],
+
+    /**
      * TODO: Aggiungere in futuro
-     * - workingDays: []
      * - timeSlots: []
      * - userOrders: []
-     * - selectedDate: string
      */
 };
 
@@ -86,6 +105,7 @@ const homeView = {
         sidebar: null,
         overlay: null,
         truckStatusSection: null,
+        schedulerSection: null,
     },
 
     /**
@@ -96,6 +116,7 @@ const homeView = {
         this.refs.sidebar = document.querySelector('[data-sidebar]');
         this.refs.overlay = document.querySelector('[data-overlay]');
         this.refs.truckStatusSection = document.querySelector('[data-truck-status-section]');
+        this.refs.schedulerSection = document.querySelector('[data-scheduler-section]');
 
         if (!this.refs.sidebar) {
             console.error('[Home] Sidebar element not found');
@@ -105,6 +126,9 @@ const homeView = {
         }
         if (!this.refs.truckStatusSection) {
             console.error('[Home] Truck status section not found');
+        }
+        if (!this.refs.schedulerSection) {
+            console.error('[Home] Scheduler section not found');
         }
     },
 
@@ -243,6 +267,125 @@ const homeView = {
 
         console.log('[Home] Truck status rendered:', status);
     },
+
+    /**
+     * Renderizza il week scheduler basandosi su homeState.weekDays.
+     * 
+     * RESPONSABILITÀ:
+     * - Legge SOLO da homeState (mai da DOM)
+     * - Monta il componente week-scheduler nel container
+     * - Applica stili basati su stati (disabled, selected, today, active)
+     * 
+     * COSA NON FA:
+     * - NON fa fetch
+     * - NON modifica homeState
+     * - NON gestisce click (delegato a homeHandlers)
+     * 
+     * SUPPORTA CHIAMATE MULTIPLE:
+     * - Può essere chiamata N volte per aggiornare il render
+     * - Sostituisce sempre il contenuto del container
+     * 
+     * @param {object} schedulerData - Dati da homeState (monthLabel, weekDays)
+     */
+    renderScheduler(schedulerData) {
+        if (!this.refs.schedulerSection) {
+            console.warn('[Home] Cannot render scheduler: section not found');
+            return;
+        }
+
+        const { monthLabel, weekDays } = schedulerData;
+
+        // Header
+        let headerHTML = `
+            <div class="flex items-center justify-between">
+                <h2 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                    Schedule
+                </h2>
+                <span class="text-primary text-[10px] font-bold uppercase tracking-widest">
+                    ${monthLabel}
+                </span>
+            </div>
+        `;
+
+        // Day Selector
+        let daysHTML = '<div class="bg-surface-dark border border-border-dark rounded-2xl p-2"><div class="flex justify-between gap-1">';
+
+        weekDays.forEach(day => {
+            const { id, weekday, dayNumber, isToday, isActive, isDisabled, isSelected } = day;
+
+            // Calcola classi CSS (priorità: selected > today > disabled > active)
+            let baseClasses = 'flex flex-col items-center justify-center flex-1 py-3 rounded-xl transition-all';
+            let stateClasses = '';
+            let weekdayColor = '';
+            let numberColor = '';
+
+            if (isDisabled) {
+                stateClasses = 'opacity-30 cursor-not-allowed';
+                weekdayColor = 'text-slate-500';
+                numberColor = 'text-slate-400';
+            } else if (isSelected) {
+                stateClasses = 'border border-primary bg-primary/10 shadow-lg shadow-primary/20';
+                weekdayColor = 'text-primary';
+                numberColor = 'text-white';
+            } else if (isActive) {
+                stateClasses = 'hover:bg-slate-800 active:scale-95 cursor-pointer';
+                weekdayColor = 'text-slate-400';
+                numberColor = 'text-slate-300';
+            } else {
+                stateClasses = 'opacity-30';
+                weekdayColor = 'text-slate-500';
+                numberColor = 'text-slate-400';
+            }
+
+            const allClasses = `${baseClasses} ${stateClasses}`;
+
+            if (isDisabled) {
+                // Giorno disabled: <div> non cliccabile
+                daysHTML += `
+                    <div 
+                        class="${allClasses}"
+                        aria-disabled="true"
+                        ${isToday ? 'aria-current="date"' : ''}
+                    >
+                        <span class="text-[9px] font-medium uppercase mb-1 ${weekdayColor}">
+                            ${weekday}
+                        </span>
+                        <span class="text-base font-bold ${numberColor}">
+                            ${dayNumber}
+                        </span>
+                        ${isToday ? '<div class="mt-1 size-1 rounded-full bg-slate-700"></div>' : ''}
+                    </div>
+                `;
+            } else {
+                // Giorno selezionabile: <button>
+                daysHTML += `
+                    <button 
+                        type="button"
+                        class="${allClasses}"
+                        data-day-id="${id}"
+                        aria-pressed="${isSelected ? 'true' : 'false'}"
+                        ${isToday ? 'aria-current="date"' : ''}
+                    >
+                        <span class="text-[9px] font-medium uppercase mb-1 ${weekdayColor}">
+                            ${weekday}
+                        </span>
+                        <span class="text-base font-bold ${numberColor}">
+                            ${dayNumber}
+                        </span>
+                        ${isToday && !isSelected ? '<div class="mt-1 size-1 rounded-full bg-primary"></div>' : ''}
+                        ${isToday && isSelected ? '<div class="mt-1 size-1 rounded-full bg-white"></div>' : ''}
+                    </button>
+                `;
+            }
+        });
+
+        daysHTML += '</div></div>';
+
+        // Monta il componente nel container
+        this.refs.schedulerSection.innerHTML = headerHTML + daysHTML;
+
+        console.log('[Home] Scheduler rendered with', weekDays.length, 'days');
+    },
 };
 
 /**
@@ -271,17 +414,66 @@ const homeHandlers = {
     },
 
     /**
+     * Gestisce selezione di un giorno nello scheduler.
+     * 
+     * LOGICA:
+     * - Se giorno già selected → NESSUNA AZIONE (idempotenza)
+     * - Altrimenti:
+     *   1. Aggiorna homeState.selectedDayId
+     *   2. Aggiorna isSelected nei weekDays
+     *   3. Re-render scheduler
+     *   4. TODO: Fetch time slots per il giorno
+     * 
+     * @param {string} dayId - ID giorno cliccato (YYYY-MM-DD)
+     */
+    handleDaySelection(dayId) {
+        // Check idempotenza: giorno già selezionato
+        if (homeState.selectedDayId === dayId) {
+            console.log('[Home] Day already selected, no action:', dayId);
+            return;
+        }
+
+        console.log('[Home] Day selection changed:', homeState.selectedDayId, '->', dayId);
+
+        // Aggiorna selectedDayId
+        homeState.selectedDayId = dayId;
+
+        // Aggiorna isSelected nei weekDays
+        homeState.weekDays = homeState.weekDays.map(day => ({
+            ...day,
+            isSelected: day.id === dayId,
+        }));
+
+        // Re-render scheduler
+        homeView.renderScheduler({
+            monthLabel: homeState.monthLabel,
+            weekDays: homeState.weekDays,
+        });
+
+        // TODO: Fetch time slots per il giorno selezionato
+        // fetchTimeSlotsForDay(dayId);
+    },
+
+    /**
      * Event delegation handler.
-     * Delega eventi in base a data-action.
+     * Delega eventi in base a data-action e data-day-id.
      * 
      * @param {Event} event - Click event
      */
     handleAction(event) {
-        // Trova elemento con data-action (supporta bubbling)
-        const target = event.target.closest('[data-action]');
-        if (!target) return;
+        // Check per data-day-id (scheduler)
+        const dayButton = event.target.closest('[data-day-id]');
+        if (dayButton) {
+            const dayId = dayButton.dataset.dayId;
+            this.handleDaySelection(dayId);
+            return;
+        }
 
-        const action = target.dataset.action;
+        // Check per data-action (sidebar, ecc.)
+        const actionTarget = event.target.closest('[data-action]');
+        if (!actionTarget) return;
+
+        const action = actionTarget.dataset.action;
 
         // Dispatch azione
         switch (action) {
@@ -334,12 +526,32 @@ export function initHomePage() {
         }
     }
 
-    // 4. Render iniziale
+    // 4. Leggi dati week scheduler dal backend (passato via Blade)
+    // Cerca elemento con data-week-days (JSON inline)
+    const weekDaysElement = document.querySelector('[data-week-days]');
+    if (weekDaysElement) {
+        try {
+            const weekData = JSON.parse(weekDaysElement.textContent);
+            homeState.selectedDayId = weekData.selectedDayId;
+            homeState.monthLabel = weekData.monthLabel;
+            homeState.weekDays = weekData.days;
+            console.log('[Home] Week days loaded:', homeState.weekDays.length, 'days');
+        } catch (error) {
+            console.error('[Home] Failed to parse week days:', error);
+        }
+    }
+
+    // 5. Render iniziale
     homeView.renderSidebar(homeState.sidebarOpen);
     homeView.renderTruckStatus(homeState.todayService);
+    homeView.renderScheduler({
+        monthLabel: homeState.monthLabel,
+        weekDays: homeState.weekDays,
+    });
 
-    // 5. Event delegation su document
+    // 6. Event delegation su document
     // Tutti i click passano per handleAction
+    // Gestisce: data-action (sidebar), data-day-id (scheduler)
     document.addEventListener('click', (event) => {
         homeHandlers.handleAction(event);
     });
