@@ -34,6 +34,15 @@
         @json($user)
     </script>
 
+    {{--
+        Today Service Data per JavaScript
+        - Dati per truck-status-card
+        - Letto da home.js e salvato in homeState.todayService
+    --}}
+    <script type="application/json" data-today-service>
+        @json($todayServiceData)
+    </script>
+
     {{-- TopBar --}}
     @include('components.top-bar')
 
@@ -57,67 +66,16 @@
     <main class="flex flex-col gap-6 pb-12">
         
         {{--
-            SEZIONE 1: Working Day Corrente
-            - Mostra se oggi è disponibile il servizio
-            - Live indicator se attualmente aperto
+            SEZIONE 1: Truck Status Card
+            - Container renderizzato dinamicamente da home.js
+            - NON contiene dati hard-coded
+            - Il rendering avviene dopo caricamento dati in homeState
         --}}
-        @if(isset($todayWorkingDay))
-            <section class="px-5 pt-4">
-                <div class="relative overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-5 shadow-xl">
-                    
-                    {{-- Header con Live Indicator --}}
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex flex-col gap-1">
-                            {{-- Live Badge --}}
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="relative flex h-2 w-2">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                </span>
-                                <span class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest">
-                                    Live Now (Today)
-                                </span>
-                            </div>
-                            
-                            {{-- Location --}}
-                            <h2 class="text-white text-lg font-bold">
-                                {{ $todayWorkingDay['location'] }}
-                            </h2>
-                            <p class="text-slate-400 text-xs">
-                                Open {{ $todayWorkingDay['start_time'] }} – {{ $todayWorkingDay['end_time'] }}
-                            </p>
-                        </div>
-
-                        {{-- Placeholder Image --}}
-                        <div class="size-20 rounded-xl bg-slate-700 border border-border-dark flex items-center justify-center text-slate-500">
-                            <span class="material-symbols-outlined text-4xl">
-                                {{ config('ui.icons.logo') }}
-                            </span>
-                        </div>
-                    </div>
-
-                    {{-- Queue Info (Placeholder) --}}
-                    <div class="flex items-center justify-between p-3 rounded-xl border border-border-dark/60 bg-background-dark/40">
-                        <div class="flex items-center gap-3">
-                            <div class="size-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
-                                <span class="material-symbols-outlined text-lg">person_pin_circle</span>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-0.5">
-                                    Physical Queue
-                                </p>
-                                <p class="text-xs font-medium text-slate-400">
-                                    Walk-up wait time
-                                </p>
-                            </div>
-                        </div>
-                        <div class="text-xl font-bold text-slate-300">
-                            ~15 min
-                        </div>
-                    </div>
-                </div>
-            </section>
-        @endif
+        <section class="px-5 pt-4">
+            <div id="truck-status-section" data-truck-status-section>
+                {{-- Il contenuto viene popolato da renderTruckStatus() in home.js --}}
+            </div>
+        </section>
 
         {{--
             SEZIONE 2: Calendario Settimanale

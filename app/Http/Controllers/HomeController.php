@@ -43,10 +43,14 @@ class HomeController extends Controller
         // TODO: Implementare logica con WorkingDay model
         $futureWorkingDays = $this->getFutureWorkingDays();
 
+        // 4. Prepara dati per truck-status-card
+        $todayServiceData = $this->getTodayServiceData($todayWorkingDay);
+
         return view('pages.home', [
             'user' => $user,
             'todayWorkingDay' => $todayWorkingDay,
             'futureWorkingDays' => $futureWorkingDays,
+            'todayServiceData' => $todayServiceData,
         ]);
     }
 
@@ -115,5 +119,38 @@ class HomeController extends Controller
 
         // Placeholder
         return [];
+    }
+
+    /**
+     * Prepara dati per truck-status-card basati su todayWorkingDay.
+     * 
+     * LOGICA:
+     * - Se todayWorkingDay esiste → status = 'active' con tutti i dati
+     * - Altrimenti → status = 'inactive'
+     * 
+     * NOTA: NON calcola stati temporali, solo trasforma i dati.
+     * 
+     * @param array|null $todayWorkingDay
+     * @return array
+     */
+    private function getTodayServiceData(?array $todayWorkingDay): array
+    {
+        if ($todayWorkingDay) {
+            return [
+                'status' => 'active',
+                'location' => $todayWorkingDay['location'],
+                'startTime' => $todayWorkingDay['start_time'],
+                'endTime' => $todayWorkingDay['end_time'],
+                'queueTime' => 15, // TODO: Calcolare da dati reali
+            ];
+        }
+
+        return [
+            'status' => 'inactive',
+            'location' => null,
+            'startTime' => null,
+            'endTime' => null,
+            'queueTime' => null,
+        ];
     }
 }
