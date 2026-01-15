@@ -128,6 +128,143 @@ const homeState = {
 };
 
 /**
+ * HYDRATION FUNCTIONS
+ * 
+ * Gestiscono il caricamento e l'idratazione dello stato dalla API /api/home
+ */
+
+/**
+ * refreshHomeState()
+ * 
+ * Esegue fetch('/api/home'), gestisce errori HTTP, converte response in JSON,
+ * chiama hydrateHomeState(data) e poi renderHome().
+ * 
+ * È idempotente e sicura se chiamata più volte.
+ * Non modifica direttamente lo stato, delega a hydrateHomeState.
+ */
+function refreshHomeState() {
+    console.log('[Home] Refreshing home state from API...');
+    
+    fetch('/api/home', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('[Home] API response received:', data);
+        hydrateHomeState(data);
+        renderHome();
+        console.log('[Home] Home state refreshed and rendered successfully');
+    })
+    .catch(error => {
+        console.error('[Home] Failed to refresh home state:', error);
+        // In caso di errore, potremmo mostrare un messaggio di errore
+        // o mantenere lo stato precedente
+    });
+}
+
+/**
+ * hydrateHomeState(data)
+ * 
+ * Riceve ESATTAMENTE la response dell'API /api/home e popola tutti i campi di homeState.
+ * 
+ * NON fa DOM manipulation, NON fa fetch, NON contiene logica UI.
+ * Solo mapping 1:1 tra API response e homeState.
+ * 
+ * @param {Object} data - Response completa da /api/home
+ */
+function hydrateHomeState(data) {
+    console.log('[Home] Hydrating home state with API data...');
+    
+    // Mappa user state
+    if (data.user) {
+        homeState.user = {
+            authenticated: data.user.authenticated || false,
+            enabled: data.user.enabled || false,
+            name: data.user.name || null,
+        };
+    }
+    
+    // Mappa todayService state
+    if (data.todayService) {
+        homeState.todayService = {
+            status: data.todayService.status || 'inactive',
+            location: data.todayService.location || null,
+            startTime: data.todayService.startTime || null,
+            endTime: data.todayService.endTime || null,
+            queueTime: data.todayService.queueTime || null,
+        };
+    }
+    
+    // Mappa scheduler state
+    if (data.scheduler) {
+        homeState.selectedDayId = data.scheduler.selectedDayId || null;
+        homeState.monthLabel = data.scheduler.monthLabel || null;
+        homeState.weekDays = data.scheduler.weekDays || [];
+    }
+    
+    // Mappa ordersPreview state
+    if (data.ordersPreview) {
+        homeState.ordersPreview = {
+            variant: data.ordersPreview.variant || 'login-cta',
+            ordersCount: data.ordersPreview.ordersCount || 0,
+            selectedOrder: data.ordersPreview.selectedOrder || null,
+        };
+    }
+    
+    // Mappa booking state
+    if (data.booking) {
+        homeState.booking = {
+            dateLabel: data.booking.dateLabel || null,
+            locationLabel: data.booking.locationLabel || null,
+            slots: data.booking.slots || [],
+        };
+    }
+    
+    console.log('[Home] Home state hydrated successfully');
+}
+
+/**
+ * renderHome()
+ * 
+ * Funzione orchestratrice che chiama in ordine tutte le funzioni di render.
+ * 
+ * NON modifica lo stato, si limita a leggere homeState e aggiornare la UI.
+ * Chiama: renderTopBar, renderTodayService, renderScheduler, renderOrdersPreview, renderBookingSlots
+ */
+function renderHome() {
+    console.log('[Home] Rendering home UI...');
+    
+    // Renderizza top bar (user state + sidebar state)
+    homeView.renderTopBar(homeState.sidebarOpen);
+    
+    // Renderizza today service
+    homeView.renderTodayService(homeState.todayService);
+    
+    // Renderizza scheduler
+    homeView.renderScheduler({
+        monthLabel: homeState.monthLabel,
+        weekDays: homeState.weekDays,
+    });
+    
+    // Renderizza orders preview
+    homeView.renderOrdersPreview(homeState.ordersPreview);
+    
+    // Renderizza booking slots
+    homeView.renderBookingSlots(homeState.booking);
+    
+    console.log('[Home] Home UI rendered successfully');
+}
+
+/**
  * VIEW LAYER
  * 
  * Contiene:
@@ -143,6 +280,7 @@ const homeView = {
     refs: {
         sidebar: null,
         overlay: null,
+        topBar: null,
         truckStatusSection: null,
         schedulerSection: null,
         orderPreviewSection: null,
@@ -161,6 +299,7 @@ const homeView = {
     init() {
         this.refs.sidebar = document.querySelector('[data-sidebar]');
         this.refs.overlay = document.querySelector('[data-overlay]');
+        this.refs.topBar = document.querySelector('[data-top-bar]');
         this.refs.truckStatusSection = document.querySelector('[data-truck-status-section]');
         this.refs.schedulerSection = document.querySelector('[data-scheduler-section]');
         this.refs.orderPreviewSection = document.querySelector('[data-order-preview-section]');
@@ -177,6 +316,9 @@ const homeView = {
         if (!this.refs.overlay) {
             console.error('[Home] Overlay element not found');
         }
+        if (!this.refs.topBar) {
+            console.error('[Home] Top bar element not found');
+        }
         if (!this.refs.truckStatusSection) {
             console.error('[Home] Truck status section not found');
         }
@@ -192,6 +334,52 @@ const homeView = {
         if (!this.refs.bookingSlotsContainer) {
             console.error('[Home] Booking slots container not found');
         }
+    },
+
+    /**
+     * Renderizza la top bar basandosi su homeState.user e sidebarOpen.
+     * 
+     * RESPONSABILITÀ:
+     * - Mostra nome utente se autenticato
+     * - Cambia icona bottone hamburger/X in base a sidebarOpen
+     * 
+     * @param {boolean} isOpen - Stato sidebar da homeState.sidebarOpen
+     */
+    renderTopBar(isOpen) {
+        if (!this.refs.topBar) {
+            console.warn('[Home] Cannot render top bar: ref not initialized');
+            return;
+        }
+
+        // Trova elementi nella top bar
+        const userNameElement = this.refs.topBar.querySelector('[data-user-name]');
+        const hamburgerButton = this.refs.topBar.querySelector('[data-action="open-sidebar"], [data-action="close-sidebar"]');
+        const hamburgerIcon = hamburgerButton ? hamburgerButton.querySelector('.material-symbols-outlined') : null;
+
+        // Render nome utente
+        if (userNameElement) {
+            if (homeState.user.authenticated && homeState.user.name) {
+                userNameElement.textContent = `Ciao, ${homeState.user.name}`;
+                userNameElement.classList.remove('hidden');
+            } else {
+                userNameElement.classList.add('hidden');
+            }
+        }
+
+        // Cambia icona bottone hamburger/X
+        if (hamburgerIcon) {
+            if (isOpen) {
+                hamburgerIcon.textContent = 'close'; // X quando sidebar aperta
+                hamburgerButton.setAttribute('data-action', 'close-sidebar');
+                hamburgerButton.setAttribute('aria-label', 'Close sidebar');
+            } else {
+                hamburgerIcon.textContent = 'menu'; // Hamburger quando chiusa
+                hamburgerButton.setAttribute('data-action', 'open-sidebar');
+                hamburgerButton.setAttribute('aria-label', 'Open sidebar');
+            }
+        }
+
+        console.log('[Home] Top bar rendered:', homeState.user.authenticated ? 'authenticated' : 'guest', isOpen ? 'sidebar open' : 'sidebar closed');
     },
 
     /**
@@ -225,7 +413,7 @@ const homeView = {
     },
 
     /**
-     * Renderizza il truck status card basandosi su homeState.todayService.
+     * Renderizza il today service card basandosi su homeState.todayService.
      * 
      * RESPONSABILITÀ:
      * - Legge SOLO da homeState (mai da DOM)
@@ -243,7 +431,7 @@ const homeView = {
      * 
      * @param {object} serviceData - Dati da homeState.todayService
      */
-    renderTruckStatus(serviceData) {
+    renderTodayService(serviceData) {
         if (!this.refs.truckStatusSection) {
             console.warn('[Home] Cannot render truck status: section not found');
             return;
@@ -464,16 +652,18 @@ const homeView = {
      * - NON seleziona l'ordine più rilevante (già fatto)
      * 
      * SUPPORTA CHIAMATE MULTIPLE:
-     * - Può essere chiamata N volte per aggiornare il render
+     * - Questa funzione può essere chiamata N volte (per polling futuro)
      * - Sostituisce sempre il contenuto del container
+     * 
+     * @param {object} ordersPreviewData - Dati da homeState.ordersPreview
      */
-    renderOrderPreview() {
+    renderOrdersPreview(ordersPreviewData) {
         if (!this.refs.orderPreviewContainer) {
             console.warn('[Home] Cannot render order preview: container not found');
             return;
         }
 
-        const { variant, ordersCount, selectedOrder } = homeState.ordersPreview;
+        const { variant, ordersCount, selectedOrder } = ordersPreviewData;
 
         // Configurazione icone (stesse di config/ui.php)
         const icons = {
@@ -1135,100 +1325,13 @@ function initOrderPreview(ordersData) {
 export function initHomePage() {
     console.log('[Home] Initializing...');
 
-    // 1. Inizializza riferimenti DOM
+    // Inizializza riferimenti DOM
     homeView.init();
 
-    // 2. Leggi stato user dal backend (passato via Blade)
-    // Cerca elemento con data-user-state (JSON inline)
-    const userStateElement = document.querySelector('[data-user-state]');
-    if (userStateElement) {
-        try {
-            const userData = JSON.parse(userStateElement.textContent);
-            homeState.user = userData;
-            console.log('[Home] User state loaded:', homeState.user);
-        } catch (error) {
-            console.error('[Home] Failed to parse user state:', error);
-        }
-    }
+    // Carica stato iniziale dall'API
+    refreshHomeState();
 
-    // 3. Leggi dati today service dal backend (passato via Blade)
-    // Cerca elemento con data-today-service (JSON inline)
-    const todayServiceElement = document.querySelector('[data-today-service]');
-    if (todayServiceElement) {
-        try {
-            const serviceData = JSON.parse(todayServiceElement.textContent);
-            homeState.todayService = serviceData;
-            console.log('[Home] Today service loaded:', homeState.todayService);
-        } catch (error) {
-            console.error('[Home] Failed to parse today service:', error);
-        }
-    }
-
-    // 4. Leggi dati week scheduler dal backend (passato via Blade)
-    // Cerca elemento con data-week-days (JSON inline)
-    const weekDaysElement = document.querySelector('[data-week-days]');
-    if (weekDaysElement) {
-        try {
-            const weekData = JSON.parse(weekDaysElement.textContent);
-            homeState.selectedDayId = weekData.selectedDayId;
-            homeState.monthLabel = weekData.monthLabel;
-            homeState.weekDays = weekData.days;
-            console.log('[Home] Week days loaded:', homeState.weekDays.length, 'days');
-        } catch (error) {
-            console.error('[Home] Failed to parse week days:', error);
-        }
-    }
-
-    // 5. Render iniziale
-    homeView.renderSidebar(homeState.sidebarOpen);
-    homeView.renderTruckStatus(homeState.todayService);
-    homeView.renderScheduler({
-        monthLabel: homeState.monthLabel,
-        weekDays: homeState.weekDays,
-    });
-
-    // 6. Leggi dati orders preview dal backend (passato via Blade)
-    // Cerca elemento con data-orders-preview (JSON inline)
-    const ordersPreviewElement = document.querySelector('[data-orders-preview]');
-    if (ordersPreviewElement) {
-        try {
-            const ordersData = JSON.parse(ordersPreviewElement.textContent);
-            initOrderPreview(ordersData);
-        } catch (error) {
-            console.error('[Home] Failed to parse orders preview:', error);
-            // Fallback: inizializza con array vuoto
-            initOrderPreview({ orders: [] });
-        }
-    } else {
-        // Nessun dato ordini: inizializza comunque (mostrerà login-cta o empty)
-        initOrderPreview({ orders: [] });
-    }
-
-    // 7. Leggi dati booking slots dal backend (passato via Blade)
-    // Cerca elemento con data-booking-slots (JSON inline)
-    const bookingSlotsElement = document.querySelector('[data-booking-slots]');
-    if (bookingSlotsElement) {
-        try {
-            const bookingData = JSON.parse(bookingSlotsElement.textContent);
-            homeState.booking = {
-                dateLabel: bookingData.dateLabel || null,
-                locationLabel: bookingData.locationLabel || null,
-                slots: bookingData.slots || [],
-            };
-            homeView.renderBookingSlots();
-            console.log('[Home] Booking slots loaded:', homeState.booking.slots.length, 'slots');
-        } catch (error) {
-            console.error('[Home] Failed to parse booking slots:', error);
-            // Fallback: inizializza con array vuoto
-            homeState.booking = { dateLabel: null, locationLabel: null, slots: [] };
-            homeView.renderBookingSlots();
-        }
-    } else {
-        // Nessun dato slot: render comunque (mostrerà "no slots")
-        homeView.renderBookingSlots();
-    }
-
-    // 8. Event delegation su document
+    // Event delegation su document
     // Tutti i click passano per handleAction
     // Gestisce: data-action (sidebar), data-day-id (scheduler)
     document.addEventListener('click', (event) => {
