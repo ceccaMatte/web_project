@@ -18,9 +18,13 @@ class OrderFactory extends Factory
      */
     public function definition(): array
     {
+        $timeSlot = TimeSlot::factory()->create();
+        
         return [
             'user_id' => User::factory(),
-            'time_slot_id' => TimeSlot::factory(),
+            'time_slot_id' => $timeSlot->id,
+            'working_day_id' => $timeSlot->working_day_id,
+            'daily_number' => $this->faker->numberBetween(1, 100),
             'status' => 'pending',
         ];
     }

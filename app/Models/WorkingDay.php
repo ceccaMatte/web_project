@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class WorkingDay extends Model
 {
+    use HasFactory;
     /**
      * Campi che possono essere assegnati in massa.
      * Protegge da mass assignment non autorizzato.
@@ -22,6 +24,7 @@ class WorkingDay extends Model
         'max_time',      // Minuti limite per modifiche ordini
         'start_time',    // Ora di inizio servizio
         'end_time',      // Ora di fine servizio
+        'is_active',     // Indica se il giorno è attivo
     ];
 
     /**

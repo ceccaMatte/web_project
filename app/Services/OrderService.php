@@ -116,10 +116,41 @@ class OrderService
             }
 
             // STEP 6: Crea l'ordine in stato "pending"
+            // LOGICA ASSEGNAZIONE DAILY_NUMBER (CRITICA):
+            // 
+            // PERCHÉ QUI E NON NEL CONTROLLER:
+            // - Deve essere dentro la transaction per atomicità
+            // - Deve usare lockForUpdate per evitare race conditions
+            // - È logica di dominio, non di presentazione
+            // 
+            // COME FUNZIONA:
+            // 1. Recupera l'ultimo daily_number del working_day
+            // 2. Assegna last + 1 (se null, diventa 1)
+            // 3. Salva l'ordine
+            // 4. Commit della transazione
+            // 
+            // PERCHÉ LOCKFORUPDATE:
+            // - Due ordini simultanei potrebbero leggere lo stesso max
+            // - Risultato: stesso numero assegnato a due ordini diversi
+            // - Lock garantisce che la lettura/scrittura sia sequenziale
+            // 
+            // ESEMPIO:
+            // Ordine A: legge max=5, assegna 6, salva
+            // Ordine B: aspetta il lock, poi legge max=6, assegna 7
+            // 
             $order = new Order([
                 'user_id' => $user->id,
                 'time_slot_id' => $timeSlotId,
+                'working_day_id' => $workingDay->id, // Assegniamo il working_day
             ]);
+
+            // Assegniamo il daily_number: ultimo numero del giorno + 1
+            // Usiamo lockForUpdate per evitare race conditions anche qui
+            $lastDailyNumber = Order::where('working_day_id', $workingDay->id)
+                ->lockForUpdate()
+                ->max('daily_number') ?? 0;
+            
+            $order->daily_number = $lastDailyNumber + 1;
             $order->status = 'pending'; // Stato iniziale fisso
             $order->save();
 

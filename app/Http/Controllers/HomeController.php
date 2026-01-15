@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\HomeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -214,6 +215,31 @@ class HomeController extends Controller
             'days' => $days,
             'selectedDayId' => $today->format('Y-m-d'), // Default selection
         ];
+    }
+
+    /**
+     * API endpoint per la Home page.
+     *
+     * ARCHITETTURA:
+     * - Endpoint read-only, idempotente
+     * - Non richiede autenticazione (usa sessione)
+     * - Restituisce contratto stabile per frontend
+     * - Orchestrazione: chiama HomeService per costruire response
+     *
+     * PERCHÉ API SEPARATA:
+     * - Frontend può fare polling per aggiornamenti real-time
+     * - Separazione chiara tra view rendering e data API
+     * - Possibilità di caching a livello API
+     * - Frontend può essere SPA o server-rendered indifferentemente
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function apiIndex()
+    {
+        $homeService = new HomeService();
+        $payload = $homeService->buildHomePayload();
+
+        return response()->json($payload);
     }
 }
 

@@ -50,6 +50,8 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'time_slot_id',
+        'working_day_id',
+        'daily_number',
     ];
 
     /**
@@ -84,6 +86,19 @@ class Order extends Model
     public function timeSlot(): BelongsTo
     {
         return $this->belongsTo(TimeSlot::class);
+    }
+
+    /**
+     * Relazione: l'ordine appartiene a un working day.
+     * 
+     * Usato per:
+     * - Raggruppare ordini per giorno
+     * - Assegnare daily_number unico per giorno
+     * - Filtrare ordini per giornata lavorativa
+     */
+    public function workingDay(): BelongsTo
+    {
+        return $this->belongsTo(WorkingDay::class);
     }
 
     /**
