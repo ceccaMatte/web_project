@@ -27,6 +27,7 @@ import { createFocusTrap, handleEscapeKey } from '../../utils/a11y.js';
 let focusTrap = null;
 let escapeCleanup = null;
 let overlayCleanup = null;
+let closeButtonCleanup = null;
 
 /**
  * Render Sidebar component
@@ -68,6 +69,19 @@ export function renderSidebar(container, overlay, props, callbacks) {
         if (overlay && onClose) {
             overlayCleanup = listen(overlay, 'click', onClose);
         }
+
+        // Close button click per chiudere (rimuovi listener precedente)
+        if (closeButtonCleanup) {
+            closeButtonCleanup();
+        }
+        const closeButton = container.querySelector('[data-action="close-sidebar"]');
+        if (closeButton && onClose) {
+            closeButtonCleanup = listen(closeButton, 'click', (e) => {
+                e.stopPropagation(); // Previeni event bubbling
+                console.log('[Sidebar] Close button clicked');
+                onClose();
+            });
+        }
     } else {
         addClass(container, 'translate-x-full');
         if (overlay) addClass(overlay, 'hidden');
@@ -83,6 +97,10 @@ export function renderSidebar(container, overlay, props, callbacks) {
         if (overlayCleanup) {
             overlayCleanup();
             overlayCleanup = null;
+        }
+        if (closeButtonCleanup) {
+            closeButtonCleanup();
+            closeButtonCleanup = null;
         }
     }
 
