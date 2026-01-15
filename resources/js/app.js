@@ -1,5 +1,7 @@
 import './bootstrap';
 
+console.log('[App] Script loaded - checking if JS is working');
+
 /**
  * PAGE INITIALIZATION SYSTEM
  * 
