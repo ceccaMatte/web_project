@@ -38,6 +38,7 @@ import {
 
 // Componenti riutilizzabili
 import { renderSidebar } from '../../components/sidebar/sidebar.component.js';
+import { renderTopBar } from '../../components/topbar/topbar.component.js';
 import { renderWeekScheduler } from '../../components/weekScheduler/weekScheduler.component.js';
 import { renderOrdersHeader } from '../../components/ordersHeader/ordersHeader.component.js';
 import { renderActiveOrdersSection as renderActiveOrdersSectionComponent } from '../../components/activeOrdersSection/activeOrdersSection.component.js';
@@ -117,19 +118,22 @@ const statusColors = {
 export function renderOrdersPage() {
     console.log('[RenderOrders] Rendering complete orders UI...');
 
-    // 1. Header (back button + title)
-    renderHeader();
+    // 1. TopBar (con hamburger + sidebar toggle)
+    renderTopBarComponent();
 
     // 2. Sidebar
     renderSidebarComponent();
 
-    // 3. Week Scheduler
+    // 3. Header (back button + title)
+    renderHeader();
+
+    // 4. Week Scheduler
     renderScheduler();
 
-    // 4. Active Orders Section
+    // 5. Active Orders Section
     renderActiveOrdersSection();
 
-    // 5. Recent Orders Section
+    // 6. Recent Orders Section
     renderRecentOrdersSection();
 
     console.log('[RenderOrders] Complete orders UI rendered successfully');
@@ -157,6 +161,22 @@ export function renderHeader() {
 // ============================================================================
 // SIDEBAR RENDER
 // ============================================================================
+
+/**
+ * Render TopBar component (hamburger + sidebar toggle)
+ */
+export function renderTopBarComponent() {
+    renderTopBar(
+        ordersView.refs.topBar,
+        {
+            user: ordersState.user,
+            sidebarOpen: ordersState.sidebarOpen,
+        },
+        {
+            onToggleSidebar: (isOpen) => isOpen ? openSidebar() : closeSidebar(),
+        }
+    );
+}
 
 /**
  * Render Sidebar component

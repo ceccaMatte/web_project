@@ -69,8 +69,9 @@ export async function initOrdersPage() {
  * Hydrate dati passati inline nel DOM via <script type="application/json">
  * 
  * Questo permette un render iniziale veloce senza aspettare il fetch API.
+ * Dopo l'hydration inline, triggera un render iniziale della UI.
  */
-function hydrateInlineData() {
+async function hydrateInlineData() {
     console.log('[Orders] Hydrating inline data from DOM...');
 
     // User state
@@ -96,6 +97,12 @@ function hydrateInlineData() {
     }
 
     console.log('[Orders] Inline data hydrated');
+
+    // Render iniziale con i dati inline (loading = false, activeOrders/recentOrders = empty)
+    // Questo mostra l'UI subito senza aspettare il fetch API
+    const { renderOrdersPage } = await import('./orders.render.js');
+    renderOrdersPage();
+    console.log('[Orders] Initial render after inline hydration completed');
 }
 
 /**
