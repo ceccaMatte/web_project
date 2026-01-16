@@ -221,36 +221,13 @@ export async function logout() {
             return;
         }
         
-        console.log('[Actions] Logout successful, updating state');
+        console.log('[Actions] Logout successful, refreshing page to get new CSRF token');
         
-        // 2. Aggiorna stato utente (diventa guest)
-        mutateUser({
-            authenticated: false,
-            enabled: false,
-            name: null,
-        });
-        
-        // 3. Reset ordini (guest non ha ordini)
-        mutateOrdersPreview({
-            variant: 'login-cta',
-            ordersCount: 0,
-            selectedOrder: null,
-        });
-        
-        // 4. Chiudi sidebar se aperta
-        if (homeState.sidebarOpen) {
-            mutateSidebar(false);
-        }
-        
-        console.debug('[Actions] State AFTER logout:', structuredClone({
-            user: homeState.user,
-            ordersPreview: homeState.ordersPreview,
-        }));
-        
-        // 5. Re-render completo in modalità guest
-        renderHome();
-        
-        console.log('[Actions] Home re-rendered in guest mode');
+        // Refresh completo della pagina per:
+        // 1. Ottenere nuovo CSRF token dal backend
+        // 2. Caricare dati aggiornati da /api/home
+        // 3. Evitare 419 su successive richieste
+        window.location.reload();
         
     } catch (error) {
         console.error('[Actions] Logout error:', error);

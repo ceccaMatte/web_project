@@ -200,7 +200,7 @@ class HomeService
             ->whereHas('workingDay', function ($query) use ($today) {
                 $query->whereDate('day', $today);
             })
-            ->with('workingDay')
+            ->with(['workingDay', 'timeSlot'])
             ->get();
 
         $ordersCount = $orders->count();
