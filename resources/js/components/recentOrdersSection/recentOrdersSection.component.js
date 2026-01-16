@@ -55,7 +55,7 @@ export function renderRecentOrdersSection(container, props, callbacks) {
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-[9px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.2em]">${labels.sectionTitle}</h2>
             <button 
-                class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ${showOnlyFavorites ? 'text-yellow-500' : 'text-slate-400'} border border-slate-200 dark:border-slate-700/50 hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                class="w-7 h-7 flex items-center justify-center rounded-lg  bg-slate-800 ${showOnlyFavorites ? 'text-yellow-500' : 'text-slate-400'} border border-slate-700/50 hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 data-action="toggle-favorites-filter"
                 aria-label="${showOnlyFavorites ? 'Show all orders' : 'Show only favorites'}"
                 aria-pressed="${showOnlyFavorites}"
@@ -101,7 +101,7 @@ export function renderRecentOrdersSection(container, props, callbacks) {
     }
 
     const html = `
-        <section class="px-5 pt-2 flex-grow overflow-hidden flex flex-col" aria-label="Your recent orders history" role="region">
+        <section class="pt-2 flex-grow overflow-hidden flex flex-col" aria-label="Your recent orders history" role="region">
             ${headerHTML}
             <div class="space-y-4 overflow-y-auto flex-grow pb-10 hide-scrollbar">
                 ${contentHTML}
