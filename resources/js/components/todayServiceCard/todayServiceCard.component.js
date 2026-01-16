@@ -48,7 +48,9 @@ export function renderTodayServiceCard(container, props) {
                         <p class="text-slate-400 text-xs">Open ${startTime} – ${endTime}</p>
                     </div>
                     <!-- Location Image -->
-                    <div class="size-20 rounded-xl bg-cover bg-center border border-border-dark" style="background-image: url('${locationImageUrl}');" role="img" aria-label="Location photo"></div>
+                    <div class="w-20 h-20 aspect-square rounded-xl overflow-hidden border border-border-dark">
+                        <img src="${locationImageUrl}" alt="Location photo" class="w-full h-full object-cover" />
+                    </div>
                 </div>
 
                 <!-- Physical Queue Section (separata) -->

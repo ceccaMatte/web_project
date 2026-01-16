@@ -38,59 +38,62 @@ export function renderWeekScheduler(container, props, callbacks) {
         </div>
     `;
 
-    // Days
-    let daysHTML = '<div class="bg-surface-dark border border-border-dark rounded-2xl p-2"><div class="flex justify-between gap-1">';
+    // Days - Layout a cerchi (w-10 h-10) con container unico
+    let daysHTML = '<div class="bg-surface-dark border border-border-dark rounded-2xl p-3"><div class="flex justify-between items-center">';
 
     weekDays.forEach(day => {
         const { id, weekday, dayNumber, isToday, isActive, isDisabled, isSelected } = day;
 
-        let baseClasses = 'flex flex-col items-center justify-center flex-1 py-3 rounded-xl transition-all';
-        let stateClasses = '';
         let weekdayColor = '';
-        let numberColor = '';
+        let circleClasses = 'w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold transition-all';
+        let containerOpacity = '';
+        let dotHTML = '';
 
         if (isDisabled) {
-            stateClasses = 'opacity-30 cursor-not-allowed';
+            containerOpacity = 'opacity-40';
             weekdayColor = 'text-slate-500';
-            numberColor = 'text-slate-400';
+            circleClasses += ' text-slate-400';
         } else if (isSelected) {
-            stateClasses = 'border border-primary bg-primary/10 shadow-lg shadow-primary/20';
             weekdayColor = 'text-primary';
-            numberColor = 'text-white';
+            circleClasses += ' bg-primary text-white shadow-lg shadow-primary/30';
         } else if (isActive) {
-            stateClasses = 'hover:bg-slate-800 active:scale-95 cursor-pointer';
             weekdayColor = 'text-slate-400';
-            numberColor = 'text-slate-300';
+            circleClasses += ' text-slate-300 hover:bg-slate-800 active:scale-95 cursor-pointer';
         } else {
-            stateClasses = 'opacity-30';
+            containerOpacity = 'opacity-40';
             weekdayColor = 'text-slate-500';
-            numberColor = 'text-slate-400';
+            circleClasses += ' text-slate-400';
         }
 
-        const allClasses = `${baseClasses} ${stateClasses}`;
+        // Dot indicator per "today"
+        if (isToday && !isSelected) {
+            dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-primary"></div>';
+        } else if (isToday && isSelected) {
+            dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-white"></div>';
+        }
+
         const ariaLabel = a11y.scheduler.day(weekday, dayNumber, isToday, isDisabled);
 
         if (isDisabled) {
             daysHTML += `
-                <div class="${allClasses}" aria-disabled="true" aria-label="${ariaLabel}">
-                    <span class="text-[9px] font-medium uppercase mb-1 ${weekdayColor}">${weekday}</span>
-                    <span class="text-base font-bold ${numberColor}">${dayNumber}</span>
-                    ${isToday ? '<div class="mt-1 size-1 rounded-full bg-slate-700"></div>' : ''}
+                <div class="flex flex-col items-center ${containerOpacity}" aria-disabled="true" aria-label="${ariaLabel}">
+                    <span class="text-[10px] font-bold mb-2 ${weekdayColor}">${weekday}</span>
+                    <div class="${circleClasses}">${dayNumber}</div>
+                    ${dotHTML}
                 </div>
             `;
         } else {
             daysHTML += `
                 <button
                     type="button"
-                    class="${allClasses}"
+                    class="flex flex-col items-center ${containerOpacity}"
                     data-day-id="${id}"
                     aria-pressed="${isSelected}"
                     aria-label="${ariaLabel}"
                 >
-                    <span class="text-[9px] font-medium uppercase mb-1 ${weekdayColor}">${weekday}</span>
-                    <span class="text-base font-bold ${numberColor}">${dayNumber}</span>
-                    ${isToday && !isSelected ? '<div class="mt-1 size-1 rounded-full bg-primary"></div>' : ''}
-                    ${isToday && isSelected ? '<div class="mt-1 size-1 rounded-full bg-white"></div>' : ''}
+                    <span class="text-[10px] font-bold mb-2 ${weekdayColor}">${weekday}</span>
+                    <div class="${circleClasses}">${dayNumber}</div>
+                    ${dotHTML}
                 </button>
             `;
         }

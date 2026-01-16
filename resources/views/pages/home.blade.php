@@ -137,27 +137,9 @@
             - Header con titolo e bottone "View All"
         --}}
         <section class="px-5" data-order-preview-section>
-            {{-- Header sezione --}}
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-white text-sm font-bold">
-                    {{ config('ui.labels.order_preview.section_title') }}
-                </h3>
-                {{-- 
-                    Bottone View All
-                    - data-view-all-button: riferimento per JS
-                    - href dinamico gestito da JS in base a isAuthenticated
-                --}}
-                <a 
-                    href="{{ route('orders.index') }}"
-                    data-view-all-button
-                    class="text-primary text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded"
-                    aria-label="{{ config('ui.labels.order_preview.view_all') }}"
-                >
-                    {{ config('ui.labels.order_preview.view_all') }}
-                    <span class="material-symbols-outlined text-xs" aria-hidden="true">
-                        {{ config('ui.order_preview_icons.arrow_forward') }}
-                    </span>
-                </a>
+            {{-- Header sezione (popolato dinamicamente da JS in base a isAuthenticated) --}}
+            <div class="flex items-center justify-between mb-4" data-order-preview-header>
+                {{-- Il contenuto viene popolato da renderOrderPreviewHeader() in home.js --}}
             </div>
             
             {{-- Container per la card dinamica --}}
@@ -173,14 +155,9 @@
             - Header con data e location + scroll orizzontale di TimeSlotCard
         --}}
         <section class="flex flex-col gap-4" data-booking-section>
-            {{-- Header sezione (popolato da renderBookingSlots) --}}
+            {{-- Header sezione (popolato dinamicamente da JS) --}}
             <div class="px-5" data-booking-header>
-                <h3 class="text-white text-sm font-bold mb-1">
-                    {{ config('ui.prebook_section.title') }}
-                </h3>
-                <p class="text-slate-500 text-xs" data-booking-subtitle>
-                    {{-- Popolato da JS con dateLabel • locationLabel --}}
-                </p>
+                {{-- Il contenuto (data + location) viene popolato da renderBookingSlots() in home.js --}}
             </div>
 
             {{-- Scroll Orizzontale Slot (popolato da renderBookingSlots) --}}

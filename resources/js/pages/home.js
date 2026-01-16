@@ -120,6 +120,7 @@ const homeView = {
         overlay: null,
         truckStatusSection: null,
         schedulerSection: null,
+        orderPreviewHeader: null,
         bookingHeader: null,
         bookingSubtitle: null,
         bookingSlotsContainer: null,
@@ -134,6 +135,7 @@ const homeView = {
         this.refs.overlay = document.querySelector('[data-overlay]');
         this.refs.truckStatusSection = document.querySelector('[data-truck-status-section]');
         this.refs.schedulerSection = document.querySelector('[data-scheduler-section]');
+        this.refs.orderPreviewHeader = document.querySelector('[data-order-preview-header]');
         this.refs.bookingHeader = document.querySelector('[data-booking-header]');
         this.refs.bookingSubtitle = document.querySelector('[data-booking-subtitle]');
         this.refs.bookingSlotsContainer = document.querySelector('[data-booking-slots-container]');
@@ -435,9 +437,16 @@ const homeView = {
 
         const { dateLabel, locationLabel, slots } = bookingData;
 
-        // Aggiorna sottotitolo con data e location
-        if (this.refs.bookingSubtitle && dateLabel && locationLabel) {
-            this.refs.bookingSubtitle.textContent = `${dateLabel} • ${locationLabel}`;
+        // Aggiorna header con data e location su 2 righe (data bianca + location grigia)
+        if (this.refs.bookingHeader && dateLabel && locationLabel) {
+            this.refs.bookingHeader.innerHTML = `
+                <h3 class="text-white text-sm font-bold mb-1">
+                    ${dateLabel}
+                </h3>
+                <p class="text-slate-500 text-xs">
+                    ${locationLabel}
+                </p>
+            `;
         }
 
         // Se non ci sono slot, mostra messaggio
@@ -525,6 +534,8 @@ const homeView = {
                                active:scale-95 transition-transform shadow-lg shadow-primary/20
                                focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark"
                         aria-label="${ariaLabel}"
+                        data-action="book-slot"
+                        data-slot-id="${id}"
                     >
                         Book Slot
                     </button>
@@ -553,6 +564,54 @@ const homeView = {
 
         console.log('[Home] Booking slots rendered:', slots.length, 'slots');
     },
+
+    /**
+     * Renderizza l'header della sezione Order Preview.
+     * 
+     * RESPONSABILITÀ:
+     * - Se utente loggato: mostra "Your Orders for Today" + "View All"
+     * - Se utente NON loggato: mostra "Track your orders" (NO "View All")
+     * 
+     * @param {boolean} isAuthenticated - Stato autenticazione da homeState.user
+     */
+    renderOrderPreviewHeader(isAuthenticated) {
+        if (!this.refs.orderPreviewHeader) {
+            console.warn('[Home] Cannot render order preview header: ref not found');
+            return;
+        }
+
+        let headerHTML = '';
+
+        if (isAuthenticated) {
+            // UTENTE LOGGATO: "Your Orders for Today" + "View All" link
+            headerHTML = `
+                <h3 class="text-white text-sm font-bold">
+                    Your Orders for Today
+                </h3>
+                <a 
+                    href="/orders"
+                    class="text-primary text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded"
+                    aria-label="View All"
+                >
+                    View All
+                    <span class="material-symbols-outlined text-xs" aria-hidden="true">
+                        arrow_forward
+                    </span>
+                </a>
+            `;
+        } else {
+            // UTENTE NON LOGGATO: "Track your orders" (no CTA)
+            headerHTML = `
+                <h3 class="text-white text-sm font-bold">
+                    Track your orders
+                </h3>
+            `;
+        }
+
+        this.refs.orderPreviewHeader.innerHTML = headerHTML;
+        console.log('[Home] Order preview header rendered (authenticated:', isAuthenticated, ')');
+    },
+};
 
 /**
  * EVENT HANDLERS
@@ -649,9 +708,36 @@ const homeHandlers = {
             case 'close-sidebar':
                 this.closeSidebar();
                 break;
+            case 'book-slot':
+                this.handleBookSlot(event);
+                break;
             default:
                 console.warn(`[Home] Unknown action: ${action}`);
         }
+    },
+
+    /**
+     * Gestisce click su bottone "Book Slot".
+     * 
+     * LOGICA:
+     * - Se utente NON autenticato → redirect a /login
+     * - Se utente autenticato → procedi con booking (TODO)
+     * 
+     * @param {Event} event - Click event
+     */
+    handleBookSlot(event) {
+        // Check autenticazione
+        if (!homeState.user.authenticated) {
+            console.log('[Home] User not authenticated, redirecting to login');
+            window.location.href = '/login';
+            return;
+        }
+
+        // TODO: Implementare logica di booking per utenti autenticati
+        const button = event.target.closest('[data-action="book-slot"]');
+        const slotId = button?.dataset.slotId;
+        console.log('[Home] Book slot clicked (authenticated user):', slotId);
+        // Qui andrà la logica di prenotazione
     },
 };
 
@@ -727,6 +813,7 @@ export function initHomePage() {
         monthLabel: homeState.monthLabel,
         weekDays: homeState.weekDays,
     });
+    homeView.renderOrderPreviewHeader(homeState.user.authenticated);
     homeView.renderBookingSlots(homeState.booking);
 
     // 7. Event delegation su document

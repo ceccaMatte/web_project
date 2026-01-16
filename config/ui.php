@@ -121,6 +121,7 @@ return [
         */
         'order_preview' => [
             'section_title' => 'Your Orders for Today',
+            'section_title_guest' => 'Track your orders',
             'view_all' => 'View All',
             'book_sandwich' => 'Book sandwich',
             'no_orders' => 'No orders yet',

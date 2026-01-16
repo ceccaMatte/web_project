@@ -18,7 +18,7 @@
     @include('components.top-bar')
 --}}
 
-<header class="flex items-center bg-background-dark/80 backdrop-blur-md px-5 py-4 justify-between sticky top-0 z-30 border-b border-border-dark/50">
+<header class="flex items-center bg-background-dark/80 backdrop-blur-md px-5 py-4 justify-between sticky top-0 z-50 border-b border-border-dark/50">
     
     {{-- Logo + Nome App --}}
     <div class="flex items-center gap-3">
