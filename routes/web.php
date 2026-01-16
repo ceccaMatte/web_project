@@ -34,6 +34,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
 
+// API endpoint per dati home page (con sessione)
+Route::get('/api/home', [HomeController::class, 'apiIndex'])
+    ->name('api.home');
+
 // API endpoint per time slots dinamici
 // GET /api/time-slots?date=YYYY-MM-DD
 Route::get('/api/time-slots', [HomeController::class, 'getTimeSlots'])
