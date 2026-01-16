@@ -48,7 +48,7 @@ export function renderTodayServiceCard(container, props) {
                         <p class="text-slate-400 text-xs">Open ${startTime} – ${endTime}</p>
                     </div>
                     <!-- Location Image -->
-                    <div class="w-20 h-20 aspect-square rounded-xl overflow-hidden border border-border-dark">
+                    <div class="w-40 aspect-square rounded-xl overflow-hidden border border-border-dark">
                         <img src="${locationImageUrl}" alt="Location photo" class="w-full h-full object-cover" />
                     </div>
                 </div>
