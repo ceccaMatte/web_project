@@ -79,42 +79,22 @@
 
         {{--
             HEADER SEZIONE
-            - Brand label + Titolo pagina
-            - Icona decorativa
-            - Back button per tornare alla Home
+            - Minimal: back button + titolo centrato + spacer
+            - Renderizzato da JS via renderOrdersHeader()
             
             ACCESSIBILITÀ:
             - aria-label sul back button per screen reader
-            - Icone decorative con aria-hidden="true"
         --}}
         <header 
-            class="px-5 py-4 bg-background-light dark:bg-background-dark border-b border-slate-200 dark:border-slate-800"
+            class="border-b border-slate-200 dark:border-slate-800"
             data-orders-header
         >
-            <div class="flex justify-between items-center">
-                {{-- Back button + Title --}}
-                <div class="flex items-center gap-3">
-                    <button 
-                        class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 dark:bg-surface-dark text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        data-action="go-back"
-                        aria-label="{{ config('ui.orders.aria.back_to_home') }}"
-                    >
-                        <span class="material-symbols-outlined" aria-hidden="true">{{ config('ui.orders.icons.back') }}</span>
-                    </button>
-                    <div>
-                        <p class="text-xs font-semibold text-primary uppercase tracking-widest mb-0.5">
-                            {{ config('ui.orders.brand_label') }}
-                        </p>
-                        <h1 class="text-2xl font-bold tracking-tight">
-                            {{ config('ui.orders.page_title') }}
-                        </h1>
-                    </div>
-                </div>
-                
-                {{-- Header Icon (decorativa) --}}
-                <div class="bg-primary/10 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-primary" aria-hidden="true">{{ config('ui.orders.icons.header') }}</span>
-                </div>
+            {{-- Popolato da renderOrdersHeader() in orders.render.js --}}
+            {{-- Placeholder iniziale --}}
+            <div class="px-5 py-2 flex items-center justify-between">
+                <div class="w-8 h-8"></div>
+                <h1 class="text-sm font-bold tracking-tight text-slate-800 dark:text-white">{{ config('ui.orders.page_title') }}</h1>
+                <div class="w-8"></div>
             </div>
         </header>
 

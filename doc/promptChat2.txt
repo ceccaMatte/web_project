@@ -1,0 +1,318 @@
+CAROSELLO 
+quello che avveo chiesto
+<div class="carousel-track">
+<div class="carousel-card carousel-card-side carousel-offset-left">
+<div class="bg-white dark:bg-card-dark rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+<div class="h-12 w-full rounded-lg overflow-hidden mb-2 bg-slate-800">
+<img alt="Order Item" class="w-full h-full object-cover grayscale opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANDfyEV1gE3kRCS1UBnwhcEX7PxMMUFappybFPDsXFEu9AKdShZjwHIiIccrMX1b-XOtggZYUdJebaQk--u5eKGDWAWcI_Or-SjIsHCLVLWwI6ABKh-Ys6Zdgg3c54ludhSqaGdcTC-UhqV5Hx0j-d7l6KIrL-Zgc-KYwcKn6FzFYiL-FQaBJORKAfsx3G3-Y5HQLWFm_LFQi7VpQyl3lGROhxJE1b3jOJEBT_U9qatXPvnEunJp8ButI8-TmiCtqipffTt04tg1cm">
+</div>
+</div>
+</div>
+<div class="carousel-card carousel-card-active">
+<div class="bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+<div class="flex justify-between items-center mb-3">
+<span class="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-[9px] font-bold uppercase tracking-widest">Pending</span>
+<span class="text-[9px] font-medium text-slate-400">11:30 AM</span>
+</div>
+<div class="flex gap-3 items-start mb-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg ring-1 ring-white/10 shrink-0">
+<img alt="Order Item" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCPE8bEQRaoAhrA5TZGv6vHOr07yC3vq8PrMCKP8mkSXMj5vAP3cL44QU8ooQ45EYAniEglD1taczo3UGuNEydbPT2gWD90SRrP0uBenawg0PQTXDbTxSNDidLnWktYvPXjd502gHpMk4JePUMOn1RORzrbVtnI10E40yI18apwz0Oj2QBrX8-LxCqnTFk3Hgj5yrotS99SpNi8zGKZKor4xNMBST7BfOmEvYtSxKiLfo5gEhJTfebVpeRPe1QME_9scSO2Q-HFMFI">
+</div>
+<div class="flex-grow min-w-0">
+<p class="text-[10px] text-slate-400 leading-relaxed line-clamp-3">
+                                    Sourdough, Aged Cheddar, Smoked Ham, Caramelized Onions...
+                                </p>
+<button class="mt-1 flex items-center gap-1 text-[9px] font-bold text-primary uppercase">
+                                    Show More <span class="material-symbols-outlined text-[10px]">expand_more</span>
+</button>
+</div>
+</div>
+<button class="w-full bg-primary text-white text-[10px] font-bold uppercase py-2.5 rounded-xl active:scale-95 transition-transform shadow-lg shadow-primary/20">
+                            Modify Order
+                        </button>
+</div>
+</div>
+<div class="carousel-card carousel-card-side carousel-offset-right">
+<div class="bg-white dark:bg-card-dark rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+<div class="h-12 w-full rounded-lg overflow-hidden mb-2 bg-slate-800">
+<img alt="Order Item" class="w-full h-full object-cover grayscale opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYFbAn2cpz5ZDORzeL0A2CR3XLwHYlVMotdZfWzOurBYF7TKAsfedw0cnFrfG908KX4Qc46MhW4vtsrhGy0YvD7fcVYqi_wWGVXNKUUW9Lt2EZ39apeS1u4bUi_tCq_OBFyeJ5oplS9HPczyHNo-orrB4TQNMSNfU5_IriQAS8klhpbFHAbdgraaOv3Xj6bvjJl9fvp_w68UZpX60U-rw0LvGskluST3YwRDT2Hs8UuTVwIPfDNdZej0qzxNxu_oIo4xsQg6t0Br0A">
+</div>
+</div>
+</div>
+</div>
+
+quello che ho ottenuto
+<div data-active-orders-container="">
+        <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-5 px-5 hide-scrollbar" role="list" aria-label="Your active orders for today">
+    
+        <div class="flex-shrink-0 w-[280px] snap-start bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm" role="listitem" data-order-id="1">
+            <!-- Header: Status + Time -->
+            <div class="flex justify-between items-center mb-3">
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[9px] font-bold uppercase tracking-widest">
+                    PENDING
+                </span>
+                <span class="text-[9px] font-medium text-slate-400">11:00:00</span>
+            </div>
+            
+            <!-- Image + Content -->
+            <div class="flex gap-3 items-start mb-3">
+                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 flex-shrink-0">
+                    <div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-slate-400" aria-hidden="true">lunch_dining</span></div>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-mono text-slate-500">#1</span>
+                        <!-- Favorite Star -->
+                        <button class="p-1 text-slate-400 hover:scale-110 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" data-action="toggle-favorite" data-order-id="1" data-config-id="null" aria-label="Add to favorites" aria-pressed="false">
+                            <span class="material-symbols-outlined text-lg" aria-hidden="true">star_outline</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ingredients -->
+            <div class="mb-3">
+                <div class="flex flex-wrap gap-1">
+                    
+                </div>
+                
+            </div>
+            
+            <!-- Action: Modify (solo se pending) -->
+            
+                <button class="w-full bg-primary/10 text-primary text-[10px] font-bold uppercase py-2 px-4 rounded-lg flex items-center justify-center gap-1 active:bg-primary active:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" data-action="modify-order" data-order-id="1" aria-label="Modify this order">
+                    <span class="material-symbols-outlined text-xs" aria-hidden="true">edit</span>
+                    Modify Order
+                </button>
+            
+        </div>
+    
+        <div class="flex-shrink-0 w-[280px] snap-start bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm" role="listitem" data-order-id="2">
+            <!-- Header: Status + Time -->
+            <div class="flex justify-between items-center mb-3">
+                <span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[9px] font-bold uppercase tracking-widest">
+                    CONFIRMED
+                </span>
+                <span class="text-[9px] font-medium text-slate-400">11:15:00</span>
+            </div>
+            
+            <!-- Image + Content -->
+            <div class="flex gap-3 items-start mb-3">
+                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 flex-shrink-0">
+                    <div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-slate-400" aria-hidden="true">lunch_dining</span></div>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-mono text-slate-500">#2</span>
+                        <!-- Favorite Star -->
+                        <button class="p-1 text-slate-400 hover:scale-110 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" data-action="toggle-favorite" data-order-id="2" data-config-id="null" aria-label="Add to favorites" aria-pressed="false">
+                            <span class="material-symbols-outlined text-lg" aria-hidden="true">star_outline</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ingredients -->
+            <div class="mb-3">
+                <div class="flex flex-wrap gap-1">
+                    
+                </div>
+                
+            </div>
+            
+            <!-- Action: Modify (solo se pending) -->
+            
+        </div>
+    
+        <div class="flex-shrink-0 w-[280px] snap-start bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm" role="listitem" data-order-id="3">
+            <!-- Header: Status + Time -->
+            <div class="flex justify-between items-center mb-3">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[9px] font-bold uppercase tracking-widest">
+                    READY
+                </span>
+                <span class="text-[9px] font-medium text-slate-400">11:30:00</span>
+            </div>
+            
+            <!-- Image + Content -->
+            <div class="flex gap-3 items-start mb-3">
+                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 flex-shrink-0">
+                    <div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-slate-400" aria-hidden="true">lunch_dining</span></div>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-mono text-slate-500">#3</span>
+                        <!-- Favorite Star -->
+                        <button class="p-1 text-slate-400 hover:scale-110 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" data-action="toggle-favorite" data-order-id="3" data-config-id="null" aria-label="Add to favorites" aria-pressed="false">
+                            <span class="material-symbols-outlined text-lg" aria-hidden="true">star_outline</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ingredients -->
+            <div class="mb-3">
+                <div class="flex flex-wrap gap-1">
+                    
+                </div>
+                
+            </div>
+            
+            <!-- Action: Modify (solo se pending) -->
+            
+        </div>
+    </div></div>
+
+SEZIONE ORDINATI DI RECENTE
+quello che avevo richiesto
+<section class="px-5 pt-2 flex-grow overflow-hidden flex flex-col">
+<div class="flex justify-between items-center mb-3">
+<h2 class="text-[9px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.2em]">Recently Ordered</h2>
+<button class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700/50">
+<span class="material-symbols-outlined text-base">star</span>
+</button>
+</div>
+<div class="space-y-4 overflow-y-auto flex-grow pb-10 hide-scrollbar">
+<div>
+<div class="flex items-center gap-3 mb-3">
+<span class="text-[8px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded uppercase">TUE 12</span>
+<div class="h-[1px] flex-grow bg-slate-100 dark:bg-slate-800"></div>
+</div>
+<div class="space-y-3">
+<div class="bg-white dark:bg-card-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800/80 shadow-sm relative min-h-[120px]">
+<button class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-yellow-500 border border-slate-200 dark:border-slate-700/50 z-10">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;">star</span>
+</button>
+<div class="flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+<img alt="Campus Melt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCPE8bEQRaoAhrA5TZGv6vHOr07yC3vq8PrMCKP8mkSXMj5vAP3cL44QU8ooQ45EYAniEglD1taczo3UGuNEydbPT2gWD90SRrP0uBenawg0PQTXDbTxSNDidLnWktYvPXjd502gHpMk4JePUMOn1RORzrbVtnI10E40yI18apwz0Oj2QBrX8-LxCqnTFk3Hgj5yrotS99SpNi8zGKZKor4xNMBST7BfOmEvYtSxKiLfo5gEhJTfebVpeRPe1QME_9scSO2Q-HFMFI">
+</div>
+<div class="flex-grow pt-1 pr-8">
+<div class="flex justify-between items-start">
+<p class="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed mb-2 line-clamp-2">
+                                        Sourdough, Aged Cheddar, Smoked Ham, Caramelized Onions, Truffle Aioli...
+                                    </p>
+</div>
+<div class="flex items-center justify-between mt-3">
+<button class="flex items-center gap-0.5 text-[9px] font-bold text-slate-500 uppercase">
+                                        Show More <span class="material-symbols-outlined text-[10px]">expand_more</span>
+</button>
+<button class="text-[10px] font-bold text-primary border border-primary/30 px-5 py-2 rounded-xl uppercase">Reorder</button>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-card-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800/80 shadow-sm relative min-h-[120px]">
+<button class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700/50 z-10">
+<span class="material-symbols-outlined text-base">star</span>
+</button>
+<div class="flex gap-4 mb-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+<img alt="Order Item" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCPE8bEQRaoAhrA5TZGv6vHOr07yC3vq8PrMCKP8mkSXMj5vAP3cL44QU8ooQ45EYAniEglD1taczo3UGuNEydbPT2gWD90SRrP0uBenawg0PQTXDbTxSNDidLnWktYvPXjd502gHpMk4JePUMOn1RORzrbVtnI10E40yI18apwz0Oj2QBrX8-LxCqnTFk3Hgj5yrotS99SpNi8zGKZKor4xNMBST7BfOmEvYtSxKiLfo5gEhJTfebVpeRPe1QME_9scSO2Q-HFMFI">
+</div>
+<div class="flex-grow pt-1 pr-8">
+<p class="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    Multigrain Bread, Smashed Avocado, Poached Egg, Chili Flakes, Microgreens, Lemon Zest, Extra Virgin Olive Oil.
+                                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/50">
+<button class="flex items-center gap-0.5 text-[9px] font-bold text-primary uppercase">
+                                Show Less <span class="material-symbols-outlined text-[10px]">expand_less</span>
+</button>
+<button class="text-[10px] font-bold text-primary border border-primary/30 px-5 py-2 rounded-xl uppercase">Reorder</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+quello che ho ottenuto
+<section class="px-5" data-recent-orders-section="" aria-label="Your recent orders history" role="region">
+            
+            <div class="mb-4" data-recent-orders-header="">
+        <div class="flex justify-between items-center">
+            <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Recently Ordered
+            </h2>
+            <button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" data-action="toggle-favorites-filter" aria-label="Show only favorites" aria-pressed="false">
+                <span class="material-symbols-outlined text-lg" aria-hidden="true">star_outline</span>
+            </button>
+        </div>
+    </div>
+            
+            
+            <div data-recent-orders-list=""><div class="space-y-4">
+        <div class="bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm flex gap-4" data-order-id="4">
+            <!-- Image -->
+            <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-200 dark:bg-slate-800">
+                <div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-slate-400" aria-hidden="true">lunch_dining</span></div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-grow flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-mono text-slate-500">#4</span>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Jan 16 • 11:45:00</p>
+                        </div>
+                        <!-- Favorite Star -->
+                        <button class="p-1 text-slate-400 hover:scale-110 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" data-action="toggle-favorite" data-order-id="4" data-config-id="null" aria-label="Add to favorites" aria-pressed="false">
+                            <span class="material-symbols-outlined text-lg" aria-hidden="true">star_outline</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Ingredients Preview -->
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        
+                        
+                    </div>
+                    
+                </div>
+                
+                <!-- Reorder Button -->
+                <div class="flex justify-end mt-2">
+                    <button class="bg-primary/10 text-primary text-[10px] font-bold uppercase py-1.5 px-3 rounded-lg flex items-center gap-1 active:bg-primary active:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" data-action="reorder" data-config-id="null" aria-label="Reorder this sandwich">
+                        <span class="material-symbols-outlined text-xs" aria-hidden="true">refresh</span>
+                        Reorder
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div></div>
+        </section>
+
+TOP BAR 
+quello che ho richisto
+<div class="px-5 py-2 flex items-center justify-between border-t border-slate-200 dark:border-slate-800">
+<button class="flex items-center text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-xl">arrow_back_ios</span>
+</button>
+<h1 class="text-sm font-bold tracking-tight">Your Orders</h1>
+<div class="w-6"></div>
+</div>
+
+quello che ho ottenuto
+<header class="px-5 py-4 bg-background-light dark:bg-background-dark border-b border-slate-200 dark:border-slate-800" data-orders-header="">
+    <div class="flex justify-between items-center">
+        
+        <div class="flex items-center gap-3">
+            <button class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 dark:bg-surface-dark text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" data-action="go-back" aria-label="Go back to home">
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_back_ios</span>
+            </button>
+            <div>
+                <p class="text-xs font-semibold text-primary uppercase tracking-widest mb-0.5">
+                    Campus Truck
+                </p>
+                <h1 class="text-2xl font-bold tracking-tight">
+                    Your Orders
+                </h1>
+            </div>
+        </div>
+        
+        
+        <div class="bg-primary/10 p-2 rounded-full">
+            <span class="material-symbols-outlined text-primary" aria-hidden="true">receipt_long</span>
+        </div>
+    </div>
+</header>

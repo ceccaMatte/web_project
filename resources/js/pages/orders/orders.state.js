@@ -100,6 +100,14 @@ export const ordersState = {
     showOnlyFavorites: false,
 
     /**
+     * Active Carousel Index
+     * 
+     * Indice dell'ordine attivo nel carousel (0-based).
+     * Si resetta a 0 quando cambia giorno selezionato.
+     */
+    activeCarouselIndex: 0,
+
+    /**
      * Loading state
      * 
      * Indica se stiamo fetchando dati.
@@ -212,6 +220,30 @@ export function toggleFavoritesFilter() {
 }
 
 /**
+ * Naviga nel carousel degli ordini attivi
+ * 
+ * @param {'prev' | 'next'} direction - Direzione navigazione
+ */
+export function navigateCarousel(direction) {
+    const count = ordersState.activeOrders.length;
+    if (count <= 1) return;
+    
+    if (direction === 'next') {
+        ordersState.activeCarouselIndex = (ordersState.activeCarouselIndex + 1) % count;
+    } else if (direction === 'prev') {
+        ordersState.activeCarouselIndex = (ordersState.activeCarouselIndex - 1 + count) % count;
+    }
+}
+
+/**
+ * Resetta indice carousel a 0
+ * Chiamato quando cambia giorno selezionato.
+ */
+export function resetCarouselIndex() {
+    ordersState.activeCarouselIndex = 0;
+}
+
+/**
  * Aggiorna stato preferito di un ordine specifico
  * 
  * @param {number} orderId - ID dell'ordine
@@ -264,6 +296,7 @@ export function resetOrdersState() {
     ordersState.recentOrders = [];
     ordersState.expandedOrderIds = [];
     ordersState.showOnlyFavorites = false;
+    ordersState.activeCarouselIndex = 0;
     ordersState.loading = false;
     ordersState.error = null;
 }
@@ -281,6 +314,8 @@ export default {
     mutateRecentOrders,
     toggleExpandedOrder,
     toggleFavoritesFilter,
+    navigateCarousel,
+    resetCarouselIndex,
     mutateOrderFavorite,
     mutateLoading,
     mutateError,

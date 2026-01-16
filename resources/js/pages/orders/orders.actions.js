@@ -18,7 +18,7 @@
  * onDaySelected: (dayId) => selectDay(dayId)
  */
 
-import { ordersState, mutateSidebar, mutateSelectedDay, mutateActiveOrders, toggleExpandedOrder, toggleFavoritesFilter, mutateOrderFavorite } from './orders.state.js';
+import { ordersState, mutateSidebar, mutateSelectedDay, mutateActiveOrders, toggleExpandedOrder, toggleFavoritesFilter, mutateOrderFavorite, navigateCarousel, resetCarouselIndex } from './orders.state.js';
 import { ordersView } from './orders.view.js';
 import { fetchActiveOrders, toggleFavorite as toggleFavoriteApi } from './orders.api.js';
 
@@ -72,9 +72,10 @@ export function closeSidebar() {
  * WORKFLOW:
  * 1. Aggiorna ordersState.selectedDayId
  * 2. Aggiorna weekDays.isSelected
- * 3. Fetch ordini attivi per quel giorno da API
- * 4. Aggiorna ordersState.activeOrders
- * 5. Re-render scheduler + active orders
+ * 3. Reset carousel index a 0
+ * 4. Fetch ordini attivi per quel giorno da API
+ * 5. Aggiorna ordersState.activeOrders
+ * 6. Re-render scheduler + active orders
  * 
  * @param {string} dayId - ID giorno (YYYY-MM-DD)
  */
@@ -88,20 +89,23 @@ export async function selectDay(dayId) {
 
     // 1. Aggiorna state (feedback visivo immediato)
     mutateSelectedDay(dayId);
+    
+    // 2. Reset carousel index quando cambia giorno
+    resetCarouselIndex();
 
-    // 2. Re-render scheduler (immediato per feedback visivo)
+    // 3. Re-render scheduler (immediato per feedback visivo)
     const { renderScheduler } = await import('./orders.render.js');
     renderScheduler();
 
-    // 3. Fetch ordini attivi per il giorno selezionato
+    // 4. Fetch ordini attivi per il giorno selezionato
     try {
         console.debug(`[Actions] Fetching active orders for ${dayId}...`);
         const activeOrders = await fetchActiveOrders(dayId);
         
-        // 4. Aggiorna state
+        // 5. Aggiorna state
         mutateActiveOrders(activeOrders);
         
-        // 5. Re-render active orders section
+        // 6. Re-render active orders section
         const { renderActiveOrdersSection } = await import('./orders.render.js');
         renderActiveOrdersSection();
         
@@ -112,6 +116,25 @@ export async function selectDay(dayId) {
         const { renderActiveOrdersSection } = await import('./orders.render.js');
         renderActiveOrdersSection();
     }
+}
+
+// ============================================================================
+// CAROUSEL ACTIONS
+// ============================================================================
+
+/**
+ * Naviga nel carousel degli ordini attivi
+ * 
+ * @param {'prev' | 'next'} direction - Direzione navigazione
+ */
+export function navigateActiveOrdersCarousel(direction) {
+    console.log(`[Actions] Navigate carousel: ${direction}`);
+    
+    navigateCarousel(direction);
+    
+    import('./orders.render.js').then(({ renderActiveOrdersSection }) => {
+        renderActiveOrdersSection();
+    });
 }
 
 // ============================================================================
@@ -256,6 +279,7 @@ export default {
     openSidebar,
     closeSidebar,
     selectDay,
+    navigateActiveOrdersCarousel,
     toggleOrderExpand,
     toggleOrderFavorite,
     toggleFavoritesOnly,
