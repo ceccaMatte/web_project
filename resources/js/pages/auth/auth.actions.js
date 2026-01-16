@@ -16,7 +16,7 @@
  */
 
 import { authState, mutateMode, mutateFormField, mutateValidationError, mutateIsValid, mutateSubmitState, resetValidation } from './auth.state.js';
-import { render } from './auth.render.js';
+import { render, renderValidation, renderSubmitButton } from './auth.render.js';
 import { loginUser, registerUser } from './auth.api.js';
 
 /**
@@ -58,7 +58,7 @@ export function togglePasswordVisibility(targetId) {
 /**
  * Handle input change
  * 
- * Aggiorna authState.form e valida
+ * Aggiorna authState.form SENZA validare (validazione al blur)
  */
 export function handleInputChange(field, value) {
     console.log('[AuthActions] Input change:', field, value);
@@ -66,14 +66,29 @@ export function handleInputChange(field, value) {
     // Aggiorna form state
     mutateFormField(field, value);
     
+    // Valida form completo (per abilitare/disabilitare submit)
+    validateForm();
+    
+    // Re-render SOLO submit button (non tutto il form)
+    renderSubmitButton();
+}
+
+/**
+ * Handle input blur
+ * 
+ * Valida campo quando l'utente esce dall'input
+ */
+export function handleInputBlur(field) {
+    console.log('[AuthActions] Input blur:', field);
+    
+    const { form } = authState;
+    const value = form[field];
+    
     // Valida campo
     validateField(field, value);
     
-    // Valida form completo
-    validateForm();
-    
-    // Re-render
-    render();
+    // Re-render validation errors
+    renderValidation();
 }
 
 /**
@@ -213,5 +228,6 @@ export default {
     switchToSignup,
     togglePasswordVisibility,
     handleInputChange,
+    handleInputBlur,
     handleSubmit,
 };

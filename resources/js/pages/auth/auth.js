@@ -29,6 +29,7 @@ import {
     switchToSignup, 
     togglePasswordVisibility,
     handleInputChange,
+    handleInputBlur,
     handleSubmit 
 } from './auth.actions.js';
 
@@ -103,6 +104,16 @@ function registerEventListeners() {
         
         handleInputChange(field, value);
     });
+    
+    // Event delegation: blur globale (per validazione)
+    document.addEventListener('blur', (event) => {
+        const target = event.target.closest('[data-field]');
+        if (!target) return;
+        
+        const field = target.dataset.field;
+        
+        handleInputBlur(field);
+    }, true); // useCapture = true per intercettare blur
     
     // Event delegation: submit globale
     document.addEventListener('submit', (event) => {

@@ -42,7 +42,7 @@
         
         {{-- Tab Sign Up --}}
         <button type="button"
-                class="flex-1 py-2 text-sm font-semibold text-slate-500 hover:text-slate-300 transition-all duration-200"
+                class="flex-1 py-2 text-sm font-semibold text-slate-500 hover:text-slate-300 transition-all duration-200 rounded-lg"
                 role="tab"
                 aria-selected="false"
                 aria-controls="signup-form"

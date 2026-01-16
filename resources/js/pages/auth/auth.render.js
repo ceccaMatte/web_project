@@ -149,7 +149,7 @@ function renderLoginFormHTML() {
                            aria-describedby="login-password-error"
                            data-field="password">
                     <button type="button" 
-                            class="absolute right-4 text-slate-600 hover:text-slate-400 transition-colors"
+                            class="absolute right-4 h-full flex items-center text-slate-600 hover:text-slate-400 transition-colors"
                             aria-label="Toggle password visibility"
                             data-action="toggle-password"
                             data-target="login-password">
@@ -257,7 +257,7 @@ function renderSignupFormHTML() {
                            aria-describedby="signup-password-error"
                            data-field="password">
                     <button type="button" 
-                            class="absolute right-4 text-slate-600 hover:text-slate-400 transition-colors"
+                            class="absolute right-4 h-full flex items-center text-slate-600 hover:text-slate-400 transition-colors"
                             aria-label="Toggle password visibility"
                             data-action="toggle-password"
                             data-target="signup-password">
@@ -290,7 +290,7 @@ function renderSignupFormHTML() {
  * 
  * Mostra/nasconde messaggi errore per ogni campo
  */
-function renderValidation() {
+export function renderValidation() {
     const { validation } = authState;
     
     // Per ogni campo possibile
@@ -325,7 +325,7 @@ function renderValidation() {
  * 
  * Aggiorna stato loading e disabled
  */
-function renderSubmitButton() {
+export function renderSubmitButton() {
     const { mode, submit, validation } = authState;
     const btn = mode === 'login' ? authView.loginSubmitBtn : authView.signupSubmitBtn;
     
