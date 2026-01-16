@@ -67,19 +67,19 @@ export function renderWeekScheduler(container, props, callbacks) {
 
         // Dot indicator per "today" e "selected"
         if (isToday && !isSelected) {
-            dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-primary"></div>';
+            dotHTML = '<div class="absolute top-[50px] mt-1 w-1 h-1 rounded-full bg-primary"></div>';
         } else if (isToday && isSelected) {
-            dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-white"></div>';
+            dotHTML = '<div class="absolute top-[50px] mt-1 w-1 h-1 rounded-full bg-white"></div>';
         } else if (isSelected && !isToday) {
             // Pallino sotto al giorno selected (non today)
-            dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-primary"></div>';
+            dotHTML = '<div class="absolute top-[50px] mt-1 w-1 h-1 rounded-full bg-primary"></div>';
         }
 
         const ariaLabel = a11y.scheduler.day(weekday, dayNumber, isToday, isDisabled);
 
         if (isDisabled) {
             daysHTML += `
-                <div class="flex flex-col items-center ${containerOpacity}" aria-disabled="true" aria-label="${ariaLabel}">
+                <div class="relative flex flex-col items-center ${containerOpacity}" aria-disabled="true" aria-label="${ariaLabel}">
                     <span class="text-[10px] font-bold mb-2 ${weekdayColor}">${weekday}</span>
                     <div class="${circleClasses}">${dayNumber}</div>
                     ${dotHTML}
@@ -89,7 +89,7 @@ export function renderWeekScheduler(container, props, callbacks) {
             daysHTML += `
                 <button
                     type="button"
-                    class="flex flex-col items-center ${containerOpacity}"
+                    class="relative flex flex-col items-center ${containerOpacity}"
                     data-day-id="${id}"
                     aria-pressed="${isSelected}"
                     aria-label="${ariaLabel}"
