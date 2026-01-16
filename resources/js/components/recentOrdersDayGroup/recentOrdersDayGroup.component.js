@@ -51,8 +51,8 @@ export function buildRecentOrdersDayGroupHTML(props) {
     return `
         <div class="mb-6">
             <div class="flex items-center gap-3 mb-3">
-                <span class="text-[8px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded uppercase">${dayLabel}</span>
-                <div class="h-[1px] flex-grow bg-slate-100 dark:bg-slate-800"></div>
+                <span class="text-[8px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded uppercase">${dayLabel}</span>
+                <div class="h-[1px] flex-grow bg-slate-800"></div>
             </div>
             <div class="space-y-3">
                 ${cardsHTML}
