@@ -20,6 +20,5 @@
     <div class="relative flex min-h-screen w-full max-w-[430px] mx-auto flex-col bg-[#0a0e1a] overflow-x-hidden">
         @yield('content')
     </div>
-    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-700/50 rounded-full z-40"></div>
 </body>
 </html>
