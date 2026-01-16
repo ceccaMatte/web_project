@@ -44,11 +44,11 @@ export function renderEmptyStateCard(container, props, callbacks = {}) {
     ` : '';
 
     const html = `
-        <div class="h-[180px] w-full bg-slate-100 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center p-6 text-center">
+        <div class="h-[180px] w-full bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-800 flex flex-col items-center justify-center p-6 text-center">
             <div class="mb-4">
-                <span class="material-symbols-outlined text-slate-400 dark:text-slate-600 text-4xl" aria-hidden="true">${icon}</span>
+                <span class="material-symbols-outlined text-slate-600 text-4xl" aria-hidden="true">${icon}</span>
             </div>
-            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium mb-4">${message}</p>
+            <p class="text-slate-400 text-sm font-medium mb-4">${message}</p>
             ${ctaHTML}
         </div>
     `;

@@ -57,7 +57,7 @@ export function buildActiveOrderCardHTML(props, callbacks) {
     if (isSideMode) {
         return `
             <div class="carousel-card carousel-card-side" data-order-id="${id}" data-mode="side">
-                <div class="bg-white dark:bg-card-dark rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+                <div class="bg-card-dark rounded-xl p-3 border border-slate-800">
                     <div class="h-12 w-full rounded-lg overflow-hidden mb-2 bg-slate-800">
                         <div class="w-full h-full flex items-center justify-center grayscale opacity-50">
                             <span class="material-symbols-outlined text-slate-400 text-2xl" aria-hidden="true">lunch_dining</span>
@@ -84,8 +84,7 @@ export function buildActiveOrderCardHTML(props, callbacks) {
 
     return `
         <div class="carousel-card carousel-card-active" data-order-id="${id}" data-mode="active">
-            <div class="bg-white dark:bg-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 relative overflow-hidden">
-                <!-- Header: Status + Time -->
+            <div class="bg-card-dark rounded-2xl p-4 border border-slate-800 relative overflow-hidden">
                 <div class="flex justify-between items-center mb-3">
                     <span class="px-2 py-0.5 rounded-full ${statusColors.bg} ${statusColors.text} text-[9px] font-bold uppercase tracking-widest">
                         ${statusLabel}
@@ -93,7 +92,6 @@ export function buildActiveOrderCardHTML(props, callbacks) {
                     <span class="text-[9px] font-medium text-slate-400">${formatTimeSlot(time_slot)}</span>
                 </div>
                 
-                <!-- Image + Content -->
                 <div class="flex gap-3 items-start mb-4">
                     <div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg ring-1 ring-white/10 shrink-0">
                         <div class="w-full h-full flex items-center justify-center">
@@ -118,7 +116,7 @@ export function buildActiveOrderCardHTML(props, callbacks) {
                         ` : `
                             <div class="space-y-1">
                                 ${ingredientsList.map(ing => `
-                                    <span class="inline-block text-[9px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-600 dark:text-slate-400 mr-1">
+                                    <span class="inline-block text-[9px] px-1.5 py-0.5 bg-slate-800 rounded text-slate-400 mr-1">
                                         ${ing.name}
                                     </span>
                                 `).join('')}
@@ -135,7 +133,6 @@ export function buildActiveOrderCardHTML(props, callbacks) {
                     </div>
                 </div>
                 
-                <!-- Modify Button (solo se is_modifiable) -->
                 ${is_modifiable ? `
                     <button 
                         class="w-full bg-primary text-white text-[10px] font-bold uppercase py-2.5 rounded-xl active:scale-95 transition-transform shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"

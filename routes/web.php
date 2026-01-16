@@ -7,6 +7,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminWeeklyConfigurationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FavoriteController;
 
 // ========================================
 // AUTH ROUTES
@@ -90,6 +91,14 @@ Route::middleware('auth')->group(function () {
     // DELETE /orders/{order} - Elimina un ordine (solo se pending)
     Route::delete('/orders/{order}', [OrderController::class, 'destroy'])
         ->name('orders.destroy');
+    
+    // ========================================
+    // API PREFERITI (con sessione, protette da auth)
+    // ========================================
+    
+    // POST /api/favorites/toggle - Toggle preferito per configurazione
+    Route::post('/api/favorites/toggle', [FavoriteController::class, 'toggle'])
+        ->name('api.favorites.toggle');
 });
 
 // ========================================
