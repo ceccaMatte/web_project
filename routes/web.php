@@ -6,20 +6,25 @@ use App\Constants\MiddlewareAlias; // Import della classe MiddlewareAlias
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminWeeklyConfigurationController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AuthController;
 
 // ========================================
 // AUTH ROUTES
 // ========================================
-Auth::routes();
 
-// Custom auth views (override Laravel default)
+// Auth views
 Route::get('/login', function () {
     return view('pages.auth');
-})->name('login');
+})->name('login')->middleware('guest');
 
 Route::get('/register', function () {
     return view('pages.auth');
-})->name('register');
+})->name('register')->middleware('guest');
+
+// Auth API endpoints
+Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
+Route::post('/register', [AuthController::class, 'register'])->middleware('guest');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ========================================
 // HOME PUBBLICA
