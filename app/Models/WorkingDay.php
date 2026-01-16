@@ -22,9 +22,6 @@ class WorkingDay extends Model
         'location',      // Luogo del servizio
         'max_orders',    // Numero massimo di ordini per slot
         'max_time',      // Minuti limite per modifiche ordini
-        'start_time',    // Ora di inizio servizio
-        'end_time',      // Ora di fine servizio
-        'is_active',     // Indica se il giorno è attivo
     ];
 
     /**
@@ -33,8 +30,6 @@ class WorkingDay extends Model
      */
     protected $casts = [
         'day' => 'date',        // Converte in oggetto Carbon/Date
-        'start_time' => 'datetime:H:i',  // Converte in oggetto Carbon per ora
-        'end_time' => 'datetime:H:i',    // Converte in oggetto Carbon per ora
         'max_orders' => 'integer',       // Assicura sia intero
         'max_time' => 'integer',         // Assicura sia intero
     ];

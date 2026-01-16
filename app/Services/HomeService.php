@@ -105,8 +105,8 @@ class HomeService
         return [
             'status' => 'active',
             'location' => $workingDay->location,
-            'startTime' => $workingDay->start_time->format('H:i'),
-            'endTime' => $workingDay->end_time->format('H:i'),
+            'startTime' => config('services.truck.default_start_time', '11:00'),
+            'endTime' => config('services.truck.default_end_time', '14:00'),
             'queueTime' => $activeOrdersCount,
         ];
     }
@@ -148,8 +148,8 @@ class HomeService
                 'weekday' => strtoupper($currentDay->format('D')),
                 'dayNumber' => $currentDay->format('j'),
                 'isToday' => $currentDay->isToday(),
-                'isActive' => $workingDay && $workingDay->is_active,
-                'isDisabled' => !($workingDay && $workingDay->is_active),
+                'isActive' => $workingDay !== null,
+                'isDisabled' => $workingDay === null,
                 'isSelected' => $currentDay->isToday(), // Sempre oggi selezionato
             ];
 
@@ -248,7 +248,6 @@ class HomeService
     {
         $tomorrow = now()->addDay()->toDateString();
         $workingDay = WorkingDay::whereDate('day', $tomorrow)
-            ->where('is_active', true)
             ->first();
 
         if (!$workingDay) {

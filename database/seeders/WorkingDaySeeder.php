@@ -25,9 +25,6 @@ class WorkingDaySeeder extends Seeder
             'location' => 'Engineering Hub',
             'max_orders' => 50,
             'max_time' => 30,
-            'start_time' => '11:00',
-            'end_time' => '14:00',
-            'is_active' => true,
         ]);
 
         // Giorno attivo domani (per pre-booking)
@@ -36,20 +33,14 @@ class WorkingDaySeeder extends Seeder
             'location' => 'Engineering Hub',
             'max_orders' => 50,
             'max_time' => 30,
-            'start_time' => '11:00',
-            'end_time' => '14:00',
-            'is_active' => true,
         ]);
 
-        // Giorno inattivo (servizio non attivo)
+        // Giorno per dopodomani
         WorkingDay::create([
             'day' => $today->copy()->addDays(2),
             'location' => 'Engineering Hub',
             'max_orders' => 50,
             'max_time' => 30,
-            'start_time' => '11:00',
-            'end_time' => '14:00',
-            'is_active' => false,
         ]);
     }
 }

@@ -81,6 +81,12 @@ export function hydrateHomeState(data) {
         console.warn('[Hydration] Data is null or undefined, skipping hydration');
         return;
     }
+    
+    console.debug('[Hydration] Raw API data:', {
+        user: data.user,
+        ordersPreview: data.ordersPreview,
+        bookingSlots: data.booking?.slots?.length || 0,
+    });
 
     // User state
     if (data.user) {
@@ -89,6 +95,7 @@ export function hydrateHomeState(data) {
             enabled: Boolean(data.user.enabled),
             name: data.user.name || null,
         };
+        console.debug('[Hydration] User state updated:', homeState.user);
     }
 
     // Today Service state
@@ -134,6 +141,11 @@ export function hydrateHomeState(data) {
     }
 
     console.log('[Hydration] Home state hydrated successfully');
+    console.debug('[Hydration] Final state:', structuredClone({
+        user: homeState.user,
+        ordersPreview: homeState.ordersPreview,
+        bookingSlotsCount: homeState.booking.slots.length,
+    }));
 }
 
 /**

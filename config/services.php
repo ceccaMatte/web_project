@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Truck Service Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Default values for truck service hours displayed in the UI
+    |
+    */
+    'truck' => [
+        'default_start_time' => env('TRUCK_START_TIME', '11:00'),
+        'default_end_time' => env('TRUCK_END_TIME', '14:00'),
+    ],
+
 ];

@@ -18,8 +18,8 @@ class TimeSlotSeeder extends Seeder
     {
         $generator = new TimeSlotGeneratorService();
 
-        // Genera slot per tutti i working days attivi
-        $workingDays = WorkingDay::where('is_active', true)->get();
+        // Genera slot per tutti i working days
+        $workingDays = WorkingDay::all();
 
         foreach ($workingDays as $workingDay) {
             $slotsCreated = $generator->generate($workingDay);

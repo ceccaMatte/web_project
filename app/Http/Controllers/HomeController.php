@@ -241,5 +241,83 @@ class HomeController extends Controller
 
         return response()->json($payload);
     }
+
+    /**
+     * API endpoint per time slots di un giorno specifico.
+     * 
+     * WORKFLOW:
+     * 1. Valida parametro ?date=YYYY-MM-DD
+     * 2. Recupera time slots per quel giorno
+     * 3. Formatta risposta con dateLabel, locationLabel, slots
+     * 
+     * RESPONSE: {
+     *   dateLabel: "Friday, January 17",
+     *   locationLabel: "Engineering Hub",
+     *   slots: [
+     *     {
+     *       id: 13,
+     *       timeLabel: "11:00",
+     *       slotsLeft: 45,
+     *       href: "/orders/create?slot=13",
+     *       isDisabled: false
+     *     },
+     *     ...
+     *   ]
+     * }
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTimeSlots(Request $request)
+    {
+        // 1. Valida parametro date
+        $validated = $request->validate([
+            'date' => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $dateString = $validated['date'];
+        $date = \Carbon\Carbon::parse($dateString);
+
+        // 2. Recupera working day per quella data con time slots
+        $workingDay = \App\Models\WorkingDay::where('day', $dateString)
+            ->with(['timeSlots' => function ($query) {
+                $query->orderBy('start_time', 'asc');
+            }])
+            ->first();
+
+        // 3. Se non esiste working day, restituisci slots vuoti
+        if (!$workingDay) {
+            return response()->json([
+                'dateLabel' => $date->format('l, F j'), // "Friday, January 17"
+                'locationLabel' => config('ui.location_label', 'Engineering Hub'),
+                'slots' => [],
+            ]);
+        }
+
+        // 4. Formatta time slots con capacità dinamica
+        $timeSlots = $workingDay->timeSlots->map(function ($slot) use ($workingDay) {
+            // Conta ordini confermati per questo slot
+            $ordersCount = \App\Models\Order::where('time_slot_id', $slot->id)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->count();
+
+            $slotsLeft = $workingDay->max_orders - $ordersCount;
+            $isDisabled = $slotsLeft <= 0;
+
+            return [
+                'id' => $slot->id,
+                'timeLabel' => substr($slot->start_time, 0, 5), // "11:00:00" -> "11:00"
+                'slotsLeft' => max(0, $slotsLeft), // Non negativo
+                'href' => "/orders/create?slot={$slot->id}",
+                'isDisabled' => $isDisabled,
+            ];
+        });
+
+        return response()->json([
+            'dateLabel' => $date->format('l, F j'),
+            'locationLabel' => $workingDay->location ?? config('ui.location_label', 'Engineering Hub'),
+            'slots' => $timeSlots,
+        ]);
+    }
 }
 

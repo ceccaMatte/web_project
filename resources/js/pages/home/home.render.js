@@ -93,10 +93,28 @@ export function renderHome() {
         homeState.user.authenticated
     );
 
-    // 6. Orders Preview Card
+    // 6. Orders Preview Card (dinamico in base a autenticazione + ordini)
+    // LOGICA:
+    // - Se NON autenticato → variant: 'login-cta'
+    // - Se autenticato + 0 ordini → variant: 'empty'
+    // - Se autenticato + 1 ordine → variant: 'single'
+    // - Se autenticato + 2+ ordini → variant: 'multi'
+    console.debug('[RenderHome] Rendering OrdersPreview with state:', {
+        authenticated: homeState.user.authenticated,
+        ordersCount: homeState.ordersPreview.ordersCount,
+        variant: homeState.ordersPreview.variant,
+    });
+    
+    const ordersPreviewProps = getOrdersPreviewProps(
+        homeState.user.authenticated,
+        homeState.ordersPreview
+    );
+    
+    console.debug('[RenderHome] OrdersPreview props calculated:', ordersPreviewProps);
+    
     renderOrdersPreviewCard(
         homeView.refs.orderPreviewContainer,
-        homeState.ordersPreview
+        ordersPreviewProps
     );
 
     // 7. Booking Header (data + location su 2 righe)
@@ -200,6 +218,53 @@ function renderBookingHeader(container, props) {
 
     container.innerHTML = html;
     console.log('[RenderHome] Booking header rendered');
+}
+
+/**
+ * Calcola props per OrdersPreviewCard in base a stato autenticazione + ordini
+ * 
+ * LOGICA:
+ * - Se NON autenticato → 'login-cta' (sempre)
+ * - Se autenticato + 0 ordini → 'empty'
+ * - Se autenticato + 1 ordine → 'single'
+ * - Se autenticato + 2+ ordini → 'multi'
+ * 
+ * @param {boolean} isAuthenticated - Stato autenticazione
+ * @param {object} ordersPreview - homeState.ordersPreview
+ * @returns {object} - Props per renderOrdersPreviewCard
+ */
+function getOrdersPreviewProps(isAuthenticated, ordersPreview) {
+    if (!isAuthenticated) {
+        // Utente NON loggato → login CTA
+        return {
+            variant: 'login-cta',
+            ordersCount: 0,
+            selectedOrder: null,
+        };
+    }
+    
+    // Utente loggato → calcola variant in base a ordersCount
+    const { ordersCount, selectedOrder } = ordersPreview;
+    
+    if (ordersCount === 0) {
+        return {
+            variant: 'empty',
+            ordersCount: 0,
+            selectedOrder: null,
+        };
+    } else if (ordersCount === 1) {
+        return {
+            variant: 'single',
+            ordersCount: 1,
+            selectedOrder,
+        };
+    } else {
+        return {
+            variant: 'multi',
+            ordersCount,
+            selectedOrder,
+        };
+    }
 }
 
 /**

@@ -72,7 +72,16 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
 }
 
 export function renderTimeSlotsList(container, props, callbacks) {
-    if (!container) return;
+    if (!container) {
+        console.warn('[TimeSlotsList] Container is null');
+        return;
+    }
+
+    console.debug('[TimeSlotsList] Rendering with props:', {
+        slotsCount: props.slots?.length || 0,
+        dateLabel: props.dateLabel,
+        locationLabel: props.locationLabel,
+    });
 
     const { slots } = props;
     const { onSlotClick } = callbacks || {};

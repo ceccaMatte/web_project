@@ -139,7 +139,7 @@
                 - POST a route('logout')
                 - data-action per gestione JS (se necessario)
             --}}
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" data-action="logout">
                 @csrf
                 <button 
                     type="submit"

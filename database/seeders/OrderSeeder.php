@@ -19,7 +19,13 @@ class OrderSeeder extends Seeder
     public function run(): void
     {
         $users = User::where('enabled', true)->get();
-        $workingDay = WorkingDay::where('is_active', true)->first();
+        $workingDay = WorkingDay::first();
+        
+        if (!$workingDay) {
+            $this->command->warn('No working days found. Run WorkingDaySeeder first.');
+            return;
+        }
+        
         $timeSlots = TimeSlot::where('working_day_id', $workingDay->id)->get();
 
         if ($users->isEmpty() || $timeSlots->isEmpty()) {

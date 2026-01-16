@@ -57,7 +57,7 @@
 
 import { homeView } from './home.view.js';
 import { refreshHomeState } from './home.hydration.js';
-import { bookSlot } from './home.actions.js';
+import { bookSlot, logout } from './home.actions.js';
 
 /**
  * Inizializza pagina Home
@@ -79,7 +79,7 @@ export async function initHomePage() {
     // 2. Fetch stato iniziale e render
     await refreshHomeState();
 
-    // 3. Registra event delegation globale per azioni (book-slot, ecc.)
+    // 3. Registra event delegation globale per azioni (book-slot, logout, ecc.)
     document.addEventListener('click', (event) => {
         const actionTarget = event.target.closest('[data-action]');
         if (!actionTarget) return;
@@ -93,6 +93,10 @@ export async function initHomePage() {
                     event.preventDefault();
                     bookSlot(slotId);
                 }
+                break;
+            case 'logout':
+                event.preventDefault();
+                logout();
                 break;
             default:
                 // Altre azioni già gestite nei componenti
