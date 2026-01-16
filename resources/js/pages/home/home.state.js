@@ -195,7 +195,10 @@ export function mutateSelectedDay(dayId) {
  * @param {Object} ordersData - Partial<homeState.ordersPreview>
  */
 export function mutateOrdersPreview(ordersData) {
+    console.log('[mutateOrdersPreview] BEFORE mutation:', JSON.parse(JSON.stringify(homeState.ordersPreview)));
+    console.log('[mutateOrdersPreview] Applying data:', ordersData);
     homeState.ordersPreview = { ...homeState.ordersPreview, ...ordersData };
+    console.log('[mutateOrdersPreview] AFTER mutation:', JSON.parse(JSON.stringify(homeState.ordersPreview)));
 }
 
 /**

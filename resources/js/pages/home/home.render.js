@@ -99,10 +99,16 @@ export function renderHome() {
     // - Se autenticato + 0 ordini → variant: 'empty'
     // - Se autenticato + 1 ordine → variant: 'single'
     // - Se autenticato + 2+ ordini → variant: 'multi'
-    console.debug('[RenderHome] Rendering OrdersPreview with state:', {
+    console.log('[RenderHome] ========== ORDERS PREVIEW SECTION ==========');
+    console.log('[RenderHome] homeState.user:', {
         authenticated: homeState.user.authenticated,
-        ordersCount: homeState.ordersPreview.ordersCount,
+        id: homeState.user.id,
+        name: homeState.user.name,
+    });
+    console.log('[RenderHome] homeState.ordersPreview:', {
         variant: homeState.ordersPreview.variant,
+        ordersCount: homeState.ordersPreview.ordersCount,
+        selectedOrder: homeState.ordersPreview.selectedOrder,
     });
     
     const ordersPreviewProps = getOrdersPreviewProps(
@@ -110,7 +116,8 @@ export function renderHome() {
         homeState.ordersPreview
     );
     
-    console.debug('[RenderHome] OrdersPreview props calculated:', ordersPreviewProps);
+    console.log('[RenderHome] OrdersPreview props AFTER getOrdersPreviewProps():', ordersPreviewProps);
+    console.log('[RenderHome] ===================================================');
     
     renderOrdersPreviewCard(
         homeView.refs.orderPreviewContainer,

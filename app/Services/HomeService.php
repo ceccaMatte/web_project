@@ -58,13 +58,30 @@ class HomeService
      */
     private function buildUserSection(): array
     {
+        \Log::debug('[HomeService] ========== BUILD USER SECTION ==========');
+        \Log::debug('[HomeService] Auth::check():', ['result' => Auth::check()]);
+        \Log::debug('[HomeService] Session ID:', ['id' => session()->getId()]);
+        \Log::debug('[HomeService] Session data:', ['data' => session()->all()]);
+        
         $user = Auth::user();
+        
+        \Log::debug('[HomeService] Auth::user():', [
+            'exists' => $user !== null,
+            'id' => $user?->id,
+            'name' => $user?->name,
+            'enabled' => $user?->enabled,
+        ]);
 
-        return [
+        $result = [
             'authenticated' => Auth::check(),
             'enabled' => $user ? $user->enabled : false,
             'name' => $user ? $user->name : null,
         ];
+        
+        \Log::debug('[HomeService] User section result:', $result);
+        \Log::debug('[HomeService] ================================================');
+
+        return $result;
     }
 
     /**
@@ -187,12 +204,18 @@ class HomeService
 
         // Caso guest
         if (!$user) {
+            \Log::debug('[HomeService] OrdersPreview: User is guest');
             return [
                 'variant' => 'login-cta',
                 'ordersCount' => 0,
                 'selectedOrder' => null,
             ];
         }
+
+        \Log::debug('[HomeService] OrdersPreview: User authenticated', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+        ]);
 
         // Carichiamo gli ordini dell'utente di oggi
         $today = now()->toDateString();
@@ -205,8 +228,14 @@ class HomeService
 
         $ordersCount = $orders->count();
 
+        \Log::debug('[HomeService] OrdersPreview: Orders loaded', [
+            'today' => $today,
+            'orders_count' => $ordersCount,
+        ]);
+
         // Caso nessun ordine
         if ($ordersCount === 0) {
+            \Log::debug('[HomeService] OrdersPreview: Variant = empty');
             return [
                 'variant' => 'empty',
                 'ordersCount' => 0,

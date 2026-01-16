@@ -21,6 +21,17 @@ export function renderOrdersPreviewCard(container, props) {
 
     const { variant, ordersCount, selectedOrder } = props;
 
+    console.log('[OrdersPreviewCard] ========== RENDER START ==========');
+    console.log('[OrdersPreviewCard] Props received:', {
+        variant,
+        ordersCount,
+        selectedOrder: selectedOrder ? {
+            id: selectedOrder.id,
+            status: selectedOrder.status,
+            statusLabel: selectedOrder.statusLabel
+        } : null
+    });
+
     const statusColors = colors.status;
     
     const getHref = () => {
@@ -44,6 +55,7 @@ export function renderOrdersPreviewCard(container, props) {
     const ariaLabel = getAriaLabel();
 
     if (variant === 'login-cta') {
+        console.log('[OrdersPreviewCard] Rendering variant: LOGIN-CTA');
         html = `
             <a href="${href}" class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform rounded-xl" aria-label="${ariaLabel}">
                 <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
@@ -60,6 +72,7 @@ export function renderOrdersPreviewCard(container, props) {
             </a>
         `;
     } else if (variant === 'empty') {
+        console.log('[OrdersPreviewCard] Rendering variant: EMPTY');
         html = `
             <a href="${href}" class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform rounded-xl" aria-label="${ariaLabel}">
                 <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
@@ -77,6 +90,8 @@ export function renderOrdersPreviewCard(container, props) {
             </a>
         `;
     } else if (variant === 'single' && selectedOrder) {
+        console.log('[OrdersPreviewCard] Rendering variant: SINGLE');
+        console.log('[OrdersPreviewCard] Order status:', selectedOrder.status);
         const colorSet = statusColors[selectedOrder.status] || statusColors.pending;
         const pulseClass = selectedOrder.status === 'ready' ? 'animate-pulse' : '';
         html = `
@@ -99,6 +114,9 @@ export function renderOrdersPreviewCard(container, props) {
             </a>
         `;
     } else if (variant === 'multi' && selectedOrder) {
+        console.log('[OrdersPreviewCard] Rendering variant: MULTI');
+        console.log('[OrdersPreviewCard] Orders count:', ordersCount);
+        console.log('[OrdersPreviewCard] Selected order status:', selectedOrder.status);
         const colorSet = statusColors[selectedOrder.status] || statusColors.pending;
         const pulseClass = selectedOrder.status === 'ready' ? 'animate-pulse' : '';
         html = `
@@ -125,10 +143,18 @@ export function renderOrdersPreviewCard(container, props) {
                 </div>
             </a>
         `;
+    } else {
+        console.warn('[OrdersPreviewCard] ⚠️ NO VARIANT MATCHED!', {
+            variant,
+            hasSelectedOrder: !!selectedOrder,
+        });
     }
 
+    console.log('[OrdersPreviewCard] HTML length:', html.length);
+    console.log('[OrdersPreviewCard] HTML preview (first 100 chars):', html.substring(0, 100));
+
     safeInnerHTML(container, html);
-    console.log(`[OrdersPreviewCard] Rendered (${variant})`);
+    console.log(`[OrdersPreviewCard] ========== RENDER END (${variant}) ==========`);
 }
 
 export default { renderOrdersPreviewCard };

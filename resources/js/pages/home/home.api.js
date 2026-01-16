@@ -44,6 +44,7 @@ export async function fetchHome() {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
+            credentials: 'include', // Invia cookie di sessione
         });
 
         if (!response.ok) {
@@ -219,6 +220,7 @@ export async function fetchTimeSlots(date) {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
+            credentials: 'include', // Invia cookie di sessione
         });
 
         if (!response.ok) {

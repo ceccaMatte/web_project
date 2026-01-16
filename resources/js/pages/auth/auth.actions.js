@@ -192,9 +192,9 @@ export async function handleSubmit(event) {
         
         // Gestisci risposta
         if (result.success) {
-            // Redirect
+            // Redirect con replace per forzare refresh completo (no cache)
             console.log('[AuthActions] Success, redirecting to:', result.redirect);
-            window.location.href = result.redirect;
+            window.location.replace(result.redirect);
         } else if (result.errors) {
             // Validation errors dal backend
             console.warn('[AuthActions] Validation errors from backend:', result.errors);
