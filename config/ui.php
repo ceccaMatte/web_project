@@ -328,4 +328,77 @@ return [
             'server_error' => 'Something went wrong. Please try again.',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Orders Page Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Stringhe e configurazione per la pagina "Your Orders".
+    | Usate dai componenti Blade orders/*.
+    |
+    */
+    'orders' => [
+        // Header
+        'page_title' => 'Your Orders',
+        'brand_label' => 'Campus Truck',
+        
+        // Sezione Active Orders
+        'active_orders' => [
+            'title' => 'Active Orders',
+            'empty_message' => 'Hungry? No active orders for today.',
+            'order_now_cta' => 'Order Now',
+            'modify_cta' => 'Modify Order',
+            'show_more' => 'Show more',
+            'show_less' => 'Show less',
+        ],
+        
+        // Sezione Recently Ordered
+        'recent_orders' => [
+            'title' => 'Recently Ordered',
+            'view_all' => 'View All',
+            'reorder_cta' => 'Reorder',
+            'favorites_only' => 'Favorites only',
+            'no_recent' => 'No recent orders yet.',
+        ],
+        
+        // Status badges
+        'status_labels' => [
+            'pending' => 'PENDING',
+            'confirmed' => 'CONFIRMED',
+            'ready' => 'READY',
+            'picked_up' => 'PICKED UP',
+            'rejected' => 'REJECTED',
+        ],
+        
+        // Icone
+        'icons' => [
+            'header' => 'receipt_long',
+            'back' => 'arrow_back_ios',
+            'empty' => 'shopping_basket',
+            'add' => 'add',
+            'reorder' => 'refresh',
+            'favorite' => 'star',
+            'favorite_outline' => 'star_outline',
+            'expand_more' => 'expand_more',
+            'expand_less' => 'expand_less',
+            'edit' => 'edit',
+        ],
+        
+        // Aria labels per accessibilità WCAG AAA
+        'aria' => [
+            'back_to_home' => 'Go back to home',
+            'toggle_favorites' => 'Toggle favorites filter',
+            'show_more_ingredients' => 'Show all ingredients',
+            'show_less_ingredients' => 'Collapse ingredients',
+            'reorder' => 'Reorder this sandwich',
+            'modify_order' => 'Modify this order',
+            'add_to_favorites' => 'Add to favorites',
+            'remove_from_favorites' => 'Remove from favorites',
+            'order_now' => 'Create a new order',
+            'active_orders_section' => 'Your active orders for today',
+            'recent_orders_section' => 'Your recent orders history',
+            'order_carousel' => 'Scroll through your active orders',
+        ],
+    ],
 ];

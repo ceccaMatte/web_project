@@ -8,7 +8,9 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Services\OrderService;
+use App\Services\OrdersPageService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -37,31 +39,101 @@ use Illuminate\Support\Facades\Gate;
 class OrderController extends Controller
 {
     private OrderService $orderService;
+    private OrdersPageService $ordersPageService;
 
     /**
-     * Dependency injection del service.
+     * Dependency injection dei services.
      */
-    public function __construct(OrderService $orderService)
+    public function __construct(OrderService $orderService, OrdersPageService $ordersPageService)
     {
         $this->orderService = $orderService;
+        $this->ordersPageService = $ordersPageService;
     }
 
     /**
-     * Mostra lista ordini dell'utente autenticato.
+     * Mostra pagina ordini dell'utente autenticato.
      * 
-     * TODO: Implementare view orders.index
+     * GET /orders
      * 
      * @return \Illuminate\View\View
      */
     public function index()
     {
-        // Recupera ordini utente con relazioni
-        $orders = Order::where('user_id', Auth::id())
-            ->with(['timeSlot.workingDay', 'ingredients'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $user = Auth::user();
+        
+        // Prepara dati per la view (passati inline via script tags)
+        $userData = [
+            'authenticated' => true,
+            'enabled' => $user->enabled,
+            'name' => $user->name,
+        ];
+        
+        // Scheduler data (stessa struttura della home)
+        $scheduler = $this->ordersPageService->buildOrdersPagePayload()['scheduler'];
+        
+        return view('pages.orders', [
+            'user' => $userData,
+            'scheduler' => $scheduler,
+        ]);
+    }
 
-        return view('orders.index', ['orders' => $orders]);
+    /**
+     * API: Inizializza pagina ordini (dati completi).
+     * 
+     * GET /api/orders/init
+     * 
+     * Response:
+     * {
+     *   user: { authenticated, enabled, name },
+     *   scheduler: { selectedDayId, monthLabel, weekDays },
+     *   activeOrders: [...],
+     *   recentOrders: [...]
+     * }
+     * 
+     * @return JsonResponse
+     */
+    public function apiInit(): JsonResponse
+    {
+        $payload = $this->ordersPageService->buildOrdersPagePayload();
+        return response()->json($payload);
+    }
+
+    /**
+     * API: Ordini attivi per una data specifica.
+     * 
+     * GET /api/orders?date=YYYY-MM-DD
+     * 
+     * Response:
+     * {
+     *   orders: [...]
+     * }
+     * 
+     * @return JsonResponse
+     */
+    public function apiActiveOrders(): JsonResponse
+    {
+        $date = request()->query('date', now()->toDateString());
+        $orders = $this->ordersPageService->getActiveOrdersForDate($date);
+        
+        return response()->json(['orders' => $orders]);
+    }
+
+    /**
+     * API: Ordini recenti (storico).
+     * 
+     * GET /api/orders/recent
+     * 
+     * Response:
+     * {
+     *   orders: [...]
+     * }
+     * 
+     * @return JsonResponse
+     */
+    public function apiRecentOrders(): JsonResponse
+    {
+        $orders = $this->ordersPageService->getRecentOrders();
+        return response()->json(['orders' => $orders]);
     }
 
     /**

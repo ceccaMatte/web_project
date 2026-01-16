@@ -36,8 +36,11 @@ const pageRegistry = {
         const { initOrderFormPage } = await import('./pages/order-form.js');
         return initOrderFormPage;
     },
+    orders: async () => {
+        const { initOrdersPage } = await import('./pages/orders/index.js');
+        return initOrdersPage;
+    },
     // TODO: Aggiungere altre pagine qui
-    // orders: async () => { ... },
     // admin: async () => { ... },
 };
 

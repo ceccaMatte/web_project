@@ -56,9 +56,26 @@ Route::get('/welcome', function () {
 // Protette da middleware auth: solo utenti autenticati
 Route::middleware('auth')->group(function () {
     
-    // GET /orders - Lista ordini utente (TODO: implementare)
+    // GET /orders - Pagina ordini utente
     Route::get('/orders', [OrderController::class, 'index'])
         ->name('orders.index');
+    
+    // ========================================
+    // API ORDINI (con sessione, protette da auth)
+    // ========================================
+    
+    // GET /api/orders/init - Inizializzazione pagina ordini
+    Route::get('/api/orders/init', [OrderController::class, 'apiInit'])
+        ->name('api.orders.init');
+    
+    // GET /api/orders - Ordini attivi per data
+    // Query: ?date=YYYY-MM-DD
+    Route::get('/api/orders', [OrderController::class, 'apiActiveOrders'])
+        ->name('api.orders.active');
+    
+    // GET /api/orders/recent - Storico ordini recenti
+    Route::get('/api/orders/recent', [OrderController::class, 'apiRecentOrders'])
+        ->name('api.orders.recent');
     
     // POST /orders - Crea un nuovo ordine
     // Body: { time_slot_id: 1, ingredients: [1, 3, 5] }
