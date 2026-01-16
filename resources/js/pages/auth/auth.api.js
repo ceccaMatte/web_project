@@ -129,7 +129,7 @@ export async function loginUser(email, password) {
  * REGISTER
  * 
  * POST /register
- * Body: { name, email, password }
+ * Body: { nickname, email, password, password_confirmation }
  * 
  * Returns: stesso formato di loginUser()
  */
@@ -146,7 +146,7 @@ export async function registerUser(nickname, email, password) {
             },
             credentials: 'same-origin',
             body: JSON.stringify({ 
-                name: nickname, 
+                nickname: nickname, 
                 email, 
                 password,
                 password_confirmation: password, // Laravel richiede conferma
