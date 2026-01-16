@@ -13,12 +13,16 @@
     --color-background-dark: #0a0e1a;
     --color-surface-dark: #141925;
     --color-border-dark: #1e2536;
+    --color-card-dark: #161e2a;
+    --color-input-bg: #1c2635;
     --color-primary: #3b82f6;
     --color-text-primary: #f8fafc;
     --color-text-secondary: #94a3b8;
     --color-emerald: #10b981;
     --color-amber: #f59e0b;
     --color-rose: #f43f5e;
+    --color-danger: #ef4444;
+    --color-success: #10b981;
 }
 
 @layer base {
@@ -36,5 +40,10 @@
     .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
+    }
+    
+    /* Auth Page - Segmented Control Active State */
+    .segmented-control-active {
+        @apply bg-card-dark text-white shadow-sm;
     }
 }

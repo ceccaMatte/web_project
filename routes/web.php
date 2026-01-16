@@ -12,6 +12,15 @@ use App\Http\Controllers\HomeController;
 // ========================================
 Auth::routes();
 
+// Custom auth views (override Laravel default)
+Route::get('/login', function () {
+    return view('pages.auth');
+})->name('login');
+
+Route::get('/register', function () {
+    return view('pages.auth');
+})->name('register');
+
 // ========================================
 // HOME PUBBLICA
 // ========================================

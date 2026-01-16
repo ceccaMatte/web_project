@@ -268,4 +268,64 @@ return [
         'title' => 'Pre-book for Tomorrow',
         'aria_scroll' => 'Available time slots for booking',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auth Page Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Stringhe e configurazione per la pagina di autenticazione.
+    | Usate dai componenti Blade auth/*.
+    |
+    */
+    'auth' => [
+        // Brand
+        'app_name' => 'Campus Truck',
+        'tagline' => 'Crafting your perfect break, one sandwich at a time.',
+        
+        // Icons
+        'logo_icon' => 'local_shipping',
+        
+        // Tab labels
+        'login' => 'Login',
+        'signup' => 'Sign Up',
+        
+        // Form field labels
+        'email_label' => 'University Email',
+        'password_label' => 'Password',
+        'nickname_label' => 'Nickname',
+        
+        // Placeholders
+        'email_placeholder' => 'name@university.edu',
+        'password_placeholder' => '••••••••',
+        'nickname_placeholder' => 'Your preferred name',
+        
+        // Submit buttons
+        'submit_login' => 'LOGIN',
+        'submit_signup' => 'CREATE ACCOUNT',
+        
+        // Switch prompts
+        'switch_to_signup' => 'Create account',
+        'switch_to_login' => 'Already have an account?',
+        
+        // Footer
+        'footer_text' => 'By continuing, you agree to our',
+        'terms_link' => 'Terms of Service',
+        'privacy_link' => 'Privacy Policy',
+        
+        // Validation messages
+        'validation' => [
+            'email_invalid' => 'Please enter a valid email',
+            'password_short' => 'Password must be at least 8 characters',
+            'nickname_short' => 'Nickname must be at least 3 characters',
+            'required_field' => 'This field is required',
+        ],
+        
+        // Server errors
+        'errors' => [
+            'invalid_credentials' => 'Invalid email or password',
+            'email_taken' => 'This email is already registered',
+            'server_error' => 'Something went wrong. Please try again.',
+        ],
+    ],
 ];
