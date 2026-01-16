@@ -73,14 +73,8 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
 export function renderTimeSlotsList(container, props, callbacks) {
     if (!container) return;
 
-    const { dateLabel, locationLabel, slots } = props;
+    const { slots } = props;
     const { onSlotClick } = callbacks || {};
-
-    // Subtitle
-    const subtitle = container.previousElementSibling;
-    if (subtitle && dateLabel && locationLabel) {
-        subtitle.textContent = `${dateLabel} • ${locationLabel}`;
-    }
 
     // Slots
     if (!slots || slots.length === 0) {

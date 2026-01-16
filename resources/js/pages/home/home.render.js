@@ -87,13 +87,28 @@ export function renderHome() {
         }
     );
 
-    // 5. Orders Preview Card
+    // 5. Orders Preview Header (dinamico in base a isAuthenticated)
+    renderOrderPreviewHeader(
+        homeView.refs.orderPreviewHeader,
+        homeState.user.authenticated
+    );
+
+    // 6. Orders Preview Card
     renderOrdersPreviewCard(
         homeView.refs.orderPreviewContainer,
         homeState.ordersPreview
     );
 
-    // 6. Booking Slots (Time Slot Cards)
+    // 7. Booking Header (data + location su 2 righe)
+    renderBookingHeader(
+        homeView.refs.bookingHeader,
+        {
+            dateLabel: homeState.booking.dateLabel,
+            locationLabel: homeState.booking.locationLabel,
+        }
+    );
+
+    // 8. Booking Slots (Time Slot Cards)
     renderTimeSlotsList(
         homeView.refs.bookingSlotsContainer,
         homeState.booking,
@@ -101,6 +116,90 @@ export function renderHome() {
     );
 
     console.log('[RenderHome] Complete home UI rendered successfully');
+}
+
+/**
+ * Renderizza l'header della sezione Order Preview
+ * 
+ * LOGICA:
+ * - Se utente loggato: "Your Orders for Today" + "View All"
+ * - Se utente NON loggato: "Track your orders" (NO "View All")
+ * 
+ * @param {HTMLElement} container - Container dell'header
+ * @param {boolean} isAuthenticated - Stato autenticazione
+ */
+function renderOrderPreviewHeader(container, isAuthenticated) {
+    if (!container) {
+        console.warn('[RenderHome] Order preview header container not found');
+        return;
+    }
+
+    let html = '';
+
+    if (isAuthenticated) {
+        // UTENTE LOGGATO: titolo + CTA "View All"
+        html = `
+            <h3 class="text-white text-sm font-bold">
+                Your Orders for Today
+            </h3>
+            <a 
+                href="/orders"
+                class="text-primary text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded"
+                aria-label="View All"
+            >
+                View All
+                <span class="material-symbols-outlined text-xs" aria-hidden="true">
+                    arrow_forward
+                </span>
+            </a>
+        `;
+    } else {
+        // UTENTE NON LOGGATO: solo titolo (stile coerente con SCHEDULE)
+        html = `
+            <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                Track your orders
+            </h3>
+        `;
+    }
+
+    container.innerHTML = html;
+    console.log('[RenderHome] Order preview header rendered (authenticated:', isAuthenticated, ')');
+}
+
+/**
+ * Renderizza l'header della sezione Booking
+ * 
+ * LAYOUT:
+ * - Riga 1: Data (bianco, font-bold)
+ * - Riga 2: Location (grigio, text-xs)
+ * 
+ * @param {HTMLElement} container - Container dell'header
+ * @param {object} props - {dateLabel, locationLabel}
+ */
+function renderBookingHeader(container, props) {
+    if (!container) {
+        console.warn('[RenderHome] Booking header container not found');
+        return;
+    }
+
+    const { dateLabel, locationLabel } = props;
+
+    if (!dateLabel || !locationLabel) {
+        console.warn('[RenderHome] Booking header: missing data');
+        return;
+    }
+
+    const html = `
+        <h3 class="text-white text-sm font-bold mb-1">
+            ${dateLabel}
+        </h3>
+        <p class="text-slate-500 text-xs">
+            ${locationLabel}
+        </p>
+    `;
+
+    container.innerHTML = html;
+    console.log('[RenderHome] Booking header rendered');
 }
 
 /**

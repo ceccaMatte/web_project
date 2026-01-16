@@ -48,11 +48,13 @@ export const homeView = {
 
         // Orders Preview Card
         orderPreviewSection: null,
+        orderPreviewHeader: null,
         orderPreviewContainer: null,
         viewAllButton: null,
 
         // Booking Slots
         bookingSection: null,
+        bookingHeader: null,
         bookingSubtitle: null,
         bookingSlotsContainer: null,
     },
@@ -83,11 +85,13 @@ export const homeView = {
 
         // Orders Preview
         this.refs.orderPreviewSection = qs('[data-order-preview-section]');
+        this.refs.orderPreviewHeader = qs('[data-order-preview-header]');
         this.refs.orderPreviewContainer = qs('[data-order-preview-container]');
         this.refs.viewAllButton = qs('[data-view-all-button]');
 
         // Booking Slots
         this.refs.bookingSection = qs('[data-booking-section]');
+        this.refs.bookingHeader = qs('[data-booking-header]');
         this.refs.bookingSubtitle = qs('[data-booking-subtitle]');
         this.refs.bookingSlotsContainer = qs('[data-booking-slots-container]');
 
