@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\FavoriteSandwich;
 use App\Models\Order;
 use App\Models\WorkingDay;
 use Illuminate\Support\Facades\Auth;
@@ -209,13 +210,13 @@ class OrdersPageService
             $timeSlot = $order->timeSlot->start_time;
         }
 
-        // TODO: Implementare ingredient_configuration_id quando sarà disponibile
-        // Per ora usiamo null
-        $ingredientConfigId = null;
+        // Calcola ingredient_configuration_id dalla combinazione di nomi ingredienti
+        $ingredientNames = $order->ingredients->pluck('name')->toArray();
+        $ingredientConfigId = FavoriteSandwich::generateConfigurationId($ingredientNames);
 
-        // TODO: Implementare is_favorite quando sarà disponibile
-        // Per ora è sempre false
-        $isFavorite = false;
+        // Verifica se questa configurazione è nei preferiti dell'utente
+        $userId = Auth::id();
+        $isFavorite = $userId ? FavoriteSandwich::isFavorite($userId, $ingredientConfigId) : false;
 
         return [
             'id' => $order->id,

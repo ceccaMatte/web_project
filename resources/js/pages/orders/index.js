@@ -33,7 +33,7 @@
 import { ordersView } from './orders.view.js';
 import { ordersState } from './orders.state.js';
 import { hydrateUserFromDOM, hydrateSchedulerFromDOM, refreshOrdersState } from './orders.hydration.js';
-import { goBack, navigateToCreate, reorder, toggleOrderExpand, toggleOrderFavorite, toggleFavoritesOnly, navigateToModify } from './orders.actions.js';
+import { goBack, navigateToCreate, navigateToModify } from './orders.actions.js';
 
 /**
  * Inizializza pagina Orders
@@ -103,7 +103,9 @@ function hydrateInlineData() {
  * 
  * Pattern: data-action="nome-azione"
  * 
- * Questo cattura eventi che non sono gestiti dai singoli componenti.
+ * NOTA: Gestisce SOLO le azioni che NON sono già gestite dai componenti.
+ * I componenti gestiscono internamente le proprie azioni tramite callbacks.
+ * Qui gestiamo solo azioni globali come navigazione.
  */
 function registerGlobalEventDelegation() {
     console.log('[Orders] Registering global event delegation...');
@@ -113,6 +115,10 @@ function registerGlobalEventDelegation() {
         if (!actionTarget) return;
 
         const action = actionTarget.dataset.action;
+
+        // NOTA: toggle-expand, toggle-favorite, toggle-favorites-filter, reorder
+        // sono gestiti internamente dai componenti via callbacks.
+        // Non duplicare qui per evitare doppia esecuzione.
 
         switch (action) {
             case 'go-back':
@@ -125,30 +131,6 @@ function registerGlobalEventDelegation() {
                 navigateToCreate();
                 break;
 
-            case 'reorder':
-                event.preventDefault();
-                const configId = parseInt(actionTarget.dataset.configId, 10);
-                if (configId) reorder(configId);
-                break;
-
-            case 'toggle-expand':
-                event.preventDefault();
-                const orderId = parseInt(actionTarget.dataset.orderId, 10);
-                if (orderId) toggleOrderExpand(orderId);
-                break;
-
-            case 'toggle-favorite':
-                event.preventDefault();
-                const favOrderId = parseInt(actionTarget.dataset.orderId, 10);
-                const favConfigId = parseInt(actionTarget.dataset.configId, 10);
-                if (favOrderId && favConfigId) toggleOrderFavorite(favOrderId, favConfigId);
-                break;
-
-            case 'toggle-favorites-filter':
-                event.preventDefault();
-                toggleFavoritesOnly();
-                break;
-
             case 'modify-order':
                 event.preventDefault();
                 const modifyOrderId = parseInt(actionTarget.dataset.orderId, 10);
@@ -156,7 +138,7 @@ function registerGlobalEventDelegation() {
                 break;
 
             default:
-                // Azioni già gestite nei componenti (sidebar, topbar)
+                // Azioni già gestite nei componenti (sidebar, topbar, cards)
                 break;
         }
     });

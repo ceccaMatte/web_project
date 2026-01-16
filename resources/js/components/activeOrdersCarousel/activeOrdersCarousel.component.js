@@ -35,6 +35,7 @@ import { buildActiveOrderCardHTML } from '../activeOrderCard/activeOrderCard.com
 import { safeInnerHTML } from '../../utils/dom.js';
 
 let cleanupListener = null;
+let cleanupTouchListeners = null;
 
 /**
  * Render activeOrdersCarousel component
@@ -188,6 +189,46 @@ export function renderActiveOrdersCarousel(container, props, callbacks) {
 
     container.addEventListener('click', handleClick);
     cleanupListener = () => container.removeEventListener('click', handleClick);
+
+    // Touch swipe support
+    if (cleanupTouchListeners) {
+        cleanupTouchListeners();
+        cleanupTouchListeners = null;
+    }
+
+    const carouselTrack = container.querySelector('.carousel-track');
+    if (carouselTrack && count > 1 && onNavigate) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const minSwipeDistance = 50; // Minimum swipe distance in pixels
+
+        const handleTouchStart = (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        };
+
+        const handleTouchEnd = (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            const swipeDistance = touchEndX - touchStartX;
+
+            if (Math.abs(swipeDistance) >= minSwipeDistance) {
+                if (swipeDistance > 0) {
+                    // Swiped right → go to previous
+                    onNavigate('prev');
+                } else {
+                    // Swiped left → go to next
+                    onNavigate('next');
+                }
+            }
+        };
+
+        carouselTrack.addEventListener('touchstart', handleTouchStart, { passive: true });
+        carouselTrack.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+        cleanupTouchListeners = () => {
+            carouselTrack.removeEventListener('touchstart', handleTouchStart);
+            carouselTrack.removeEventListener('touchend', handleTouchEnd);
+        };
+    }
 }
 
 export default { renderActiveOrdersCarousel };

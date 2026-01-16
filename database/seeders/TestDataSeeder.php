@@ -6,6 +6,9 @@ use App\Models\User;
 use App\Models\WorkingDay;
 use App\Models\TimeSlot;
 use App\Models\Order;
+use App\Models\Ingredient;
+use App\Models\OrderIngredient;
+use App\Models\FavoriteSandwich;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -17,9 +20,11 @@ use Carbon\Carbon;
  * 
  * ✅ Crea:
  * - 3 utenti (1 loggabile principale, 2 aggiuntivi)
- * - WorkingDay per oggi (con time slots)
- * - WorkingDay per domani (con time slots)
- * - 5 ordini per oggi (stati: pending, confirmed, ready, picked_up, rejected)
+ * - Ingredienti per categoria (bread, meat, cheese, vegetable, sauce)
+ * - WorkingDay per oggi e ieri (con time slots)
+ * - Ordini attivi per oggi (pending, confirmed, ready)
+ * - Ordini storici per ieri (picked_up, rejected)
+ * - Preferiti per testare il toggle
  * 
  * 🔐 CREDENZIALI DI TEST:
  * - Email: mario@test.it
@@ -36,9 +41,13 @@ class TestDataSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
         // Svuota le tabelle (ordine inverso delle dipendenze)
+        DB::table('favorite_sandwich_ingredients')->truncate();
+        FavoriteSandwich::truncate();
+        OrderIngredient::truncate();
         Order::truncate();
         TimeSlot::truncate();
         WorkingDay::truncate();
+        Ingredient::truncate();
         User::truncate();
 
         // Riabilita foreign key constraints
@@ -78,7 +87,34 @@ class TestDataSeeder extends Seeder
         echo "✅ Creati 3 utenti\n";
 
         // ============================================
-        // 2️⃣  CREA WORKING DAY OGGI
+        // 2️⃣  CREA INGREDIENTI
+        // ============================================
+        
+        $ingredients = $this->createIngredients();
+        echo "✅ Creati " . count($ingredients) . " ingredienti\n";
+
+        // ============================================
+        // 3️⃣  CREA WORKING DAY IERI (per ordini storici)
+        // ============================================
+        
+        $yesterday = now()->subDay()->toDateString();
+        $yesterdayWorkingDay = WorkingDay::create([
+            'day' => $yesterday,
+            'location' => 'Piazza Centrale - Engineering Hub',
+            'max_orders' => 20,
+            'max_time' => 30,
+            'start_time' => '11:00',
+            'end_time' => '13:00',
+            'is_active' => false, // ieri è passato
+        ]);
+
+        echo "✅ Creato WorkingDay per ieri: {$yesterday}\n";
+
+        $yesterdaySlots = $this->createTimeSlots($yesterdayWorkingDay, '11:00', '12:30', 15);
+        echo "✅ Creati " . count($yesterdaySlots) . " time slots per ieri\n";
+
+        // ============================================
+        // 4️⃣  CREA WORKING DAY OGGI
         // ============================================
         
         $today = now()->toDateString();
@@ -86,7 +122,7 @@ class TestDataSeeder extends Seeder
             'day' => $today,
             'location' => 'Piazza Centrale - Engineering Hub',
             'max_orders' => 20,
-            'max_time' => 30, // 30 minuti per modificare ordine
+            'max_time' => 30,
             'start_time' => '11:00',
             'end_time' => '13:00',
             'is_active' => true,
@@ -94,16 +130,11 @@ class TestDataSeeder extends Seeder
 
         echo "✅ Creato WorkingDay per oggi: {$today}\n";
 
-        // ============================================
-        // 3️⃣  CREA TIME SLOTS PER OGGI
-        // ============================================
-        
-        $todaySlots = $this->createTimeSlots($todayWorkingDay, '11:00', '12:30', 15); // 15 min interval
-
+        $todaySlots = $this->createTimeSlots($todayWorkingDay, '11:00', '12:30', 15);
         echo "✅ Creati " . count($todaySlots) . " time slots per oggi\n";
 
         // ============================================
-        // 4️⃣  CREA WORKING DAY DOMANI
+        // 5️⃣  CREA WORKING DAY DOMANI
         // ============================================
         
         $tomorrow = now()->addDay()->toDateString();
@@ -119,38 +150,105 @@ class TestDataSeeder extends Seeder
 
         echo "✅ Creato WorkingDay per domani: {$tomorrow}\n";
 
-        // ============================================
-        // 5️⃣  CREA TIME SLOTS PER DOMANI
-        // ============================================
-        
         $tomorrowSlots = $this->createTimeSlots($tomorrowWorkingDay, '11:00', '12:30', 15);
-
         echo "✅ Creati " . count($tomorrowSlots) . " time slots per domani\n";
 
         // ============================================
-        // 6️⃣  CREA ORDINI PER OGGI
+        // 6️⃣  CREA ORDINI STORICI (ieri - picked_up)
         // ============================================
         
-        $orderStatuses = ['pending', 'confirmed', 'ready', 'picked_up', 'rejected'];
+        // Ordine storico 1: Mario - Panino Classico (picked_up)
+        $order1 = $this->createOrderWithIngredients(
+            $userMario, 
+            $yesterdaySlots[0], 
+            $yesterdayWorkingDay, 
+            'picked_up',
+            ['Ciabatta', 'Prosciutto Cotto', 'Mozzarella', 'Lattuga', 'Maionese']
+        );
 
-        foreach ($orderStatuses as $index => $status) {
-            Order::create([
-                'user_id' => $userMario->id,
-                'time_slot_id' => $todaySlots[$index]->id,
-                'working_day_id' => $todayWorkingDay->id,
-                'status' => $status,
-            ]);
-        }
+        // Ordine storico 2: Mario - Panino Vegetariano (picked_up)
+        $order2 = $this->createOrderWithIngredients(
+            $userMario, 
+            $yesterdaySlots[1], 
+            $yesterdayWorkingDay, 
+            'picked_up',
+            ['Pane Integrale', 'Mozzarella', 'Pomodoro', 'Basilico', 'Olio EVO']
+        );
 
-        // Ordine extra per Luigi (stato: pending)
-        Order::create([
-            'user_id' => $userLuigi->id,
-            'time_slot_id' => $todaySlots[1]->id,
-            'working_day_id' => $todayWorkingDay->id,
-            'status' => 'pending',
+        // Ordine storico 3: Mario - Panino rifiutato (rejected)
+        $this->createOrderWithIngredients(
+            $userMario, 
+            $yesterdaySlots[2], 
+            $yesterdayWorkingDay, 
+            'rejected',
+            ['Focaccia', 'Salame', 'Gorgonzola']
+        );
+
+        echo "✅ Creati 3 ordini storici per ieri\n";
+
+        // ============================================
+        // 7️⃣  CREA ORDINI ATTIVI (oggi)
+        // ============================================
+        
+        // Ordine attivo 1: Mario - Pending (modificabile)
+        $this->createOrderWithIngredients(
+            $userMario, 
+            $todaySlots[0], 
+            $todayWorkingDay, 
+            'pending',
+            ['Ciabatta', 'Prosciutto Crudo', 'Burrata', 'Rucola']
+        );
+
+        // Ordine attivo 2: Mario - Confirmed (in preparazione)
+        $this->createOrderWithIngredients(
+            $userMario, 
+            $todaySlots[1], 
+            $todayWorkingDay, 
+            'confirmed',
+            ['Pane Toscano', 'Porchetta', 'Pecorino', 'Salsa Verde']
+        );
+
+        // Ordine attivo 3: Mario - Ready (pronto per ritiro)
+        $this->createOrderWithIngredients(
+            $userMario, 
+            $todaySlots[2], 
+            $todayWorkingDay, 
+            'ready',
+            ['Focaccia', 'Tonno', 'Pomodoro', 'Olive', 'Maionese']
+        );
+
+        // Ordine Luigi: Pending
+        $this->createOrderWithIngredients(
+            $userLuigi, 
+            $todaySlots[3], 
+            $todayWorkingDay, 
+            'pending',
+            ['Ciabatta', 'Bresaola', 'Grana', 'Rucola', 'Olio EVO']
+        );
+
+        echo "✅ Creati 4 ordini attivi per oggi\n";
+
+        // ============================================
+        // 8️⃣  CREA PREFERITI
+        // ============================================
+        
+        // Mario ha salvato il "Panino Classico" come preferito
+        $classicConfig = FavoriteSandwich::generateConfigurationId(
+            ['Ciabatta', 'Prosciutto Cotto', 'Mozzarella', 'Lattuga', 'Maionese']
+        );
+        
+        $favorite = FavoriteSandwich::create([
+            'user_id' => $userMario->id,
+            'ingredient_configuration_id' => $classicConfig,
         ]);
 
-        echo "✅ Creati 6 ordini per oggi (stati: pending, confirmed, ready, picked_up, rejected)\n";
+        // Associa ingredienti al preferito
+        $favoriteIngredientIds = Ingredient::whereIn('name', [
+            'Ciabatta', 'Prosciutto Cotto', 'Mozzarella', 'Lattuga', 'Maionese'
+        ])->pluck('id')->toArray();
+        $favorite->ingredients()->attach($favoriteIngredientIds);
+
+        echo "✅ Creato 1 preferito per Mario\n";
 
         // ============================================
         // RIEPILOGO
@@ -165,32 +263,113 @@ class TestDataSeeder extends Seeder
         echo "║    - luigi@test.it (password)             ║\n";
         echo "║    - admin@test.it (password, admin)      ║\n";
         echo "║                                            ║\n";
-        echo "║ 📅 Working Days: 2                         ║\n";
-        echo "║    - Oggi: " . $today . "                 ║\n";
+        echo "║ 🥪 Ingredienti: " . count($ingredients) . "                        ║\n";
+        echo "║                                            ║\n";
+        echo "║ 📅 Working Days: 3                         ║\n";
+        echo "║    - Ieri: " . $yesterday . "                ║\n";
+        echo "║    - Oggi: " . $today . "                   ║\n";
         echo "║    - Domani: " . $tomorrow . "               ║\n";
         echo "║                                            ║\n";
-        echo "║ ⏰ Time Slots: " . (count($todaySlots) + count($tomorrowSlots)) . "                          ║\n";
-        echo "║    - Oggi: " . count($todaySlots) . " slot                        ║\n";
-        echo "║    - Domani: " . count($tomorrowSlots) . " slot                        ║\n";
+        echo "║ 🛒 Ordini: 7                              ║\n";
+        echo "║    - Storici (ieri): 3                     ║\n";
+        echo "║    - Attivi (oggi): 4                      ║\n";
         echo "║                                            ║\n";
-        echo "║ 🛒 Ordini: 6                              ║\n";
-        echo "║    - Pending: 2                            ║\n";
-        echo "║    - Confirmed: 1                          ║\n";
-        echo "║    - Ready: 1                              ║\n";
-        echo "║    - Picked up: 1                          ║\n";
-        echo "║    - Rejected: 1                           ║\n";
+        echo "║ ⭐ Preferiti: 1                            ║\n";
         echo "╚════════════════════════════════════════════╝\n";
     }
 
     /**
+     * Crea ingredienti per categoria
+     */
+    private function createIngredients(): array
+    {
+        $ingredientsData = [
+            // Pane
+            ['name' => 'Ciabatta', 'code' => 'CIAB', 'category' => 'bread'],
+            ['name' => 'Focaccia', 'code' => 'FOC', 'category' => 'bread'],
+            ['name' => 'Pane Integrale', 'code' => 'PINT', 'category' => 'bread'],
+            ['name' => 'Pane Toscano', 'code' => 'PTOS', 'category' => 'bread'],
+            
+            // Carne
+            ['name' => 'Prosciutto Cotto', 'code' => 'PCOT', 'category' => 'meat'],
+            ['name' => 'Prosciutto Crudo', 'code' => 'PCRU', 'category' => 'meat'],
+            ['name' => 'Salame', 'code' => 'SAL', 'category' => 'meat'],
+            ['name' => 'Bresaola', 'code' => 'BRES', 'category' => 'meat'],
+            ['name' => 'Porchetta', 'code' => 'PORC', 'category' => 'meat'],
+            ['name' => 'Tonno', 'code' => 'TON', 'category' => 'meat'],
+            
+            // Formaggi
+            ['name' => 'Mozzarella', 'code' => 'MOZ', 'category' => 'cheese'],
+            ['name' => 'Burrata', 'code' => 'BUR', 'category' => 'cheese'],
+            ['name' => 'Gorgonzola', 'code' => 'GORG', 'category' => 'cheese'],
+            ['name' => 'Pecorino', 'code' => 'PEC', 'category' => 'cheese'],
+            ['name' => 'Grana', 'code' => 'GRA', 'category' => 'cheese'],
+            
+            // Verdure
+            ['name' => 'Lattuga', 'code' => 'LAT', 'category' => 'vegetable'],
+            ['name' => 'Pomodoro', 'code' => 'POM', 'category' => 'vegetable'],
+            ['name' => 'Rucola', 'code' => 'RUC', 'category' => 'vegetable'],
+            ['name' => 'Olive', 'code' => 'OLI', 'category' => 'vegetable'],
+            ['name' => 'Basilico', 'code' => 'BAS', 'category' => 'vegetable'],
+            
+            // Salse
+            ['name' => 'Maionese', 'code' => 'MAY', 'category' => 'sauce'],
+            ['name' => 'Olio EVO', 'code' => 'OEVO', 'category' => 'sauce'],
+            ['name' => 'Salsa Verde', 'code' => 'SVER', 'category' => 'sauce'],
+        ];
+
+        $ingredients = [];
+        foreach ($ingredientsData as $data) {
+            $ingredients[] = Ingredient::create([
+                'name' => $data['name'],
+                'code' => $data['code'],
+                'category' => $data['category'],
+                'is_available' => true,
+            ]);
+        }
+
+        return $ingredients;
+    }
+
+    /**
+     * Crea un ordine con ingredienti snapshot
+     */
+    private function createOrderWithIngredients(
+        User $user, 
+        TimeSlot $slot, 
+        WorkingDay $workingDay, 
+        string $status,
+        array $ingredientNames
+    ): Order {
+        static $dailyNumber = 0;
+        $dailyNumber++;
+
+        $order = new Order([
+            'user_id' => $user->id,
+            'time_slot_id' => $slot->id,
+            'working_day_id' => $workingDay->id,
+            'daily_number' => $dailyNumber,
+        ]);
+        $order->status = $status;
+        $order->save();
+
+        // Crea snapshot ingredienti
+        foreach ($ingredientNames as $name) {
+            $ingredient = Ingredient::where('name', $name)->first();
+            $category = $ingredient ? $ingredient->category : 'other';
+
+            OrderIngredient::create([
+                'order_id' => $order->id,
+                'name' => $name,
+                'category' => $category,
+            ]);
+        }
+
+        return $order;
+    }
+
+    /**
      * Helper: crea time slots per un working day
-     * 
-     * @param WorkingDay $workingDay
-     * @param string $startTime (es. "11:00")
-     * @param string $endTime (es. "12:30")
-     * @param int $intervalMinutes (es. 15)
-     * 
-     * @return array di TimeSlot creati
      */
     private function createTimeSlots(WorkingDay $workingDay, string $startTime, string $endTime, int $intervalMinutes): array
     {
