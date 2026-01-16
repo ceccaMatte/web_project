@@ -86,7 +86,7 @@
             - aria-label sul back button per screen reader
         --}}
         <header 
-            class="border-b border-slate-200 dark:border-slate-800"
+            class="border-b border-slate-800"
             data-orders-header
         >
             {{-- Popolato da renderOrdersHeader() in orders.render.js --}}

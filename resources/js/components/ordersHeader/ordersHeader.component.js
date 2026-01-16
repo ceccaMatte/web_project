@@ -37,7 +37,7 @@ export function renderOrdersHeader(container, props, callbacks) {
     const { onBack } = callbacks;
 
     const html = `
-        <div class="px-5 py-2 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+        <div class="px-5 py-2 flex items-center justify-between border-b border-slate-800">
             <button 
                 class="flex items-center justify-center w-8 h-8 rounded-full text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 data-action="go-back"
@@ -45,7 +45,7 @@ export function renderOrdersHeader(container, props, callbacks) {
             >
                 <span class="material-symbols-outlined text-xl" aria-hidden="true">arrow_back_ios</span>
             </button>
-            <h1 class="text-sm font-bold tracking-tight text-slate-800 dark:text-white">${title}</h1>
+            <h1 class="text-sm font-bold tracking-tight text-slate-500">${title}</h1>
             <div class="w-8"></div>
         </div>
     `;
