@@ -65,11 +65,14 @@ export function renderWeekScheduler(container, props, callbacks) {
             circleClasses += ' text-slate-400';
         }
 
-        // Dot indicator per "today"
+        // Dot indicator per "today" e "selected"
         if (isToday && !isSelected) {
             dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-primary"></div>';
         } else if (isToday && isSelected) {
             dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-white"></div>';
+        } else if (isSelected && !isToday) {
+            // Pallino sotto al giorno selected (non today)
+            dotHTML = '<div class="mt-1 w-1 h-1 rounded-full bg-primary"></div>';
         }
 
         const ariaLabel = a11y.scheduler.day(weekday, dayNumber, isToday, isDisabled);

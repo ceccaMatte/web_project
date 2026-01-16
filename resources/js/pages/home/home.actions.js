@@ -116,10 +116,34 @@ export async function selectDay(dayId) {
 }
 
 /**
+ * Gestisce click su bottone "Prenota" slot
+ * 
+ * WORKFLOW:
+ * - Se utente NON autenticato → redirect a /login
+ * - Se utente autenticato → redirect a /orders/create?slot={slotId}
+ * 
+ * @param {string} slotId - ID dello slot da prenotare
+ */
+export function bookSlot(slotId) {
+    console.log(`[Actions] Book slot clicked: ${slotId}`);
+    
+    if (!homeState.user.authenticated) {
+        console.log('[Actions] User not authenticated, redirecting to login');
+        window.location.href = '/login';
+        return;
+    }
+    
+    // Utente autenticato: vai alla pagina di creazione ordine
+    console.log('[Actions] User authenticated, redirecting to order creation');
+    window.location.href = `/orders/create?slot=${slotId}`;
+}
+
+/**
  * Export default per import aggregato
  */
 export default {
     openSidebar,
     closeSidebar,
     selectDay,
+    bookSlot,
 };

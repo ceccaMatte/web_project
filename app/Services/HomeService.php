@@ -288,7 +288,7 @@ class HomeService
 
             $slots[] = [
                 'id' => $slot->id,
-                'timeLabel' => $slot->start_time,
+                'timeLabel' => substr($slot->start_time, 0, 5), // HH:MM senza secondi
                 'slotsLeft' => $slotsLeft,
                 'href' => $href,
                 'isDisabled' => $isDisabled,

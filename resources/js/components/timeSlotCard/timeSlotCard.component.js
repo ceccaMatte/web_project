@@ -60,6 +60,7 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
                 type="button"
                 class="${ctaClasses}"
                 ${isFullyBooked || isDisabled ? 'disabled' : ''}
+                data-action="book-slot"
                 data-slot-id="${id}"
             >
                 ${isFullyBooked ? labels.slots.waitlist : labels.slots.book_cta}

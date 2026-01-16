@@ -57,6 +57,7 @@
 
 import { homeView } from './home.view.js';
 import { refreshHomeState } from './home.hydration.js';
+import { bookSlot } from './home.actions.js';
 
 /**
  * Inizializza pagina Home
@@ -65,6 +66,7 @@ import { refreshHomeState } from './home.hydration.js';
  * 1. Inizializza DOM refs
  * 2. Fetch e hydrate stato da API
  * 3. Render completo UI
+ * 4. Registra event delegation globale
  * 
  * Chiamato da app.js quando data-page="home".
  */
@@ -76,6 +78,27 @@ export async function initHomePage() {
 
     // 2. Fetch stato iniziale e render
     await refreshHomeState();
+
+    // 3. Registra event delegation globale per azioni (book-slot, ecc.)
+    document.addEventListener('click', (event) => {
+        const actionTarget = event.target.closest('[data-action]');
+        if (!actionTarget) return;
+
+        const action = actionTarget.dataset.action;
+
+        switch (action) {
+            case 'book-slot':
+                const slotId = actionTarget.dataset.slotId;
+                if (slotId) {
+                    event.preventDefault();
+                    bookSlot(slotId);
+                }
+                break;
+            default:
+                // Altre azioni già gestite nei componenti
+                break;
+        }
+    });
 
     console.log('[Home] Home page initialized successfully');
 }
