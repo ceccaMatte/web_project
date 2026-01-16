@@ -35,40 +35,36 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
     }
 
     // Colori in base a disponibilità
-    let slotsBadgeColor = 'text-emerald-400';
+    let slotsBadgeColor = 'text-emerald-500';
+    let cardOpacity = '';
+    let ctaClasses = 'w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20';
+    
     if (isFullyBooked) {
-        slotsBadgeColor = 'text-red-400';
+        slotsBadgeColor = 'text-rose-500';
+        cardOpacity = 'opacity-60';
+        ctaClasses = 'w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed';
     } else if (isLowSlots) {
-        slotsBadgeColor = 'text-amber-400';
+        slotsBadgeColor = 'text-amber-500';
     }
 
-    // Stato disabled
-    const disabledClasses = isDisabled || isFullyBooked
-        ? 'opacity-50 cursor-not-allowed'
-        : 'hover:bg-slate-800 active:scale-[0.98] cursor-pointer';
-
-    const tag = onSlotClick && !isDisabled && !isFullyBooked ? 'button' : 'a';
-    const hrefAttr = tag === 'a' ? `href="${href}"` : '';
-    const dataAttr = tag === 'button' ? `data-slot-id="${id}"` : '';
-
+    // Card container: layout verticale, min-w per scroll orizzontale
     const html = `
-        <${tag}
-            ${hrefAttr}
-            ${dataAttr}
-            class="flex items-center justify-between p-4 rounded-xl border border-border-dark bg-surface-dark transition-all ${disabledClasses}"
-            ${isDisabled || isFullyBooked ? 'disabled' : ''}
-            aria-label="${ariaLabel}"
-        >
-            <div class="flex flex-col">
-                <span class="text-white text-sm font-bold">${timeLabel}</span>
-                <span class="${slotsBadgeColor} text-xs font-medium mt-0.5">
+        <div class="min-w-40 p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg ${cardOpacity}" aria-label="${ariaLabel}">
+            <div>
+                <p class="text-white text-base font-bold">${timeLabel}</p>
+                <p class="${slotsBadgeColor} text-[10px] font-bold uppercase tracking-wider mt-1">
                     ${isFullyBooked ? labels.slots.fully_booked : labels.slots.slots_left(slotsLeft)}
-                </span>
+                </p>
             </div>
-            <span class="text-primary text-xs font-bold uppercase">
+            <button
+                type="button"
+                class="${ctaClasses}"
+                ${isFullyBooked || isDisabled ? 'disabled' : ''}
+                data-slot-id="${id}"
+            >
                 ${isFullyBooked ? labels.slots.waitlist : labels.slots.book_cta}
-            </span>
-        </${tag}>
+            </button>
+        </div>
     `;
 
     return html;
@@ -101,7 +97,8 @@ export function renderTimeSlotsList(container, props, callbacks) {
         .map(slot => renderTimeSlotCard(slot, 'home', onSlotClick))
         .join('');
 
-    container.innerHTML = `<div class="grid gap-3">${slotsHTML}</div>`;
+    // Container scroll orizzontale (no scrollbar visibile)
+    container.innerHTML = `<div class="flex overflow-x-auto no-scrollbar gap-4">${slotsHTML}</div>`;
 
     // Event delegation se onSlotClick passato
     if (onSlotClick) {

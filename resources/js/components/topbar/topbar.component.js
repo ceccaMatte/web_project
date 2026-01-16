@@ -51,40 +51,44 @@ export function renderTopBar(container, props, callbacks) {
     const ariaLabel = sidebarOpen ? a11y.topbar.closeSidebar : a11y.topbar.openSidebar;
     const action = sidebarOpen ? 'close-sidebar' : 'open-sidebar';
 
-    // Greeting se autenticato
-    const greeting = user.authenticated && user.name 
-        ? labels.topbar.greeting(user.name) 
-        : '';
-
-    // HTML component
+    // HTML component (header semantico, sticky, blur)
     const html = `
-        <div class="flex items-center justify-between h-16 px-4">
-            <!-- Logo / Title -->
+        <header class="flex items-center bg-background-dark/80 backdrop-blur-md px-5 py-4 justify-between sticky top-0 z-30 border-b border-border-dark/50">
+            <!-- Logo + Brand -->
             <div class="flex items-center gap-3">
-                <h1 class="text-xl font-bold text-white">
-                    Panini App
-                </h1>
-                ${greeting ? `
-                    <span class="text-sm text-slate-400" data-user-name>
-                        ${greeting}
+                <!-- Logo Icon -->
+                <div class="flex size-9 items-center justify-center rounded-lg bg-primary/20 text-primary">
+                    <span class="material-symbols-outlined text-2xl">
+                        ${icons.local_shipping}
                     </span>
-                ` : ''}
+                </div>
+                <!-- Title + Subtitle -->
+                <div>
+                    <h1 class="text-white text-base font-bold leading-tight">
+                        ${labels.topbar.appName || 'Campus Truck'}
+                    </h1>
+                    <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
+                        ${labels.topbar.tagline || 'Student Service'}
+                    </p>
+                </div>
             </div>
 
-            <!-- Hamburger / Close Button -->
-            <button
-                type="button"
-                class="p-2 rounded-lg hover:bg-slate-800 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                data-action="${action}"
-                aria-label="${ariaLabel}"
-                aria-expanded="${sidebarOpen}"
-                aria-controls="sidebar-menu"
-            >
-                <span class="material-symbols-outlined text-slate-300">
-                    ${icon}
-                </span>
-            </button>
-        </div>
+            <!-- Actions -->
+            <div class="flex items-center gap-2">
+                <button
+                    type="button"
+                    class="flex items-center justify-center rounded-full h-10 w-10 bg-surface-dark border border-border-dark text-slate-300 hover:text-white active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    data-action="${action}"
+                    aria-label="${ariaLabel}"
+                    aria-expanded="${sidebarOpen}"
+                    aria-controls="sidebar-menu"
+                >
+                    <span class="material-symbols-outlined text-[22px]">
+                        ${icon}
+                    </span>
+                </button>
+            </div>
+        </header>
     `;
 
     // Mount HTML

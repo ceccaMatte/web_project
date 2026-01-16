@@ -1,0 +1,372 @@
+TOPBAR file resources\js\components\topbar\topbar.component.js
+quello che ha scritto
+// HTML component
+    const html = `
+        <div class="flex items-center justify-between h-16 px-4">
+            <!-- Logo / Title -->
+            <div class="flex items-center gap-3">
+                <h1 class="text-xl font-bold text-white">
+                    Panini App
+                </h1>
+                ${greeting ? `
+                    <span class="text-sm text-slate-400" data-user-name>
+                        ${greeting}
+                    </span>
+                ` : ''}
+            </div>
+
+            <!-- Hamburger / Close Button -->
+            <button
+                type="button"
+                class="p-2 rounded-lg hover:bg-slate-800 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                data-action="${action}"
+                aria-label="${ariaLabel}"
+                aria-expanded="${sidebarOpen}"
+                aria-controls="sidebar-menu"
+            >
+                <span class="material-symbols-outlined text-slate-300">
+                    ${icon}
+                </span>
+            </button>
+        </div>
+    `;
+
+quello che sarebbe dovuto essere
+<header class="flex items-center bg-background-dark/80 backdrop-blur-md px-5 py-4 justify-between sticky top-0 z-30 border-b border-border-dark/50">
+<div class="flex items-center gap-3">
+<div class="flex size-9 items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-2xl">local_shipping</span>
+</div>
+<div>
+<h1 class="text-white text-base font-bold leading-tight">Campus Truck</h1>
+<p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Student Service</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-surface-dark border border-border-dark text-slate-300">
+<span class="material-symbols-outlined text-[22px]">menu</span>
+</button>
+</div>
+</header>
+
+TODAY_SERVICE_CARD resources\js\components\todayServiceCard\todayServiceCard.component.js
+quello che ha scritto
+    if (status === 'active') {
+        const ariaLabel = a11y.service.active(location, startTime, endTime);
+        html = `
+            <div class="relative overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-5 shadow-xl" aria-label="${ariaLabel}">
+                <header class="flex justify-between items-start mb-4">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="relative flex h-2 w-2" aria-hidden="true">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${colors.service.active.indicatorRing} opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 ${colors.service.active.indicator}"></span>
+                            </span>
+                            <p class="text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                                ${labels.service.active}
+                            </p>
+                        </div>
+                    </div>
+                </header>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-slate-400 text-base">${icons.local_shipping}</span>
+                        <span class="text-slate-300 text-sm">${location}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-slate-400 text-base">${icons.schedule}</span>
+                        <span class="text-slate-300 text-sm">${startTime} - ${endTime}</span>
+                    </div>
+                    ${queueTime ? `
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-slate-400 text-base">${icons.info}</span>
+                            <span class="text-slate-300 text-sm">${labels.service.queue_time}: ${labels.service.minutes(queueTime)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    } else {
+        const ariaLabel = a11y.service.inactive;
+        html = `
+            <div class="relative overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-5 shadow-xl" aria-label="${ariaLabel}">
+                <header class="flex justify-between items-start mb-4">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="relative flex h-2 w-2 ${colors.service.inactive.indicator} rounded-full" aria-hidden="true"></span>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">
+                                ${labels.service.inactive}
+                            </p>
+                        </div>
+                    </div>
+                </header>
+                <div class="flex flex-col items-center justify-center py-10">
+                    <p class="text-slate-400 text-base font-bold mb-2">
+                        ${labels.service.coming_soon}
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+quello che sarebbe dovuto essere se fosse statta attiva
+<section class="px-5 pt-4">
+<div class="relative overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-5 shadow-xl">
+<div class="flex justify-between items-start mb-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span class="text-emerald-500 text-[10px] font-bold uppercase tracking-widest">Live Now (Today)</span>
+</div>
+<h2 class="text-white text-lg font-bold">North Quad Station</h2>
+<p class="text-slate-400 text-xs">Open 11:00 AM – 4:00 PM</p>
+</div>
+<div class="size-20 rounded-xl bg-cover bg-center border border-border-dark" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDOC_dL1BQ6iMFUaLICs60Xqcis7zlzUQAGFTwZ-ACLzjhl_FvtzdZlng-8t71_qQGdGwzpR27S5T7j_Re9PTzxjutws3JCLAVhAKgrGzy1SEODU3mPOCZCqNbkSKM3LpizsuFCrgLW3hnQcsFx8DheqwUW1hepw0gh92Zq4KE5TAAVnLoyJqilGil1yJIyUQ3V1YbYGzHpc7SGM9Yar1zC--WJ7SotBE3gM9PmtB2WyRLXtGDKafQS46FKs_trIiSl12z7K8MXhQQC");'></div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl border border-border-dark/60 bg-background-dark/40">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
+<span class="material-symbols-outlined text-lg">person_pin_circle</span>
+</div>
+<div>
+<p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-0.5">Physical Queue</p>
+<p class="text-xs font-medium text-slate-400">Walk-up wait time</p>
+</div>
+</div>
+<div class="text-xl font-bold text-slate-300">12 min</div>
+</div>
+</div>
+</section>
+
+SCheduler resources\js\components\weekScheduler\weekScheduler.component.js
+quello che ha scritto
+ weekDays.forEach(day => {
+        const { id, weekday, dayNumber, isToday, isActive, isDisabled, isSelected } = day;
+
+        let baseClasses = 'flex flex-col items-center justify-center flex-1 py-3 rounded-xl transition-all';
+        let stateClasses = '';
+        let weekdayColor = '';
+        let numberColor = '';
+
+        if (isDisabled) {
+            stateClasses = 'opacity-30 cursor-not-allowed';
+            weekdayColor = 'text-slate-500';
+            numberColor = 'text-slate-400';
+        } else if (isSelected) {
+            stateClasses = 'border border-primary bg-primary/10 shadow-lg shadow-primary/20';
+            weekdayColor = 'text-primary';
+            numberColor = 'text-white';
+        } else if (isActive) {
+            stateClasses = 'hover:bg-slate-800 active:scale-95 cursor-pointer';
+            weekdayColor = 'text-slate-400';
+            numberColor = 'text-slate-300';
+        } else {
+            stateClasses = 'opacity-30';
+            weekdayColor = 'text-slate-500';
+            numberColor = 'text-slate-400';
+        }
+
+        const allClasses = `${baseClasses} ${stateClasses}`;
+        const ariaLabel = a11y.scheduler.day(weekday, dayNumber, isToday, isDisabled);
+
+        if (isDisabled) {
+            daysHTML += `
+                <div class="${allClasses}" aria-disabled="true" aria-label="${ariaLabel}">
+                    <span class="text-[9px] font-medium uppercase mb-1 ${weekdayColor}">${weekday}</span>
+                    <span class="text-base font-bold ${numberColor}">${dayNumber}</span>
+                    ${isToday ? '<div class="mt-1 size-1 rounded-full bg-slate-700"></div>' : ''}
+                </div>
+            `;
+        } else {
+            daysHTML += `
+                <button
+                    type="button"
+                    class="${allClasses}"
+                    data-day-id="${id}"
+                    aria-pressed="${isSelected}"
+                    aria-label="${ariaLabel}"
+                >
+                    <span class="text-[9px] font-medium uppercase mb-1 ${weekdayColor}">${weekday}</span>
+                    <span class="text-base font-bold ${numberColor}">${dayNumber}</span>
+                    ${isToday && !isSelected ? '<div class="mt-1 size-1 rounded-full bg-primary"></div>' : ''}
+                    ${isToday && isSelected ? '<div class="mt-1 size-1 rounded-full bg-white"></div>' : ''}
+                </button>
+            `;
+        }
+    });
+
+    daysHTML += '</div></div>';
+
+quelloc he sarebbe sovuto essere. unci caso che ha ragione lui è che nel concept che gi ho fornito
+non c'è la selezione del giono attivo, cosa che deve implementare lui perchè nella reference non c'è
+
+<div class="flex justify-between items-center bg-white dark:bg-card-dark p-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+<!-- Sunday -->
+<div class="flex flex-col items-center opacity-40">
+<span class="text-[10px] font-bold mb-2">SUN</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">08</div>
+</div>
+<!-- Monday (Active/Today) -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2 text-primary">MON</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30">09</div>
+</div>
+<!-- Tuesday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">TUE</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">10</div>
+</div>
+<!-- Wednesday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">WED</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">11</div>
+</div>
+<!-- Thursday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">THU</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">12</div>
+</div>
+<!-- Friday -->
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold mb-2">FRI</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">13</div>
+</div>
+<!-- Saturday -->
+<div class="flex flex-col items-center opacity-40">
+<span class="text-[10px] font-bold mb-2">SAT</span>
+<div class="w-10 h-10 flex items-center justify-center rounded-full text-sm">14</div>
+</div>
+</div>
+
+time slot card resources\js\components\timeSlotCard\timeSlotCard.component.js 
+quello che ha fatto 
+export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
+    const { id, timeLabel, slotsLeft, href, isDisabled } = slot;
+
+    const isFullyBooked = slotsLeft === 0;
+    const isLowSlots = slotsLeft > 0 && slotsLeft <= thresholds.lowSlotsThreshold;
+
+    let ariaLabel;
+    if (isFullyBooked) {
+        ariaLabel = a11y.slots.fullyBooked(timeLabel);
+    } else {
+        ariaLabel = a11y.slots.available(timeLabel, slotsLeft);
+    }
+
+    // Colori in base a disponibilità
+    let slotsBadgeColor = 'text-emerald-400';
+    if (isFullyBooked) {
+        slotsBadgeColor = 'text-red-400';
+    } else if (isLowSlots) {
+        slotsBadgeColor = 'text-amber-400';
+    }
+
+    // Stato disabled
+    const disabledClasses = isDisabled || isFullyBooked
+        ? 'opacity-50 cursor-not-allowed'
+        : 'hover:bg-slate-800 active:scale-[0.98] cursor-pointer';
+
+    const tag = onSlotClick && !isDisabled && !isFullyBooked ? 'button' : 'a';
+    const hrefAttr = tag === 'a' ? `href="${href}"` : '';
+    const dataAttr = tag === 'button' ? `data-slot-id="${id}"` : '';
+
+    const html = `
+        <${tag}
+            ${hrefAttr}
+            ${dataAttr}
+            class="flex items-center justify-between p-4 rounded-xl border border-border-dark bg-surface-dark transition-all ${disabledClasses}"
+            ${isDisabled || isFullyBooked ? 'disabled' : ''}
+            aria-label="${ariaLabel}"
+        >
+            <div class="flex flex-col">
+                <span class="text-white text-sm font-bold">${timeLabel}</span>
+                <span class="${slotsBadgeColor} text-xs font-medium mt-0.5">
+                    ${isFullyBooked ? labels.slots.fully_booked : labels.slots.slots_left(slotsLeft)}
+                </span>
+            </div>
+            <span class="text-primary text-xs font-bold uppercase">
+                ${isFullyBooked ? labels.slots.waitlist : labels.slots.book_cta}
+            </span>
+        </${tag}>
+    `;
+
+    return html;
+}
+
+export function renderTimeSlotsList(container, props, callbacks) {
+    if (!container) return;
+
+    const { dateLabel, locationLabel, slots } = props;
+    const { onSlotClick } = callbacks || {};
+
+    // Subtitle
+    const subtitle = container.previousElementSibling;
+    if (subtitle && dateLabel && locationLabel) {
+        subtitle.textContent = `${dateLabel} • ${locationLabel}`;
+    }
+
+    // Slots
+    if (!slots || slots.length === 0) {
+        container.innerHTML = `
+            <div class="flex items-center justify-center w-full py-8">
+                <p class="text-slate-500 text-sm">${labels.booking.no_slots}</p>
+            </div>
+        `;
+        console.log('[TimeSlotsList] Rendered (no slots)');
+        return;
+    }
+
+    const slotsHTML = slots
+        .map(slot => renderTimeSlotCard(slot, 'home', onSlotClick))
+        .join('');
+
+    container.innerHTML = `<div class="grid gap-3">${slotsHTML}</div>`;
+
+    // Event delegation se onSlotClick passato
+    if (onSlotClick) {
+        listen(container, 'click', (e) => {
+            const button = e.target.closest('[data-slot-id]');
+            if (button) {
+                const slotId = button.dataset.slotId;
+                onSlotClick(slotId);
+            }
+        });
+    }
+
+    console.log(`[TimeSlotsList] Rendered (${slots.length} slots)`);
+}
+
+quello che sarebbe dovuto essere
+<section class="flex flex-col gap-4">
+<div class="px-5">
+<h3 class="text-white text-sm font-bold mb-1">Pre-book for Tomorrow</h3>
+<p class="text-slate-500 text-xs">Wednesday, October 25 • Engineering Hub</p>
+</div>
+<div class="flex overflow-x-auto no-scrollbar gap-4 px-5">
+<div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg">
+<div>
+<p class="text-white text-base font-bold">11:00 AM</p>
+<p class="text-emerald-500 text-[10px] font-bold uppercase tracking-wider mt-1">12 Slots left</p>
+</div>
+<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20">Book Slot</button>
+</div>
+<div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg">
+<div>
+<p class="text-white text-base font-bold">11:30 AM</p>
+<p class="text-amber-500 text-[10px] font-bold uppercase tracking-wider mt-1">4 Slots left</p>
+</div>
+<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20">Book Slot</button>
+</div>
+<div class="min-w-[160px] p-4 rounded-2xl border border-border-dark bg-surface-dark/50 flex flex-col gap-4 opacity-60">
+<div>
+<p class="text-slate-400 text-base font-bold">12:00 PM</p>
+<p class="text-rose-500 text-[10px] font-bold uppercase tracking-wider mt-1">Fully Booked</p>
+</div>
+<button class="w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed" disabled="">Waitlist</button>
+</div>
+</div>
+</section>
+

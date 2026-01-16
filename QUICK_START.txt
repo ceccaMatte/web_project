@@ -1,0 +1,32 @@
+🚀 QUICK START - Database Seed
+
+═══════════════════════════════════════════════════
+
+✅ POPOLA IL DATABASE IN UN COLPO:
+
+    php artisan migrate:fresh --seed
+
+═══════════════════════════════════════════════════
+
+🔐 CREDENZIALI DI TEST:
+
+    Email:    mario@test.it
+    Password: password
+    Ruolo:   user (utente normale)
+
+═══════════════════════════════════════════════════
+
+📊 COSA VIENE CREATO:
+
+    ✓ 3 Utenti (Mario, Luigi, Admin)
+    ✓ 2 Working Days (oggi + domani)
+    ✓ 12 Time Slots (6 oggi, 6 domani)
+    ✓ 6 Ordini (stati: pending, confirmed, ready, picked_up, rejected)
+
+═══════════════════════════════════════════════════
+
+📝 PER DETTAGLI COMPLETI VEDI:
+
+    DATABASE_SEEDING.md
+
+═══════════════════════════════════════════════════

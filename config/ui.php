@@ -95,6 +95,10 @@ return [
     |
     */
     'labels' => [
+        'topbar' => [
+            'appName' => 'Campus Truck',
+            'tagline' => 'Student Service',
+        ],
         'truck_status' => [
             'live_now' => 'LIVE NOW (TODAY)',
             'service_unavailable' => 'SERVICE NOT AVAILABLE',

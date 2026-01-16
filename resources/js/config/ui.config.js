@@ -81,6 +81,7 @@ export const icons = {
     close: 'close',
     chevron_right: 'chevron_right',
     arrow_back: 'arrow_back',
+    person: 'person_pin_circle',
 
     // Actions
     add_circle: 'add_circle',
