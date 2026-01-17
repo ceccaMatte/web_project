@@ -230,9 +230,12 @@ export function toggleFavoritesOnly() {
 export function navigateToCreate(configId = null) {
     console.log('[Actions] Navigate to create order');
     
-    // Per ora naviga senza parametri
-    // In futuro: /orders/create?config=${configId}
-    window.location.href = '/orders/create';
+    // Se abbiamo configId, passa via URL per prepopolare ingredienti
+    if (configId) {
+        window.location.href = `/orders/create?config=${configId}`;
+    } else {
+        window.location.href = '/orders/create';
+    }
 }
 
 /**
@@ -303,16 +306,18 @@ export async function logout() {
 }
 
 /**
- * Reorder: naviga a create con configurazione ingredienti precompilata
+ * Reorder: naviga a create con ingredienti precompilati da un ordine esistente
  * 
- * @param {number} configId - ID della configurazione ingredienti da replicare
+ * @param {number} orderId - ID dell'ordine da cui copiare gli ingredienti
  */
-export function reorder(configId) {
-    console.log(`[Actions] Reorder with config: ${configId}`);
+export function reorder(orderId) {
+    console.log(`[Actions] Reorder from order: ${orderId}`);
     
-    // Per ora naviga solo a create
-    // In futuro passerà la configurazione
-    navigateToCreate(configId);
+    if (orderId) {
+        window.location.href = `/orders/create?reorder=${orderId}`;
+    } else {
+        window.location.href = '/orders/create';
+    }
 }
 
 /**

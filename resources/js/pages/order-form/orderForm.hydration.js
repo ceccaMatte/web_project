@@ -51,6 +51,14 @@ export function hydrateFromInlineData() {
             selectedDay: data.selectedDate || new Date().toISOString().split('T')[0],
         });
         
+        // Reorder: prepopola ingredienti se presenti
+        if (data.reorderIngredients && data.reorderIngredients.length > 0) {
+            console.log('[Hydration] Prepopulating from reorder:', data.reorderIngredients.length, 'ingredients');
+            mutateOrder({
+                selectedIngredients: data.reorderIngredients,
+            });
+        }
+        
         // Selected day per scheduler
         if (data.selectedDate) {
             orderFormState.selectedDayId = data.selectedDate;

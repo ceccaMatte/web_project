@@ -23,11 +23,11 @@ let cleanupListener = null;
 export function renderWeekScheduler(container, props, callbacks) {
     if (!container) return;
 
-    const { monthLabel, weekDays } = props;
+    const { monthLabel, weekDays, showLabel = true } = props;
     const { onDaySelected } = callbacks;
 
-    // Header
-    const headerHTML = `
+    // Header - solo se showLabel è true
+    const headerHTML = showLabel ? `
         <div class="flex items-center justify-between mb-3">
             <h2 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                 ${labels.scheduler.title}
@@ -36,7 +36,7 @@ export function renderWeekScheduler(container, props, callbacks) {
                 ${monthLabel || ''}
             </span>
         </div>
-    `;
+    ` : '';
 
     // Days - Layout a cerchi (w-10 h-10) con container unico
     let daysHTML = '<div class="bg-surface-dark border border-border-dark rounded-2xl p-3"><div class="flex justify-between items-center">';

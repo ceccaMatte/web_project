@@ -40,13 +40,13 @@
          ======================================== --}}
     <div 
         data-sidebar-overlay
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden"
+        class="fixed inset-0 bg-background-dark/80 backdrop-blur-sm z-40 hidden"
         aria-hidden="true"
     ></div>
 
     <aside
         data-sidebar
-        class="fixed top-0 left-0 h-full w-72 bg-surface-dark border-r border-border-dark z-50 transform -translate-x-full transition-transform duration-300"
+        class="fixed top-0 right-0 h-full w-[80%] max-w-[320px] bg-[#141925] border-l border-[#1e2536] flex flex-col p-6 shadow-2xl z-50 translate-x-full transition-transform duration-300 ease-out"
         role="dialog"
         aria-modal="true"
         aria-label="Menu di navigazione"
@@ -142,6 +142,7 @@
             'orderId' => $orderId ?? null,
             'selectedDate' => $selectedDate ?? now()->toDateString(),
             'user' => $user,
+            'reorderIngredients' => $reorderIngredients ?? [],
         ]) !!}
     </script>
 

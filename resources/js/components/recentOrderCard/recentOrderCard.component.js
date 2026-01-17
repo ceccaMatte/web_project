@@ -86,7 +86,7 @@ export function buildRecentOrderCardHTML(props) {
                             <button 
                                 class="text-[10px] font-bold text-primary border border-primary/30 px-5 py-2 rounded-xl uppercase hover:bg-primary/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 data-action="reorder"
-                                data-config-id="${ingredient_configuration_id || ''}"
+                                data-order-id="${id}"
                                 aria-label="Reorder this sandwich"
                             >
                                 ${labels.reorder}
@@ -113,7 +113,7 @@ export function buildRecentOrderCardHTML(props) {
                     <button 
                         class="text-[10px] font-bold text-primary border border-primary/30 px-5 py-2 rounded-xl uppercase hover:bg-primary/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         data-action="reorder"
-                        data-config-id="${ingredient_configuration_id || ''}"
+                        data-order-id="${id}"
                         aria-label="Reorder this sandwich"
                     >
                         ${labels.reorder}

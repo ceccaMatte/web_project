@@ -71,45 +71,39 @@ export function renderSelectedIngredientsSummary(container, props, callbacks) {
     // Ordine categorie
     const categoryOrder = ['bread', 'meat', 'cheese', 'vegetable', 'sauce', 'other'];
     
-    // Genera HTML
-    let html = '<div class="bg-card-dark rounded-2xl border border-border-dark p-4 space-y-4">';
+    // Genera HTML - container con max-height e scroll
+    let html = '<div class="bg-card-dark rounded-xl border border-border-dark overflow-hidden flex flex-col max-h-60">';
+    html += '<div class="overflow-y-auto no-scrollbar p-4 flex flex-col gap-4">';
     
-    let isFirst = true;
     categoryOrder.forEach(category => {
         if (!grouped[category]) return;
         
         grouped[category].forEach(ing => {
-            const dividerClass = isFirst ? '' : 'border-t border-border-dark pt-4';
-            
             html += `
-                <div class="flex items-center justify-between ${dividerClass}">
+                <div class="flex items-center justify-between group">
                     <div>
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <p class="text-[10px] text-primary font-bold uppercase tracking-tight">
                             ${getCategoryLabel(category)}
                         </p>
-                        <p class="text-[15px] font-semibold text-white">
+                        <p class="text-[15px] font-medium text-white">
                             ${ing.name}
                         </p>
                     </div>
                     <button 
                         type="button"
-                        class="text-red-500 hover:text-red-400 active:scale-95 transition-all"
+                        class="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 active:bg-red-500/20 transition-all"
                         data-action="remove-ingredient"
                         data-ingredient-id="${ing.id}"
                         aria-label="Rimuovi ${ing.name}"
                     >
-                        <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">
-                            do_not_disturb_on
-                        </span>
+                        <span class="material-symbols-outlined text-lg">remove</span>
                     </button>
                 </div>
             `;
-            
-            isFirst = false;
         });
     });
     
-    html += '</div>';
+    html += '</div></div>';
     
     safeInnerHTML(container, html);
 

@@ -33,11 +33,35 @@ class OrderFormController extends Controller
      * Mostra pagina CREATE order.
      * 
      * GET /orders/create
+     * GET /orders/create?reorder={orderId} - per prepopolare da ordine esistente
      */
     public function create()
     {
         $user = Auth::user();
         $date = request()->query('date', now()->toDateString());
+        $reorderFromId = request()->query('reorder');
+        
+        // Se reorder, carica ingredienti dall'ordine esistente
+        $reorderIngredients = [];
+        if ($reorderFromId) {
+            $sourceOrder = Order::with('ingredients')
+                ->where('user_id', $user->id)
+                ->find($reorderFromId);
+            
+            if ($sourceOrder) {
+                // OrderIngredient sono snapshot (name, category), dobbiamo matchare con Ingredient
+                $ingredientNames = $sourceOrder->ingredients->pluck('name')->toArray();
+                
+                // Trova ingredienti attuali per nome
+                $matchedIngredients = \App\Models\Ingredient::whereIn('name', $ingredientNames)->get();
+                
+                $reorderIngredients = $matchedIngredients->map(fn($i) => [
+                    'id' => $i->id,
+                    'name' => $i->name,
+                    'category' => $i->category,
+                ])->toArray();
+            }
+        }
         
         return view('pages.order-form', [
             'mode' => 'create',
@@ -47,6 +71,7 @@ class OrderFormController extends Controller
                 'authenticated' => true,
                 'name' => $user->name,
             ],
+            'reorderIngredients' => $reorderIngredients,
         ]);
     }
 

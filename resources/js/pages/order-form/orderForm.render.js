@@ -201,6 +201,7 @@ function renderSchedulerComponent() {
         {
             monthLabel: orderFormState.monthLabel,
             weekDays: weekDaysWithSelection,
+            showLabel: false, // Label già nel blade template
         },
         {
             onDaySelected: selectDay,

@@ -142,8 +142,8 @@ export function renderRecentOrdersSection(container, props, callbacks) {
 
         const reorderTarget = e.target.closest('[data-action="reorder"]');
         if (reorderTarget && onReorder) {
-            const configId = reorderTarget.dataset.configId;
-            onReorder(configId);
+            const orderId = parseInt(reorderTarget.dataset.orderId, 10);
+            onReorder(orderId);
             return;
         }
     };
