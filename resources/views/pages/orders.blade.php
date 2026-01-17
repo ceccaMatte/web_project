@@ -103,12 +103,12 @@
             - Su mobile: block (ordine verticale)
             - Su desktop: 2 colonne [480px_1fr] con gap (left column wider)
         --}}
-        <div class="md:grid md:grid-cols-[480px_1fr] md:gap-6">
+        <div class="md:grid md:grid-cols-[minmax(240px,480px)_minmax(240px,1fr)] md:gap-6">
 
             {{-- ========================================
                  COLONNA SINISTRA: Scheduler + Active Orders
                  ======================================== --}}
-            <div class="md:flex md:flex-col md:gap-8">
+            <div class="md:flex md:flex-col md:gap-8 md:min-w-0">
 
                 {{--
                     SEZIONE 1: Week Scheduler
@@ -161,7 +161,7 @@
             {{-- ========================================
                  COLONNA DESTRA: Recently Ordered (scrollabile)
                  ======================================== --}}
-            <div class="md:max-h-[calc(100vh-200px)] md:overflow-y-auto">
+            <div class="md:max-h-[calc(100vh-200px)] md:overflow-y-auto md:min-w-0">
 
                 {{--
                     SEZIONE 3: Recently Ordered

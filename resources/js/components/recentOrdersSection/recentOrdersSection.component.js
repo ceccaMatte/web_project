@@ -101,7 +101,7 @@ export function renderRecentOrdersSection(container, props, callbacks) {
     }
 
     const html = `
-        <section class="pt-2 flex-grow overflow-hidden flex flex-col md:min-w-[360px] md:max-w-[500px]" aria-label="Your recent orders history" role="region">
+        <section class="pt-2 flex-grow overflow-hidden flex flex-col md:min-w-[320px] md:max-w-[500px]" aria-label="Your recent orders history" role="region">
             ${headerHTML}
             <div class="space-y-4 overflow-y-auto flex-grow pb-10 hide-scrollbar">
                 ${contentHTML}
