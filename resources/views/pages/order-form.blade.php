@@ -72,7 +72,7 @@
             {{-- ========================================
                  LEFT COLUMN: Scheduler + TimeSlots + Ingredients
                  ======================================== --}}
-            <div class="flex flex-col">
+            <div class="flex flex-col {{ $mode === 'create' ? 'md:max-w-[600px]' : 'md:max-w-[400px]' }}">
 
                 {{-- SCHEDULER SECTION (solo CREATE mode) --}}
                 @if($mode === 'create')

@@ -73,7 +73,7 @@ export function renderSelectedIngredientsSummary(container, props, callbacks) {
     
     // Genera HTML - container con max-height e scroll
     // Raggruppa ingredienti: HEADER categoria UNA VOLTA, poi lista ingredienti sotto
-    let html = '<div class="bg-card-dark rounded-xl border border-border-dark overflow-hidden flex flex-col max-h-60">';
+    let html = '<div class="bg-card-dark rounded-xl border border-border-dark overflow-hidden flex flex-col max-h-60 md:max-h-96">';
     html += '<div class="overflow-y-auto no-scrollbar p-4 flex flex-col gap-4">';
     
     let isFirstCategory = true;
