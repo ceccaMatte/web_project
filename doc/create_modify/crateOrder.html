@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Modify Order - Food Truck App</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#136dec",
+                        "background-dark": "#050505",
+                        "card-dark": "#121212",
+                        "border-dark": "#262626"
+                    },
+                    fontFamily: {
+                        "sans": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.85rem",
+                        "2xl": "1.25rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: "Work Sans", sans-serif;
+            background-color: #050505;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        .ios-bottom-inset {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-white min-h-screen flex flex-col bg-background-dark">
+<header class="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-xl border-b border-border-dark">
+<div class="flex items-center justify-between px-4 h-16">
+<div class="w-10 h-10 bg-card-dark rounded-xl border border-border-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-white">menu</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Campus Eats</span>
+<span class="text-xs text-gray-400">Main Square Truck</span>
+</div>
+<div class="w-10 h-10 flex items-center justify-center">
+<span class="material-symbols-outlined text-gray-400">notifications</span>
+</div>
+</div>
+</header>
+<div class="px-4 py-4 flex items-center justify-between">
+<button class="flex items-center text-primary">
+<span class="material-symbols-outlined text-3xl leading-none">chevron_left</span>
+</button>
+<h1 class="text-xl font-bold">Modify Order</h1>
+</div>
+<main class="flex-1 overflow-y-auto pb-48">
+<section class="px-4 mb-6">
+<h2 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">Your Selection</h2>
+<div class="bg-card-dark rounded-2xl border border-border-dark p-4 space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Bread</p>
+<p class="text-[15px] font-semibold">Sourdough</p>
+</div>
+<button class="text-red-500">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">do_not_disturb_on</span>
+</button>
+</div>
+<div class="flex items-center justify-between border-t border-border-dark pt-4">
+<div>
+<p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Protein</p>
+<p class="text-[15px] font-semibold">Grilled Chicken</p>
+</div>
+<button class="text-red-500">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">do_not_disturb_on</span>
+</button>
+</div>
+<div class="flex items-center justify-between border-t border-border-dark pt-4">
+<div>
+<p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Toppings</p>
+<p class="text-[15px] font-semibold">Avocado, Swiss Cheese</p>
+</div>
+<button class="text-red-500">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">do_not_disturb_on</span>
+</button>
+</div>
+</div>
+</section>
+<section class="px-4 mb-8 space-y-2">
+<h2 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">Add Ingredients</h2>
+<details class="group bg-card-dark border border-border-dark rounded-xl overflow-hidden">
+<summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+<span class="text-sm font-semibold uppercase tracking-wider">Bread</span>
+<span class="material-symbols-outlined text-gray-500 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="max-h-48 overflow-y-auto px-4 pb-4 space-y-4 border-t border-border-dark pt-4">
+<div class="flex items-center justify-between">
+<span class="text-sm">Sourdough</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">check_circle</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Ciabatta</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between opacity-40">
+<span class="text-sm text-gray-400">Gluten-Free Wrap</span>
+<span class="text-[9px] font-bold text-red-500 uppercase border border-red-500/30 px-1.5 py-0.5 rounded">Out of Stock</span>
+</div>
+</div>
+</details>
+<details class="group bg-card-dark border border-border-dark rounded-xl overflow-hidden" open="">
+<summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+<span class="text-sm font-semibold uppercase tracking-wider">Protein</span>
+<span class="material-symbols-outlined text-gray-500 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="max-h-48 overflow-y-auto px-4 pb-4 space-y-4 border-t border-border-dark pt-4">
+<div class="flex items-center justify-between">
+<span class="text-sm">Grilled Chicken</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">check_circle</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Smoked Turkey</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between opacity-40">
+<span class="text-sm text-gray-400">Tofu Steaks</span>
+<span class="text-[9px] font-bold text-red-500 uppercase border border-red-500/30 px-1.5 py-0.5 rounded">Out of Stock</span>
+</div>
+</div>
+</details>
+<details class="group bg-card-dark border border-border-dark rounded-xl overflow-hidden">
+<summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+<span class="text-sm font-semibold uppercase tracking-wider">Cheese</span>
+<span class="material-symbols-outlined text-gray-500 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="max-h-48 overflow-y-auto px-4 pb-4 space-y-4 border-t border-border-dark pt-4">
+<div class="flex items-center justify-between">
+<span class="text-sm">Swiss</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">check_circle</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Cheddar</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between opacity-40">
+<span class="text-sm text-gray-400">Vegan Mozz</span>
+<span class="text-[9px] font-bold text-red-500 uppercase border border-red-500/30 px-1.5 py-0.5 rounded">Out of Stock</span>
+</div>
+</div>
+</details>
+<details class="group bg-card-dark border border-border-dark rounded-xl overflow-hidden">
+<summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+<span class="text-sm font-semibold uppercase tracking-wider">Veggies</span>
+<span class="material-symbols-outlined text-gray-500 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="max-h-48 overflow-y-auto px-4 pb-4 space-y-4 border-t border-border-dark pt-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Lettuce</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Tomato</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between opacity-40">
+<span class="text-sm text-gray-400">Avocado</span>
+<span class="text-[9px] font-bold text-red-500 uppercase border border-red-500/30 px-1.5 py-0.5 rounded">Out of Stock</span>
+</div>
+</div>
+</details>
+<details class="group bg-card-dark border border-border-dark rounded-xl overflow-hidden">
+<summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+<span class="text-sm font-semibold uppercase tracking-wider">Sauces</span>
+<span class="material-symbols-outlined text-gray-500 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="max-h-48 overflow-y-auto px-4 pb-4 space-y-4 border-t border-border-dark pt-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Mayo</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Pesto</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between opacity-40">
+<span class="text-sm text-gray-400">Spicy Aioli</span>
+<span class="text-[9px] font-bold text-red-500 uppercase border border-red-500/30 px-1.5 py-0.5 rounded">Out of Stock</span>
+</div>
+</div>
+</details>
+<details class="group bg-card-dark border border-border-dark rounded-xl overflow-hidden">
+<summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+<span class="text-sm font-semibold uppercase tracking-wider">Other</span>
+<span class="material-symbols-outlined text-gray-500 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="max-h-48 overflow-y-auto px-4 pb-4 space-y-4 border-t border-border-dark pt-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Salt &amp; Pepper</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-300">Extra Napkins</span>
+<div class="w-6 h-6 rounded-full border-2 border-border-dark"></div>
+</div>
+<div class="flex items-center justify-between opacity-40">
+<span class="text-sm text-gray-400">Combo Drink</span>
+<span class="text-[9px] font-bold text-red-500 uppercase border border-red-500/30 px-1.5 py-0.5 rounded">Out of Stock</span>
+</div>
+</div>
+</details>
+</section>
+<section class="mb-8">
+<h2 class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4">Pickup Day</h2>
+<div class="flex px-4 overflow-x-auto no-scrollbar gap-2">
+<div class="flex flex-col items-center min-w-[48px] gap-2">
+<span class="text-[10px] font-medium text-gray-500 uppercase">Mon</span>
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-white font-bold text-sm">23</div>
+</div>
+<div class="flex flex-col items-center min-w-[48px] gap-2">
+<span class="text-[10px] font-medium text-gray-500 uppercase">Tue</span>
+<div class="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm border border-border-dark">24</div>
+</div>
+<div class="flex flex-col items-center min-w-[48px] gap-2">
+<span class="text-[10px] font-medium text-gray-500 uppercase">Wed</span>
+<div class="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm border border-border-dark">25</div>
+</div>
+<div class="flex flex-col items-center min-w-[48px] gap-2">
+<span class="text-[10px] font-medium text-gray-500 uppercase">Thu</span>
+<div class="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm border border-border-dark">26</div>
+</div>
+<div class="flex flex-col items-center min-w-[48px] gap-2">
+<span class="text-[10px] font-medium text-gray-500 uppercase">Fri</span>
+<div class="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm border border-border-dark">27</div>
+</div>
+<div class="flex flex-col items-center min-w-[48px] gap-2 opacity-30">
+<span class="text-[10px] font-medium text-gray-500 uppercase">Sat</span>
+<div class="w-10 h-10 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm">28</div>
+</div>
+<div class="flex flex-col items-center min-w-[48px] gap-2 opacity-30">
+<span class="text-[10px] font-medium text-gray-500 uppercase">Sun</span>
+<div class="w-10 h-10 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm">29</div>
+</div>
+</div>
+</section>
+<section class="mb-8">
+<h2 class="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4">Pickup Time</h2>
+<div class="flex gap-2 px-4 overflow-x-auto no-scrollbar">
+<div class="min-w-[110px] bg-primary/10 border-2 border-primary rounded-xl py-3 flex flex-col items-center justify-center text-center">
+<span class="text-sm font-bold mb-0.5">12:30 PM</span>
+<span class="text-[9px] text-primary font-bold uppercase tracking-wider">Selected</span>
+</div>
+<div class="min-w-[110px] bg-card-dark border border-border-dark rounded-xl py-3 flex flex-col items-center justify-center text-center">
+<span class="text-sm font-bold mb-0.5 text-gray-200">1:00 PM</span>
+<span class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Available</span>
+</div>
+<div class="min-w-[110px] bg-card-dark border border-border-dark rounded-xl py-3 flex flex-col items-center justify-center text-center">
+<span class="text-sm font-bold mb-0.5 text-gray-200">1:30 PM</span>
+<span class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Available</span>
+</div>
+<div class="min-w-[110px] bg-card-dark border border-border-dark rounded-xl py-3 flex flex-col items-center justify-center text-center opacity-50">
+<span class="text-sm font-bold mb-0.5 text-gray-400">2:00 PM</span>
+<span class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Full</span>
+</div>
+</div>
+</section>
+</main>
+<footer class="fixed bottom-0 left-0 right-0 px-6 pt-4 pb-8 bg-background-dark/90 backdrop-blur-xl border-t border-border-dark ios-bottom-inset">
+<div class="flex flex-col gap-4 max-w-lg mx-auto">
+<button class="w-full h-14 bg-primary text-white font-bold text-[17px] rounded-2xl active:scale-[0.98] transition-all">
+                Save Changes
+            </button>
+<button class="w-full text-center text-gray-400 text-sm font-medium hover:text-red-500 transition-colors">
+                Cancel Order
+            </button>
+</div>
+</footer>
+
+</body></html>

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Constants\MiddlewareAlias; // Import della classe MiddlewareAlias
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderFormController;
 use App\Http\Controllers\AdminWeeklyConfigurationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
@@ -60,6 +61,31 @@ Route::middleware('auth')->group(function () {
     // GET /orders - Pagina ordini utente
     Route::get('/orders', [OrderController::class, 'index'])
         ->name('orders.index');
+    
+    // ========================================
+    // ORDER FORM (Create / Modify) - STESSA PAGINA
+    // ========================================
+    
+    // GET /orders/create - Pagina creazione ordine
+    Route::get('/orders/create', [OrderFormController::class, 'create'])
+        ->name('orders.create');
+    
+    // GET /orders/{order}/edit - Pagina modifica ordine
+    Route::get('/orders/{order}/edit', [OrderFormController::class, 'edit'])
+        ->name('orders.edit');
+    
+    // API Order Form
+    // GET /api/orders/form/create?date=YYYY-MM-DD
+    Route::get('/api/orders/form/create', [OrderFormController::class, 'apiCreate'])
+        ->name('api.orders.form.create');
+    
+    // GET /api/orders/{order}/form
+    Route::get('/api/orders/{order}/form', [OrderFormController::class, 'apiModify'])
+        ->name('api.orders.form.modify');
+    
+    // GET /api/orders/form/availability?date=YYYY-MM-DD
+    Route::get('/api/orders/form/availability', [OrderFormController::class, 'apiAvailability'])
+        ->name('api.orders.form.availability');
     
     // ========================================
     // API ORDINI (con sessione, protette da auth)

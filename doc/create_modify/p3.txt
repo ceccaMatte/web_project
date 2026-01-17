@@ -1,0 +1,205 @@
+📌 PROMPT #3 — CREATE / MODIFY ORDER
+Frontend State, Hydration, Loader e Polling (progettazione corretta)
+
+Questa pagina è ESCLUSIVAMENTE la pagina Create / Modify Order.
+NON è la pagina Orders.
+NON mostra liste ordini.
+NON condivide logica con la pagina Orders se non a livello di pattern architetturale.
+
+🎯 OBIETTIVO DEL PROMPT
+
+Definire come deve essere progettato il frontend della pagina Create / Modify Order in modo che:
+
+lo stato sia deterministico
+
+la hydration sia chiara
+
+il loader sia corretto (e non resti mai appeso)
+
+il polling aggiorni i dati senza rompere la UI
+
+CREATE e MODIFY abbiano flussi nettamente separati
+
+🧱 STATE — SSOT OBBLIGATORIO
+
+(createOrder.state.js)
+
+Lo state DEVE contenere:
+
+{
+  ui: {
+    isLoading: true,
+    isSubmitting: false
+  },
+
+  mode: 'create' | 'modify',
+
+  order: {
+    id: null,                   // solo in modify
+    selectedDay: 'YYYY-MM-DD',  // default = today (create)
+    selectedTimeSlot: null,     // SOLO create
+    selectedIngredients: []     // create = vuoto, modify = preload
+  },
+
+  availability: {
+    timeSlots: [],              // SOLO create
+    ingredients: []             // create + modify
+  }
+}
+
+Regole
+
+nessuna variabile fuori dallo state
+
+nessun componente modifica lo state
+
+lo state rappresenta sempre la verità attuale della pagina
+
+🔁 HYDRATION — FLUSSI SEPARATI E CHIARI
+
+(createOrder.hydration.js)
+
+🔵 CREATE MODE
+
+Quando non è presente un orderId:
+
+mode = "create"
+
+selectedDay = today
+
+selectedTimeSlot = null
+
+selectedIngredients = []
+
+fetch:
+
+time slot disponibili per selectedDay
+
+ingredienti disponibili
+
+popola availability.timeSlots
+
+popola availability.ingredients
+
+isLoading = false
+
+render pagina
+
+avvia polling
+
+👉 In create NON esiste alcun ordine iniziale
+
+🟠 MODIFY MODE
+
+Quando è presente orderId:
+
+mode = "modify"
+
+fetch GET /api/orders/{orderId}
+
+popola:
+
+order.id
+
+selectedIngredients
+
+fetch disponibilità ingredienti aggiornate
+
+availability.ingredients include:
+
+ingredienti disponibili
+
+ingredienti finiti (da disabilitare)
+
+NON caricare time slot
+
+NON mostrare scheduler
+
+isLoading = false
+
+render pagina
+
+avvia polling
+
+👉 In modify il giorno e lo slot NON ESISTONO
+
+⏱️ POLLING (PER CREATE E MODIFY)
+
+Il polling serve a intercettare:
+
+ingredienti che finiscono
+
+time slot che diventano full (solo create)
+
+Regole del polling
+
+gira ogni 5 secondi
+
+NON riattiva il loader
+
+NON resetta lo state
+
+aggiorna solo availability
+
+Reazione ai dati backend
+Ingredienti
+
+se un ingrediente selezionato diventa non disponibile:
+
+rimuovilo da selectedIngredients
+
+segnalo come finito
+
+disabilita la selezione
+
+Time slot (solo create)
+
+se il time slot selezionato diventa full:
+
+selectedTimeSlot = null
+
+bottone Create disabilitato
+
+🎨 RENDERING (createOrder.render.js)
+if (state.ui.isLoading) {
+  renderLoader();
+  return;
+}
+
+renderHeader();
+
+if (state.mode === 'create') {
+  renderScheduler();
+  renderTimeSlots();
+}
+
+renderIngredients();
+renderSubmitButton();
+
+🚫 ERRORI DA NON INTRODURRE
+
+❌ mischiare create e modify
+
+❌ caricare time slot in modify
+
+❌ cambiare giorno in modify
+
+❌ polling che resetta selezioni
+
+❌ componenti che fanno logica
+
+✅ RISULTATO ATTESO
+
+Questa pagina:
+
+nasce già corretta
+
+non introduce loader bloccati
+
+non ha stato ambiguo
+
+reagisce al backend
+
+supporta create e modify senza duplicazioni
+
+🔜 PROSSIMO PASSO

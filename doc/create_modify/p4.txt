@@ -1,0 +1,268 @@
+📌 PROMPT #4 — COMPONENTI UI
+Ingredienti, Accordion, Time Slot (SOLO RENDERING)
+
+In questo prompt devi implementare ESCLUSIVAMENTE componenti UI.
+NON devi implementare logica di business.
+NON devi fare fetch.
+NON devi mutare lo state.
+
+I componenti ricevono props, renderizzano, emettono eventi. Fine.
+
+🧱 REGOLE ARCHITETTURALI (NON NEGOZIABILI)
+📁 POSIZIONE FILE
+
+TUTTI i componenti devono stare in:
+
+resources/js/components/
+
+
+❌ NON sotto pages/create-order
+❌ NON sotto pages/orders
+❌ NON dentro render.js
+
+Devono essere riutilizzabili in qualsiasi pagina.
+
+🧠 RESPONSABILITÀ COMPONENTE
+
+Un componente:
+
+riceve dati via props
+
+renderizza markup
+
+emette eventi custom (onClick, onToggle, ecc)
+
+Un componente NON PUÒ:
+
+sapere se siamo in create o modify
+
+sapere se un ingrediente è obbligatorio
+
+sapere se un bottone è disabilitato “perché manca qualcosa”
+
+fare fetch
+
+leggere lo state globale
+
+Se lo fa → è SBAGLIATO.
+
+🧩 COMPONENTI DA REALIZZARE
+1️⃣ AccordionSection.component.js
+Scopo
+
+Gestire una sezione apribile/chiudibile (es. “Bread”, “Meat”, ecc).
+
+Props
+{
+  id,
+  title,
+  isOpen,
+  disabled,
+  children
+}
+
+Regole
+
+UNA SOLA sezione può essere aperta alla volta
+
+se clicco una sezione:
+
+emette onToggle(sectionId)
+
+NON decide quale sezione chiudere
+
+NON mantiene stato interno
+
+👉 La logica “chiudi le altre” è NELLO STATE / ACTIONS, non qui.
+
+2️⃣ IngredientItem.component.js
+
+Props:
+
+{
+  id,
+  name,
+  category,
+  selected,
+  available
+}
+
+
+Regole UI:
+
+se available === false: non selezionabile + stile “finito”
+
+se available === true: selezionabile
+
+se selected === true: evidenziato
+
+❌ NON esiste stato disabled
+❌ La UI non applica vincoli
+❌ La UI non decide regole di business
+
+Eventi
+
+onSelect(ingredientId)
+
+onDeselect(ingredientId)
+
+❌ NON decide se è selezionabile
+❌ NON rimuove altri ingredienti
+❌ NON conosce le regole “1 bread”
+
+3️⃣ IngredientsGroup.component.js
+Scopo
+
+Renderizzare una categoria di ingredienti (Bread, Meat, ecc)
+
+Props
+{
+  category,
+  ingredients[],
+  openSectionId
+}
+
+Comportamento
+
+usa AccordionSection
+
+passa isOpen = openSectionId === category
+
+renderizza lista di IngredientItem
+
+👉 NON gestisce:
+
+selezioni
+
+validazioni
+
+rimozioni automatiche
+
+4️⃣ TimeSlotItem.component.js
+Scopo
+
+Visualizzare UN time slot
+
+Props
+{
+  id,
+  timeLabel,
+  available,
+  selected,
+  disabled
+}
+
+Regole
+
+se available === false:
+
+disabilitato
+
+stile “full”
+
+se selected === true:
+
+evidenziato
+
+Eventi
+
+onSelect(timeSlotId)
+
+❌ NON deseleziona altri slot
+❌ NON sa se siamo in create o modify
+
+5️⃣ TimeSlotList.component.js
+Scopo
+
+Renderizzare la lista degli slot
+
+Props
+{
+  timeSlots[],
+  selectedTimeSlotId
+}
+
+Regole
+
+renderizza TimeSlotItem
+
+nessuna logica di validazione
+
+6️⃣ SubmitOrderButton.component.js
+Props
+{
+  mode,               // create | modify
+  disabled,
+  loading
+}
+
+Regole
+
+testo cambia in base al mode
+
+se disabled === true:
+
+bottone disabilitato
+
+se loading === true:
+
+mostra spinner
+
+❌ NON decide quando è disabilitato
+❌ NON fa submit
+
+🔄 COMUNICAZIONE EVENTI
+
+TUTTI i componenti:
+
+emettono eventi
+
+NON chiamano actions direttamente
+
+NON importano lo state
+
+Esempio:
+
+element.dispatchEvent(
+  new CustomEvent('ingredient:select', { detail: id })
+);
+
+🎨 STILE GRAFICO (OBBLIGATORIO)
+
+DARK MODE ONLY
+
+classi coerenti con Home / Orders
+
+nessun light background
+
+nessuna palette inventata
+
+usa classi Tailwind già presenti nel progetto
+
+Se lo stile non matcha, è da rifare.
+
+🚫 ERRORI DA NON COMMETTERE (ANCORA)
+
+❌ componenti con stato interno
+
+❌ accordion che si auto-gestisce
+
+❌ componenti che “decidono”
+
+❌ duplicazione markup
+
+❌ logica nei componenti
+
+✅ RISULTATO ATTESO
+
+Alla fine di questo step:
+
+i componenti sono stupidi
+
+riutilizzabili
+
+testabili
+
+prevedibili
+
+tutta la logica è nello state/actions

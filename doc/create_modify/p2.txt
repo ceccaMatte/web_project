@@ -1,0 +1,232 @@
+📌 PROMPT #2 — BACKEND API
+Create / Modify Order (verità, validazioni, edge case)
+
+Devi implementare TUTTA la logica backend necessaria a supportare la pagina unica Create / Modify Order.
+Il frontend NON è affidabile: il backend è l’unica fonte di verità.
+
+🎯 OBIETTIVO
+
+Il backend deve:
+
+garantire coerenza assoluta dei dati
+
+prevenire ordini invalidi
+
+gestire ingredienti finiti / slot pieni
+
+supportare create e modify con regole diverse
+
+rispondere sempre con dati completi per il frontend
+
+🧱 ENDPOINT OBBLIGATORI
+1️⃣ GET ordine per MODIFY
+GET /api/orders/{orderId}
+
+Deve fare:
+
+Verificare autenticazione
+
+Verificare ownership dell’ordine
+
+Verificare che lo stato sia modificabile
+
+Caricare:
+
+ingredienti selezionati
+
+ingredienti oggi disponibili
+
+ingredienti non più disponibili
+
+stato ordine
+
+eventuali vincoli
+
+Risposta (esempio concettuale):
+{
+  "order": {
+    "id": 12,
+    "status": "pending",
+    "ingredients": [
+      { "id": 1, "category": "bread" },
+      { "id": 5, "category": "meat" }
+    ]
+  },
+  "availability": {
+    "ingredients": {
+      "1": "available",
+      "5": "unavailable"
+    }
+  }
+}
+
+
+⚠️ NON inventare campi non richiesti
+⚠️ NON mandare immagini
+⚠️ NON mandare slot (in modify non servono)
+
+2️⃣ POST Create Order
+POST /api/orders
+
+Input minimo richiesto:
+
+time_slot_id
+
+ingredients[]
+
+Validazioni OBBLIGATORIE:
+
+esattamente 1 bread
+
+nessun ingrediente duplicato
+
+ingredienti esistenti
+
+ingredienti disponibili
+
+slot esistente
+
+slot non pieno
+
+utente non ha già un ordine su quello slot (vincolo unique)
+
+👉 Se due utenti competono per lo stesso slot:
+
+uno vince
+
+l’altro riceve 409 Conflict
+
+NON rejected
+
+3️⃣ PUT Modify Order
+PUT /api/orders/{orderId}
+
+Regole:
+
+NON modificare slot
+
+NON modificare giorno
+
+modificabili solo ingredienti
+
+se ingrediente selezionato diventa non disponibile:
+
+backend lo rimuove
+
+frontend viene informato
+
+🔒 TRANSAZIONI (NON OPZIONALI)
+
+Create e Modify devono essere transaction-safe:
+
+DB::transaction(function () {
+  // validate
+  // lock slot if needed
+  // create/update order
+});
+
+
+Se una cosa fallisce → rollback totale.
+
+⛔ STATI ORDINE (RISPETTA ALLA LETTERA)
+
+pending → modificabile
+
+altri stati → NON modificabile
+
+rejected → terminale
+
+Il backend decide, il frontend obbedisce.
+
+🧠 LOGICA INGREDIENTI FINITI
+
+Se durante:
+
+polling
+
+submit
+
+modify
+
+un ingrediente:
+
+è finito
+
+o diventa non valido
+
+👉 il backend:
+
+lo segnala come unavailable
+
+NON accetta l’ordine se è obbligatorio
+
+forza il frontend a disabilitarlo
+
+🧪 DATI DI TEST (OBBLIGATORI)
+
+Popolare il DB con dati sensati, non fake a caso:
+
+Utenti
+
+user1@gmail.com
+
+user2@gmail.com
+
+admin@gmail.com
+Password: password
+
+Ingredienti
+
+ALMENO 2 per categoria:
+
+bread
+
+meat
+
+cheese
+
+vegetable
+
+sauce
+
+other
+
+Ordini
+
+storici realistici
+
+giorni diversi
+
+stati diversi
+
+slot diversi
+
+👉 Senza dati credibili il frontend non è testabile.
+
+🚫 ERRORI DA NON COMMETTERE
+
+❌ validare solo lato frontend
+
+❌ accettare ingredienti duplicati
+
+❌ permettere modify su ordine non pending
+
+❌ lasciare slot pieno selezionabile
+
+❌ risposte API incomplete
+
+✅ OBIETTIVO FINALE
+
+Dopo questo step:
+
+create funziona
+
+modify funziona
+
+frontend non deve “indovinare”
+
+nessun ordine inconsistente
+
+edge case coperti
+
+🔜 PROSSIMO PROMPT

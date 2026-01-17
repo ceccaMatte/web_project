@@ -1,0 +1,174 @@
+📌 PROMPT #1 — PAGINA UNICA CREATE / MODIFY ORDER
+(gestione dati, flussi, responsabilità)
+
+Devi implementare UNA SOLA pagina per la creazione e modifica degli ordini.
+NON devono esistere due pagine separate (create e modify), ma una pagina unica con comportamenti diversi in base alla modalità.
+
+🎯 OBIETTIVO FUNZIONALE
+
+La pagina deve funzionare in due modalità:
+
+🟢 CREATE MODE
+
+L’utente crea un nuovo ordine
+
+Nessun ordine pre-esistente
+
+Tutti i dati partono “vuoti”
+
+Pickup day & time presenti
+
+Bottone Create Order attivo solo se l’ordine è valido
+
+🟡 MODIFY MODE
+
+L’utente modifica un ordine esistente
+
+I dati dell’ordine vengono precaricati
+
+Pickup day & time NON visibili
+
+Bottone Modify Order
+
+Alcuni ingredienti possono essere disabilitati
+
+Alcune sezioni possono risultare non selezionabili
+
+🧭 COME SI ENTRA NELLA PAGINA (PUNTO CRITICO)
+⚠️ REGOLA FONDAMENTALE
+
+👉 NON passare MAI l’intero ordine nel frontend
+👉 NON usare query string con ingredienti, slot, ecc
+👉 NON serializzare oggetti nel DOM
+
+✅ CREATE MODE
+
+La pagina viene aperta senza parametri:
+
+/orders/create
+
+
+Risultato:
+
+mode = "create"
+
+stato vuoto
+
+nessun preload
+
+✅ MODIFY MODE
+
+La pagina viene aperta SOLO con l’ID dell’ordine:
+
+/orders/modify/{orderId}
+
+
+E basta. Nient’altro.
+
+🔌 RESPONSABILITÀ BACKEND (OBBLIGATORIE)
+
+Il backend deve esporre un endpoint dedicato:
+
+GET /api/orders/{orderId}
+
+
+Questo endpoint:
+
+verifica che l’ordine esista
+
+verifica che appartenga all’utente loggato
+
+verifica che sia modificabile
+
+ritorna:
+
+ingredienti selezionati
+
+stato ordine
+
+configurazione valida
+
+ingredienti NON più disponibili
+
+eventuali vincoli
+
+⚠️ Il backend è l’unica fonte di verità.
+
+🧠 RESPONSABILITÀ FRONTEND
+In hydration:
+
+leggere orderId dalla route
+
+se presente → mode = modify
+
+chiamare GET /api/orders/{orderId}
+
+popolare lo state con i dati ricevuti
+
+In state:
+
+Deve esistere uno stato chiaro e immutabile:
+
+mode: 'create' | 'modify'
+currentOrderId: null | string
+initialOrderSnapshot: {...}
+
+🔄 DIFFERENZE DI COMPORTAMENTO (VINCOLANTI)
+🔹 Pickup Day & Time
+
+CREATE → visibili e selezionabili
+
+MODIFY → completamente rimossi dal DOM
+
+🔹 Ingredienti
+
+Gli ingredienti finiscono o diventano non validi?
+
+Il backend li segnala
+
+Il frontend:
+
+li disabilita
+
+li rimuove dalla selezione
+
+segnala visivamente che non sono più disponibili
+
+🔹 Bottone di Submit
+
+Disabilitato se:
+
+manca il pane
+
+manca lo slot (solo create)
+
+🚫 COSE VIETATE (RIPETO)
+
+❌ duplicare pagine
+
+❌ passare oggetti ordine via JS
+
+❌ decidere lato frontend se un ordine è modificabile
+
+❌ logica business nei componenti
+
+❌ fetch nei componenti
+
+✅ OBIETTIVO DI QUESTO PROMPT
+
+Alla fine di questa fase:
+
+esiste UNA pagina
+
+il backend controlla la verità
+
+il frontend reagisce allo stato
+
+create e modify condividono il codice
+
+nessun hack
+
+👉 NON implementare ancora UI dettagliata o componenti.
+👉 Se qualcosa non è chiaro, fermati e fai domande prima di procedere.
+
+🔜 PROSSIMO STEP

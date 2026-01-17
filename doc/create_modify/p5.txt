@@ -1,0 +1,266 @@
+🔥 PROMPT #5 — CREATE / MODIFY ORDER
+Actions, Submit, Cancel, Delete, Polling, Navigazione
+
+(leggi tutto prima di scrivere UNA riga di codice)
+
+CONTESTO (NON INVENTARE NULLA)
+
+Stiamo implementando UNA SOLA PAGINA:
+
+/orders/create
+/orders/modify/:orderId
+
+
+È LA STESSA PAGINA, con comportamenti diversi in base alla modalità:
+
+mode = "create"
+
+mode = "modify"
+
+👉 NON creare due pagine
+👉 NON duplicare logica
+👉 NON infilare logica nei componenti
+
+La pagina ancora NON ESISTE, quindi:
+
+NON parlare di bug preesistenti
+
+MA progettala in modo che NON POSSA avere loader infiniti
+
+🧠 ARCHITETTURA OBBLIGATORIA (UGUALE A HOME / ORDERS)
+resources/js/pages/order-form/
+  index.js                // orchestratore
+  orderForm.state.js      // SOLO dati (SSOT)
+  orderForm.view.js       // SOLO DOM refs
+  orderForm.api.js        // SOLO fetch
+  orderForm.actions.js    // logica eventi
+  orderForm.render.js     // state → UI
+  orderForm.hydration.js  // bootstrap iniziale
+
+
+Componenti UI:
+
+resources/js/components/
+  IngredientSection.component.js
+  IngredientItem.component.js
+  TimeSlotSelector.component.js
+  ActionFooter.component.js
+
+
+👉 I componenti accettano solo props e renderizzano.
+👉 ZERO fetch, ZERO logica di stato, ZERO side effects.
+
+1️⃣ MODALITÀ PAGINA (FONDAMENTALE)
+CREATE MODE
+
+nessun ingrediente selezionato
+
+nessun time slot selezionato
+
+giorno selezionato = today
+
+submit = Create Order
+
+MODIFY MODE
+
+ingredienti pre-popolati
+
+pickup day e time NON ESISTONO
+
+submit = Save Changes
+
+delete = Delete Order
+
+👉 In modify NON puoi cambiare giorno o slot
+👉 Modifichi SOLO il panino
+
+2️⃣ ACTIONS — COSA DEVONO FARE (PRECISO)
+🔹 selectIngredient(ingredientId)
+
+se available === false → IGNORA
+
+se categoria bread:
+
+deseleziona eventuale pane già selezionato
+
+toggle selected
+
+⚠️ Non esiste disabled
+⚠️ Non esiste logica UI arbitraria
+
+🔹 selectIngredientSection(sectionId)
+
+UNA SOLA sezione aperta alla volta
+
+se apro una sezione:
+
+chiudo TUTTE le altre
+
+stato:
+
+openSectionId: string | null
+
+🔹 selectTimeSlot(slotId)
+
+SOLO in CREATE
+
+se slot non disponibile → IGNORA
+
+seleziona slot
+
+se slot diventa full via polling:
+
+rimuovi selezione
+
+disabilita submit
+
+🔹 submitOrder()
+CREATE
+
+valida:
+
+1 pane selezionato
+
+≥1 ingrediente totale
+
+time slot selezionato
+
+POST /api/orders
+
+await response
+
+redirect → /orders
+
+MODIFY
+
+valida ingredienti
+
+PUT /api/orders/:id
+
+await response
+
+redirect → /orders
+
+👉 Nessun redirect prima della risposta
+👉 Nessun optimistic submit
+
+🔹 cancel()
+
+NON salvare nulla
+
+redirect → /orders
+
+🔹 deleteOrder() (SOLO MODIFY)
+
+DELETE /api/orders/:id
+
+await response
+
+redirect → /orders
+
+3️⃣ POLLING (OBBLIGATORIO)
+
+Questa pagina DEVE avere polling, punto.
+
+Intervallo
+5 secondi
+
+CREATE MODE → polling chiede:
+
+ingredient availability
+
+time slot availability (per giorno selezionato)
+
+MODIFY MODE → polling chiede:
+
+ingredient availability
+
+stato ordine (se cancellato o non più valido)
+
+Quando arriva risposta:
+
+aggiorna state
+
+render immediato
+
+se qualcosa non è più valido:
+
+ingredienti → rimossi
+
+slot → deselezionato
+
+👉 La UI non decide
+👉 La UI reagisce
+
+4️⃣ NAVIGAZIONE E HEADER
+Back arrow
+
+sempre → /orders
+
+Logout
+
+NON navigare
+
+chiama /logout
+
+await risposta
+
+set isAuth = false
+
+redirect → /
+
+👉 NON esiste una pagina /logout
+
+5️⃣ FOOTER ACTIONS (CTA)
+CREATE
+
+pulsante disabilitato se:
+
+manca pane
+
+manca slot
+
+label: Create Order
+
+MODIFY
+
+pulsante disabilitato se:
+
+ingredienti invalidi
+
+label: Save Changes
+
+bottone secondario: Delete Order
+
+6️⃣ ERRORI DA NON RIPETERE (CHIARO?)
+
+❌ non inventare stati (disabled)
+❌ non fare fetch nei componenti
+❌ non duplicare logica create/modify
+❌ non hardcodare testi
+❌ non usare light mode
+❌ non decidere regole lato UI
+❌ non navigare prima dell’ACK
+
+7️⃣ CHECKLIST FINALE (OBBLIGATORIA)
+
+ una sola pagina
+
+ mode create / modify gestito da state
+
+ polling attivo
+
+ ingredienti rimossi se finiscono
+
+ slot deselezionato se diventa full
+
+ submit solo dopo ACK
+
+ redirect solo dopo successo
+
+ componenti riusabili
+
+ WCAG AAA (focus, aria, contrasto)
+
+Se qualcosa non è chiaro, fermati e chiedi prima.
+Se è chiaro, implementa ESATTAMENTE questo senza “interpretazioni creative”.

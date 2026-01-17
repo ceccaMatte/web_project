@@ -1,0 +1,295 @@
+/**
+ * ORDER FORM RENDER ORCHESTRATOR
+ * 
+ * RESPONSABILITÀ:
+ * - Orchestra render di tutti i componenti Order Form
+ * - Passa container, props e callbacks ai componenti
+ * - Legge da orderFormState, NON lo modifica
+ * - Gestisce show/hide loader e content
+ * 
+ * ARCHITETTURA:
+ * - Funzione renderOrderFormPage() chiamata dopo hydration o mutation state
+ * - Importa tutti i component renderers
+ * - Calcola props da state e le passa ai componenti
+ * - Passa callbacks da orderForm.actions.js
+ */
+
+import { orderFormState, isOrderValid, isIngredientSelected } from './orderForm.state.js';
+import { orderFormView } from './orderForm.view.js';
+
+// Actions (per callbacks)
+import { 
+    openSidebar, 
+    closeSidebar, 
+    goBack,
+    selectDay,
+    selectTimeSlot,
+    toggleSection,
+    selectIngredient,
+    deselectIngredient,
+    submitOrder,
+    deleteCurrentOrder,
+} from './orderForm.actions.js';
+
+// Componenti riutilizzabili
+import { renderTopBar } from '../../components/topbar/topbar.component.js';
+import { renderSidebar } from '../../components/sidebar/sidebar.component.js';
+import { renderWeekScheduler } from '../../components/weekScheduler/weekScheduler.component.js';
+
+// Componenti nuovi
+import { renderOrderFormHeader } from '../../components/orderFormHeader/orderFormHeader.component.js';
+import { renderSelectedIngredientsSummary } from '../../components/selectedIngredientsSummary/selectedIngredientsSummary.component.js';
+import { renderIngredientSections } from '../../components/ingredientSection/ingredientSection.component.js';
+import { renderTimeSlotSelector } from '../../components/timeSlotSelector/timeSlotSelector.component.js';
+import { renderActionFooter } from '../../components/actionFooter/actionFooter.component.js';
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Mostra loader, nascondi content
+ */
+function showLoader() {
+    if (orderFormView.refs.loader) {
+        orderFormView.refs.loader.classList.remove('hidden');
+    }
+    if (orderFormView.refs.content) {
+        orderFormView.refs.content.classList.add('hidden');
+    }
+}
+
+/**
+ * Nascondi loader, mostra content
+ */
+function hideLoader() {
+    if (orderFormView.refs.loader) {
+        orderFormView.refs.loader.classList.add('hidden');
+    }
+    if (orderFormView.refs.content) {
+        orderFormView.refs.content.classList.remove('hidden');
+    }
+}
+
+/**
+ * Aggiorna isSelected nei weekDays in base al selectedDayId corrente
+ */
+function updateSchedulerSelection(weekDays, selectedDayId) {
+    if (!selectedDayId || !weekDays || weekDays.length === 0) {
+        return weekDays;
+    }
+    
+    return weekDays.map(day => ({
+        ...day,
+        isSelected: day.id === selectedDayId,
+    }));
+}
+
+// =============================================================================
+// MAIN RENDER FUNCTION
+// =============================================================================
+
+/**
+ * Render completo pagina Order Form.
+ * 
+ * WORKFLOW:
+ * 1. Se loading → mostra loader e return
+ * 2. Nascondi loader, mostra content
+ * 3. Render tutti i componenti in ordine
+ * 
+ * IDEMPOTENTE: Può essere chiamata N volte.
+ */
+export function renderOrderFormPage() {
+    console.log('[RenderOrderForm] Rendering page...');
+
+    // 1. Loading state
+    if (orderFormState.ui.isLoading) {
+        showLoader();
+        // Render comunque header e sidebar
+        renderTopBarComponent();
+        renderSidebarComponent();
+        renderHeaderComponent();
+        return;
+    }
+
+    // 2. Content ready
+    hideLoader();
+
+    // 3. Render componenti
+    renderTopBarComponent();
+    renderSidebarComponent();
+    renderHeaderComponent();
+
+    // Solo in CREATE mode
+    if (orderFormState.mode === 'create') {
+        renderSchedulerComponent();
+        renderTimeSlotsComponent();
+    }
+
+    renderSummaryComponent();
+    renderIngredientsComponent();
+    renderFooterComponent();
+
+    console.log('[RenderOrderForm] Page rendered successfully');
+}
+
+// =============================================================================
+// COMPONENT RENDERS
+// =============================================================================
+
+/**
+ * Render TopBar component
+ */
+function renderTopBarComponent() {
+    renderTopBar(
+        orderFormView.refs.topBar,
+        {
+            user: orderFormState.user,
+            sidebarOpen: orderFormState.sidebarOpen,
+        },
+        {
+            onToggleSidebar: (isOpen) => isOpen ? openSidebar() : closeSidebar(),
+        }
+    );
+}
+
+/**
+ * Render Sidebar component
+ */
+function renderSidebarComponent() {
+    renderSidebar(
+        orderFormView.refs.sidebar,
+        orderFormView.refs.overlay,
+        {
+            open: orderFormState.sidebarOpen,
+            user: orderFormState.user,
+        },
+        {
+            onClose: closeSidebar,
+        }
+    );
+}
+
+/**
+ * Render Header component
+ */
+function renderHeaderComponent() {
+    const title = orderFormState.mode === 'create' ? 'Create Order' : 'Modify Order';
+    
+    renderOrderFormHeader(
+        orderFormView.refs.header,
+        { title },
+        { onBack: goBack }
+    );
+}
+
+/**
+ * Render Week Scheduler (solo CREATE)
+ */
+function renderSchedulerComponent() {
+    // Usa schedulerContainer se esiste, altrimenti schedulerSection
+    const container = orderFormView.refs.schedulerContainer || orderFormView.refs.schedulerSection;
+    if (!container) return;
+    
+    const weekDaysWithSelection = updateSchedulerSelection(
+        orderFormState.weekDays,
+        orderFormState.selectedDayId
+    );
+    
+    renderWeekScheduler(
+        container,
+        {
+            monthLabel: orderFormState.monthLabel,
+            weekDays: weekDaysWithSelection,
+        },
+        {
+            onDaySelected: selectDay,
+        }
+    );
+}
+
+/**
+ * Render Time Slots (solo CREATE)
+ */
+function renderTimeSlotsComponent() {
+    if (!orderFormView.refs.timeSlotsContainer) return;
+    
+    renderTimeSlotSelector(
+        orderFormView.refs.timeSlotsContainer,
+        {
+            timeSlots: orderFormState.availability.timeSlots,
+            selectedTimeSlotId: orderFormState.order.selectedTimeSlotId,
+        },
+        {
+            onSelect: selectTimeSlot,
+        }
+    );
+}
+
+/**
+ * Render Selected Ingredients Summary
+ */
+function renderSummaryComponent() {
+    if (!orderFormView.refs.summaryContainer) return;
+    
+    renderSelectedIngredientsSummary(
+        orderFormView.refs.summaryContainer,
+        {
+            selectedIngredients: orderFormState.order.selectedIngredients,
+        },
+        {
+            onRemove: deselectIngredient,
+        }
+    );
+}
+
+/**
+ * Render Ingredients Accordion Sections
+ */
+function renderIngredientsComponent() {
+    if (!orderFormView.refs.ingredientsContainer) return;
+    
+    // Estrai IDs ingredienti selezionati
+    const selectedIds = orderFormState.order.selectedIngredients.map(i => i.id);
+    
+    renderIngredientSections(
+        orderFormView.refs.ingredientsContainer,
+        {
+            sections: orderFormState.availability.ingredients,
+            openSectionId: orderFormState.openSectionId,
+            selectedIngredientIds: selectedIds,
+        },
+        {
+            onToggle: toggleSection,
+            onIngredientSelect: selectIngredient,
+        }
+    );
+}
+
+/**
+ * Render Action Footer
+ */
+function renderFooterComponent() {
+    if (!orderFormView.refs.footerActions) return;
+    
+    renderActionFooter(
+        orderFormView.refs.footerActions,
+        {
+            mode: orderFormState.mode,
+            disabled: !isOrderValid(),
+            loading: orderFormState.ui.isSubmitting,
+        },
+        {
+            onSubmit: submitOrder,
+            onDelete: deleteCurrentOrder,
+        }
+    );
+}
+
+// =============================================================================
+// EXPORT
+// =============================================================================
+
+export default {
+    renderOrderFormPage,
+};
