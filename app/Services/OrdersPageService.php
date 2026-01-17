@@ -24,14 +24,17 @@ class OrdersPageService
     /**
      * Costruisce il payload completo per l'inizializzazione della pagina Orders.
      *
+     * @param string $date Data nel formato YYYY-MM-DD per filtrare gli ordini attivi
      * @return array Il payload JSON per la pagina Orders
      */
-    public function buildOrdersPagePayload(): array
+    public function buildOrdersPagePayload(string $date = null): array
     {
+        $date = $date ?? now()->toDateString();
+        
         return [
             'user' => $this->buildUserSection(),
             'scheduler' => $this->buildSchedulerSection(),
-            'activeOrders' => $this->getActiveOrdersForDate(now()->toDateString()),
+            'activeOrders' => $this->getActiveOrdersForDate($date),
             'recentOrders' => $this->getRecentOrders(),
         ];
     }

@@ -80,7 +80,10 @@ class OrderController extends Controller
     /**
      * API: Inizializza pagina ordini (dati completi).
      * 
-     * GET /api/orders/init
+     * GET /api/orders/init?date=YYYY-MM-DD
+     * 
+     * Query params:
+     * - date: YYYY-MM-DD (opzionale, default: oggi)
      * 
      * Response:
      * {
@@ -94,7 +97,8 @@ class OrderController extends Controller
      */
     public function apiInit(): JsonResponse
     {
-        $payload = $this->ordersPageService->buildOrdersPagePayload();
+        $date = request()->query('date', now()->toDateString());
+        $payload = $this->ordersPageService->buildOrdersPagePayload($date);
         return response()->json($payload);
     }
 

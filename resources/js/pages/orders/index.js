@@ -45,9 +45,9 @@ let pollingIntervalId = null;
  * 1. Inizializza DOM refs
  * 2. Hydrate dati inline (user, scheduler) per render veloce
  * 3. Mostra loader iniziale
- * 4. Fetch stato completo da API
+ * 4. Fetch stato completo da API PER IL GIORNO SELEZIONATO (selectedDayId dallo scheduler)
  * 5. Render completo UI (loader spento automaticamente)
- * 6. Avvia polling ogni 5 secondi
+ * 6. Avvia polling ogni 5 secondi USANDO SEMPRE selectedDayId
  * 7. Registra event delegation globale
  * 
  * Chiamato da app.js quando data-page="orders".
@@ -67,10 +67,13 @@ export async function initOrdersPage() {
     renderOrdersPage();
     console.log('[Orders] Initial render with loader shown');
 
-    // 4. Fetch stato iniziale da API e render (loader spento automaticamente)
-    await refreshOrdersState();
+    // 4. Fetch stato iniziale da API per il giorno selezionato dallo scheduler
+    // selectedDayId è già stato idratato da hydrateInlineData() - usiamo QUELLO, non "today"
+    const selectedDay = ordersState.selectedDayId;
+    console.log(`[Orders] Fetching initial orders for selected day: ${selectedDay}`);
+    await refreshOrdersState(selectedDay);
 
-    // 5. Avvia polling ogni 5 secondi
+    // 5. Avvia polling ogni 5 secondi USANDO SEMPRE selectedDayId
     startPolling();
 
     // 6. Registra event delegation globale
@@ -85,8 +88,10 @@ export async function initOrdersPage() {
 /**
  * Avvia polling automatico ogni 5 secondi
  * 
- * Richiama il fetch degli ordini e aggiorna la UI.
+ * Richiama il fetch degli ordini PER IL GIORNO SELEZIONATO NELLO SCHEDULER.
  * Il polling viene avviato DOPO il primo caricamento completo.
+ * 
+ * IMPORTANTE: USA SEMPRE ordersState.selectedDayId, NON "today" hardcodato.
  */
 function startPolling() {
     // Evita duplicati
@@ -98,12 +103,14 @@ function startPolling() {
     console.log('[Orders] Starting polling every 5 seconds...');
 
     pollingIntervalId = setInterval(async () => {
-        console.log('[Orders] Polling: fetching orders snapshot...');
+        // USA IL GIORNO SELEZIONATO, NON "today"
+        const selectedDay = ordersState.selectedDayId;
+        console.log(`[Orders] Polling: fetching orders for selected day: ${selectedDay}`);
         
         try {
             // Fetch senza mostrare loader (aggiornamento silenzioso)
-            await refreshOrdersState();
-            console.log('[Orders] Polling: orders updated successfully');
+            await refreshOrdersState(selectedDay);
+            console.log(`[Orders] Polling: orders updated successfully for ${selectedDay}`);
         } catch (error) {
             console.error('[Orders] Polling: fetch failed', error);
             // Non stoppiamo il polling in caso di errore singolo

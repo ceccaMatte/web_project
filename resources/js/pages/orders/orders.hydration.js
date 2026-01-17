@@ -29,24 +29,25 @@ import { fetchOrdersPageData } from './orders.api.js';
  * 
  * WORKFLOW:
  * 1. Set loading = true
- * 2. Fetch /api/orders/init
+ * 2. Fetch /api/orders/init?date=YYYY-MM-DD
  * 3. Hydrate ordersState con risposta
  * 4. Set loading = false
  * 5. Trigger render completo UI
  * 
  * IDEMPOTENTE: Può essere chiamata N volte.
  * 
+ * @param {string} date - Data nel formato YYYY-MM-DD (opzionale, default: backend usa oggi)
  * @returns {Promise<void>}
  */
-export async function refreshOrdersState() {
-    console.log('[Hydration] Refreshing orders state from API...');
+export async function refreshOrdersState(date = null) {
+    console.log(`[Hydration] Refreshing orders state from API... (date: ${date || 'default'})`);
 
     mutateLoading(true);
     mutateError(null);
 
     try {
-        // 1. Fetch dati da API
-        const data = await fetchOrdersPageData();
+        // 1. Fetch dati da API con data specificata
+        const data = await fetchOrdersPageData(date);
 
         // 2. Hydrate state
         hydrateOrdersState(data);

@@ -129,7 +129,10 @@ export async function fetchRecentOrders() {
 /**
  * Fetch dati iniziali per la pagina Orders
  * 
- * ENDPOINT: GET /api/orders/init
+ * ENDPOINT: GET /api/orders/init?date=YYYY-MM-DD
+ * 
+ * Query params:
+ * - date: YYYY-MM-DD (opzionale, default: oggi sul backend)
  * 
  * RESPONSE: {
  *   user: { authenticated, enabled, name },
@@ -138,14 +141,19 @@ export async function fetchRecentOrders() {
  *   recentOrders: [...]
  * }
  * 
+ * @param {string} date - Data nel formato YYYY-MM-DD (opzionale)
  * @returns {Promise<Object>} - Dati iniziali completi
  * @throws {Error} - Se fetch fallisce o response non ok
  */
-export async function fetchOrdersPageData() {
-    console.log('[OrdersAPI] Fetching /api/orders/init...');
+export async function fetchOrdersPageData(date = null) {
+    const url = date 
+        ? `/api/orders/init?date=${date}` 
+        : '/api/orders/init';
+    
+    console.log(`[OrdersAPI] Fetching ${url}...`);
 
     try {
-        const response = await fetch('/api/orders/init', {
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
