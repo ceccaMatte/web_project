@@ -20,14 +20,14 @@ import { safeInnerHTML, listen } from '../../utils/dom.js';
 let cleanupListener = null;
 
 /**
- * Mappa categoria → label UI
+ * Mappa categoria → label UI (DEVE matchare config backend)
  */
 function getCategoryLabel(category) {
     const labels = {
         'bread': 'Bread',
         'meat': 'Protein',
         'cheese': 'Cheese',
-        'vegetable': 'Toppings',
+        'vegetable': 'Veggies',
         'sauce': 'Sauce',
         'other': 'Extras',
     };
@@ -72,23 +72,33 @@ export function renderSelectedIngredientsSummary(container, props, callbacks) {
     const categoryOrder = ['bread', 'meat', 'cheese', 'vegetable', 'sauce', 'other'];
     
     // Genera HTML - container con max-height e scroll
+    // Raggruppa ingredienti: HEADER categoria UNA VOLTA, poi lista ingredienti sotto
     let html = '<div class="bg-card-dark rounded-xl border border-border-dark overflow-hidden flex flex-col max-h-60">';
     html += '<div class="overflow-y-auto no-scrollbar p-4 flex flex-col gap-4">';
     
+    let isFirstCategory = true;
     categoryOrder.forEach(category => {
-        if (!grouped[category]) return;
+        if (!grouped[category] || grouped[category].length === 0) return;
         
+        // Divider tra categorie (non prima della prima)
+        const dividerClass = isFirstCategory ? '' : 'border-t border-border-dark pt-4';
+        
+        html += `<div class="${dividerClass}">`;
+        
+        // Header categoria UNA VOLTA
+        html += `
+            <p class="text-[10px] text-primary font-bold uppercase tracking-tight mb-2">
+                ${getCategoryLabel(category)}
+            </p>
+        `;
+        
+        // Lista ingredienti sotto la categoria
         grouped[category].forEach(ing => {
             html += `
-                <div class="flex items-center justify-between group">
-                    <div>
-                        <p class="text-[10px] text-primary font-bold uppercase tracking-tight">
-                            ${getCategoryLabel(category)}
-                        </p>
-                        <p class="text-[15px] font-medium text-white">
-                            ${ing.name}
-                        </p>
-                    </div>
+                <div class="flex items-center justify-between py-1">
+                    <p class="text-[15px] font-medium text-white">
+                        ${ing.name}
+                    </p>
                     <button 
                         type="button"
                         class="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 active:bg-red-500/20 transition-all"
@@ -101,6 +111,9 @@ export function renderSelectedIngredientsSummary(container, props, callbacks) {
                 </div>
             `;
         });
+        
+        html += '</div>';
+        isFirstCategory = false;
     });
     
     html += '</div></div>';

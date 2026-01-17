@@ -69,6 +69,7 @@ class OrderFormController extends Controller
             'selectedDate' => $date,
             'user' => [
                 'authenticated' => true,
+                'enabled' => $user->is_enabled ?? true,
                 'name' => $user->name,
             ],
             'reorderIngredients' => $reorderIngredients,
@@ -101,6 +102,7 @@ class OrderFormController extends Controller
             'selectedDate' => $order->workingDay->day->toDateString(),
             'user' => [
                 'authenticated' => true,
+                'enabled' => $user->is_enabled ?? true,
                 'name' => $user->name,
             ],
         ]);
