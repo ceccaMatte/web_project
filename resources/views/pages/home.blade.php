@@ -102,7 +102,7 @@
     @include('components.sidebar', ['user' => $user])
 
     {{-- Main Content --}}
-    <main class="flex flex-col gap-6 pb-12">
+    <main class="flex flex-col gap-6 pb-12 md:max-w-5xl md:mx-auto md:px-6">
         
         {{--
             SEZIONE 1: Truck Status Card

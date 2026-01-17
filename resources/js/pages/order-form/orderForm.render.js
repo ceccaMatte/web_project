@@ -239,19 +239,34 @@ function renderTimeSlotsComponent() {
 
 /**
  * Render Selected Ingredients Summary
+ * Renders to both mobile and desktop containers
  */
 function renderSummaryComponent() {
-    if (!orderFormView.refs.summaryContainer) return;
+    // Mobile container
+    if (orderFormView.refs.summaryContainer) {
+        renderSelectedIngredientsSummary(
+            orderFormView.refs.summaryContainer,
+            {
+                selectedIngredients: orderFormState.order.selectedIngredients,
+            },
+            {
+                onRemove: deselectIngredient,
+            }
+        );
+    }
     
-    renderSelectedIngredientsSummary(
-        orderFormView.refs.summaryContainer,
-        {
-            selectedIngredients: orderFormState.order.selectedIngredients,
-        },
-        {
-            onRemove: deselectIngredient,
-        }
-    );
+    // Desktop container
+    if (orderFormView.refs.summaryContainerDesktop) {
+        renderSelectedIngredientsSummary(
+            orderFormView.refs.summaryContainerDesktop,
+            {
+                selectedIngredients: orderFormState.order.selectedIngredients,
+            },
+            {
+                onRemove: deselectIngredient,
+            }
+        );
+    }
 }
 
 /**
@@ -279,22 +294,36 @@ function renderIngredientsComponent() {
 
 /**
  * Render Action Footer
+ * Renders to both mobile and desktop containers
  */
 function renderFooterComponent() {
-    if (!orderFormView.refs.footerActions) return;
+    const footerProps = {
+        mode: orderFormState.mode,
+        disabled: !isOrderValid(),
+        loading: orderFormState.ui.isSubmitting,
+    };
+    const footerCallbacks = {
+        onSubmit: submitOrder,
+        onDelete: deleteCurrentOrder,
+    };
     
-    renderActionFooter(
-        orderFormView.refs.footerActions,
-        {
-            mode: orderFormState.mode,
-            disabled: !isOrderValid(),
-            loading: orderFormState.ui.isSubmitting,
-        },
-        {
-            onSubmit: submitOrder,
-            onDelete: deleteCurrentOrder,
-        }
-    );
+    // Mobile footer
+    if (orderFormView.refs.footerActions) {
+        renderActionFooter(
+            orderFormView.refs.footerActions,
+            footerProps,
+            footerCallbacks
+        );
+    }
+    
+    // Desktop footer
+    if (orderFormView.refs.footerActionsDesktop) {
+        renderActionFooter(
+            orderFormView.refs.footerActionsDesktop,
+            footerProps,
+            footerCallbacks
+        );
+    }
 }
 
 // =============================================================================

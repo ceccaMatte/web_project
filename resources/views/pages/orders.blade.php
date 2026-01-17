@@ -75,7 +75,7 @@
     @include('components.sidebar', ['user' => $user])
 
     {{-- Main Content --}}
-    <main class="pb-32">
+    <main class="pb-32 md:max-w-6xl md:mx-auto md:px-6">
 
         {{--
             HEADER SEZIONE

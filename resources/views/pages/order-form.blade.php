@@ -50,7 +50,7 @@
     {{-- ========================================
          MAIN CONTENT
          ======================================== --}}
-    <main class="flex-1 overflow-y-auto pb-32">
+    <main class="flex-1 overflow-y-auto pb-32 md:pb-8 md:max-w-6xl md:mx-auto md:px-6">
 
         {{-- Header con back button e titolo --}}
         <div data-header class="px-4 py-4">
@@ -66,60 +66,92 @@
         </div>
 
         {{-- Content container (nascosto durante loading) --}}
-        <div data-content class="hidden">
+        {{-- Desktop: 2-column grid layout --}}
+        <div data-content class="hidden md:grid md:grid-cols-[1fr_360px] md:gap-6">
 
-            {{-- SCHEDULER SECTION (solo CREATE mode) --}}
-            @if($mode === 'create')
-            <section data-scheduler-section class="px-4 mb-6">
-                <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                    Schedule
-                </h2>
-                <div data-scheduler-container>
-                    {{-- Rendered by JS --}}
-                </div>
-            </section>
+            {{-- ========================================
+                 LEFT COLUMN: Scheduler + TimeSlots + Ingredients
+                 ======================================== --}}
+            <div class="flex flex-col">
 
-            {{-- TIME SLOTS SECTION (solo CREATE mode) --}}
-            <section data-timeslots-section class="px-4 mb-6">
-                <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                    Pickup Time
-                </h2>
-                <div data-timeslots-container class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-                    {{-- Rendered by JS --}}
-                </div>
-            </section>
-            @endif
+                {{-- SCHEDULER SECTION (solo CREATE mode) --}}
+                @if($mode === 'create')
+                <section data-scheduler-section class="px-4 md:px-0 mb-6">
+                    <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                        Schedule
+                    </h2>
+                    <div data-scheduler-container>
+                        {{-- Rendered by JS --}}
+                    </div>
+                </section>
 
-            {{-- SELECTED INGREDIENTS SUMMARY --}}
-            <section data-summary-section class="px-4 mb-6">
-                <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                    Your Selection
-                </h2>
-                <div data-summary-container>
-                    {{-- Rendered by JS --}}
-                </div>
-            </section>
+                {{-- TIME SLOTS SECTION (solo CREATE mode) --}}
+                <section data-timeslots-section class="px-4 md:px-0 mb-6">
+                    <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                        Pickup Time
+                    </h2>
+                    <div data-timeslots-container class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                        {{-- Rendered by JS --}}
+                    </div>
+                </section>
+                @endif
 
-            {{-- ADD INGREDIENTS SECTION --}}
-            <section data-ingredients-section class="px-4 mb-8">
-                <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                    Add Ingredients
-                </h2>
-                <div data-ingredients-container class="space-y-2">
-                    {{-- Rendered by JS --}}
+                {{-- SELECTED INGREDIENTS SUMMARY (Mobile only - in left column) --}}
+                <section data-summary-section class="px-4 md:hidden mb-6">
+                    <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                        Your Selection
+                    </h2>
+                    <div data-summary-container>
+                        {{-- Rendered by JS --}}
+                    </div>
+                </section>
+
+                {{-- ADD INGREDIENTS SECTION --}}
+                <section data-ingredients-section class="px-4 md:px-0 mb-8">
+                    <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                        Add Ingredients
+                    </h2>
+                    <div data-ingredients-container class="space-y-2">
+                        {{-- Rendered by JS --}}
+                    </div>
+                </section>
+
+            </div>
+
+            {{-- ========================================
+                 RIGHT COLUMN: Your Selection + CTA (Desktop only)
+                 ======================================== --}}
+            <div class="hidden md:block">
+                <div class="sticky top-24 space-y-4">
+
+                    {{-- SELECTED INGREDIENTS SUMMARY (Desktop) --}}
+                    <section data-summary-section-desktop>
+                        <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                            Your Selection
+                        </h2>
+                        <div data-summary-container-desktop>
+                            {{-- Rendered by JS --}}
+                        </div>
+                    </section>
+
+                    {{-- CTA BUTTON (Desktop) --}}
+                    <div data-footer-actions-desktop class="flex gap-3">
+                        {{-- Rendered by JS --}}
+                    </div>
+
                 </div>
-            </section>
+            </div>
 
         </div>
 
     </main>
 
     {{-- ========================================
-         FOOTER ACTIONS (Fixed bottom)
+         FOOTER ACTIONS (Fixed bottom - Mobile only)
          ======================================== --}}
     <footer 
         data-footer
-        class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-surface-dark/95 backdrop-blur-xl border-t border-border-dark p-4 z-30"
+        class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-surface-dark/95 backdrop-blur-xl border-t border-border-dark p-4 z-30 md:hidden"
     >
         <div data-footer-actions class="flex gap-3">
             {{-- Rendered by JS --}}

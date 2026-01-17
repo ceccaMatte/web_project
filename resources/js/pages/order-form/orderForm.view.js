@@ -46,6 +46,10 @@ export const orderFormView = {
         summarySection: null,
         summaryContainer: null,
         
+        // Selected Ingredients Summary (Desktop)
+        summarySectionDesktop: null,
+        summaryContainerDesktop: null,
+        
         // Ingredients Accordion
         ingredientsSection: null,
         ingredientsContainer: null,
@@ -53,6 +57,9 @@ export const orderFormView = {
         // Footer Actions
         footer: null,
         footerActions: null,
+        
+        // Footer Actions (Desktop)
+        footerActionsDesktop: null,
     },
 
     /**
@@ -86,6 +93,10 @@ export const orderFormView = {
         this.refs.summarySection = document.querySelector('[data-summary-section]');
         this.refs.summaryContainer = document.querySelector('[data-summary-container]');
         
+        // Selected Ingredients Summary (Desktop)
+        this.refs.summarySectionDesktop = document.querySelector('[data-summary-section-desktop]');
+        this.refs.summaryContainerDesktop = document.querySelector('[data-summary-container-desktop]');
+        
         // Ingredients Accordion
         this.refs.ingredientsSection = document.querySelector('[data-ingredients-section]');
         this.refs.ingredientsContainer = document.querySelector('[data-ingredients-container]');
@@ -93,6 +104,9 @@ export const orderFormView = {
         // Footer Actions
         this.refs.footer = document.querySelector('[data-footer]');
         this.refs.footerActions = document.querySelector('[data-footer-actions]');
+        
+        // Footer Actions (Desktop)
+        this.refs.footerActionsDesktop = document.querySelector('[data-footer-actions-desktop]');
         
         console.log('[OrderFormView] DOM refs initialized');
     },
