@@ -99,88 +99,111 @@
         </header>
 
         {{--
-            SEZIONE 1: Week Scheduler
-            - Container renderizzato dinamicamente da JS
-            - Riusa componente week-scheduler esistente
+            DESKTOP GRID WRAPPER
+            - Su mobile: block (ordine verticale)
+            - Su desktop: 2 colonne [380px_1fr] con gap
         --}}
-        <section class="py-6 px-5" aria-label="Schedule selector">
-            <div data-scheduler-section>
-                {{-- Popolato da renderScheduler() in orders.render.js --}}
-            </div>
-        </section>
+        <div class="md:grid md:grid-cols-[380px_1fr] md:gap-6">
 
-        {{--
-            SEZIONE 2: Active Orders
-            - Mostra ordini attivi per il giorno selezionato
-            - Se vuoto: empty state con CTA "Order Now"
-            - Se popolato: carosello orizzontale
-            
-            ACCESSIBILITÀ:
-            - aria-label sulla sezione per contesto
-            - role="region" per landmark navigation
-        --}}
-        <section 
-            class="px-5 mb-8" 
-            data-active-orders-section
-            aria-label="{{ config('ui.orders.aria.active_orders_section') }}"
-            role="region"
-        >
-            {{-- Titolo sezione con indicatore --}}
-            <h2 
-                class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center"
-                data-active-orders-title
-            >
-                {{ config('ui.orders.active_orders.title') }}
-                <span class="ml-2 w-2 h-2 rounded-full bg-primary animate-pulse" aria-hidden="true"></span>
-            </h2>
-            
-            {{-- Container per carosello o empty state (popolato da JS) --}}
-            <div data-active-orders-container>
-                {{-- Popolato da renderActiveOrdersSection() in orders.render.js --}}
-                {{-- Loading skeleton iniziale --}}
-                <div class="h-[180px] w-full bg-slate-100 dark:bg-slate-900/50 rounded-2xl animate-pulse flex items-center justify-center">
-                    <span class="material-symbols-outlined text-slate-400 text-4xl">hourglass_empty</span>
-                </div>
-            </div>
-        </section>
+            {{-- ========================================
+                 COLONNA SINISTRA: Scheduler + Active Orders
+                 ======================================== --}}
+            <div class="md:flex md:flex-col md:gap-8">
 
-        {{--
-            SEZIONE 3: Recently Ordered
-            - Storico ordini passati
-            - Toggle per filtrare solo preferiti
-            - Lista verticale di card
-            
-            ACCESSIBILITÀ:
-            - aria-label sulla sezione
-            - Toggle preferiti con aria-pressed
-        --}}
-        <section 
-            class="px-5" 
-            data-recent-orders-section
-            aria-label="{{ config('ui.orders.aria.recent_orders_section') }}"
-            role="region"
-        >
-            {{-- Header con titolo e toggle preferiti (popolato da JS) --}}
-            <div class="mb-4" data-recent-orders-header>
-                {{-- Popolato da renderRecentOrdersSection() in orders.render.js --}}
-                <div class="flex justify-between items-center">
-                    <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        {{ config('ui.orders.recent_orders.title') }}
+                {{--
+                    SEZIONE 1: Week Scheduler
+                    - Container renderizzato dinamicamente da JS
+                    - Riusa componente week-scheduler esistente
+                --}}
+                <section class="py-6 px-5" aria-label="Schedule selector">
+                    <div data-scheduler-section>
+                        {{-- Popolato da renderScheduler() in orders.render.js --}}
+                    </div>
+                </section>
+
+                {{--
+                    SEZIONE 2: Active Orders
+                    - Mostra ordini attivi per il giorno selezionato
+                    - Se vuoto: empty state con CTA "Order Now"
+                    - Se popolato: carosello orizzontale
+                    
+                    ACCESSIBILITÀ:
+                    - aria-label sulla sezione per contesto
+                    - role="region" per landmark navigation
+                --}}
+                <section 
+                    class="px-5 mb-8 md:mb-0" 
+                    data-active-orders-section
+                    aria-label="{{ config('ui.orders.aria.active_orders_section') }}"
+                    role="region"
+                >
+                    {{-- Titolo sezione con indicatore --}}
+                    <h2 
+                        class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center"
+                        data-active-orders-title
+                    >
+                        {{ config('ui.orders.active_orders.title') }}
+                        <span class="ml-2 w-2 h-2 rounded-full bg-primary animate-pulse" aria-hidden="true"></span>
                     </h2>
-                </div>
+                    
+                    {{-- Container per carosello o empty state (popolato da JS) --}}
+                    <div data-active-orders-container>
+                        {{-- Popolato da renderActiveOrdersSection() in orders.render.js --}}
+                        {{-- Loading skeleton iniziale --}}
+                        <div class="h-[180px] w-full bg-slate-100 dark:bg-slate-900/50 rounded-2xl animate-pulse flex items-center justify-center">
+                            <span class="material-symbols-outlined text-slate-400 text-4xl">hourglass_empty</span>
+                        </div>
+                    </div>
+                </section>
+
             </div>
-            
-            {{-- Lista ordini recenti (popolato da JS) --}}
-            <div data-recent-orders-list>
-                {{-- Popolato da renderRecentOrdersSection() in orders.render.js --}}
-                {{-- Loading skeleton iniziale --}}
-                <div class="space-y-4">
-                    @for ($i = 0; $i < 2; $i++)
-                    <div class="bg-slate-100 dark:bg-slate-900/50 rounded-2xl h-28 animate-pulse"></div>
-                    @endfor
-                </div>
+
+            {{-- ========================================
+                 COLONNA DESTRA: Recently Ordered (scrollabile)
+                 ======================================== --}}
+            <div class="md:max-h-[calc(100vh-200px)] md:overflow-y-auto">
+
+                {{--
+                    SEZIONE 3: Recently Ordered
+                    - Storico ordini passati
+                    - Toggle per filtrare solo preferiti
+                    - Lista verticale di card
+                    
+                    ACCESSIBILITÀ:
+                    - aria-label sulla sezione
+                    - Toggle preferiti con aria-pressed
+                --}}
+                <section 
+                    class="px-5" 
+                    data-recent-orders-section
+                    aria-label="{{ config('ui.orders.aria.recent_orders_section') }}"
+                    role="region"
+                >
+                    {{-- Header con titolo e toggle preferiti (popolato da JS) --}}
+                    <div class="mb-4" data-recent-orders-header>
+                        {{-- Popolato da renderRecentOrdersSection() in orders.render.js --}}
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                {{ config('ui.orders.recent_orders.title') }}
+                            </h2>
+                        </div>
+                    </div>
+                    
+                    {{-- Lista ordini recenti (popolato da JS) --}}
+                    <div data-recent-orders-list>
+                        {{-- Popolato da renderRecentOrdersSection() in orders.render.js --}}
+                        {{-- Loading skeleton iniziale --}}
+                        <div class="space-y-4">
+                            @for ($i = 0; $i < 2; $i++)
+                            <div class="bg-slate-100 dark:bg-slate-900/50 rounded-2xl h-28 animate-pulse"></div>
+                            @endfor
+                        </div>
+                    </div>
+                </section>
+
             </div>
-        </section>
+
+        </div>
 
     </main>
 
