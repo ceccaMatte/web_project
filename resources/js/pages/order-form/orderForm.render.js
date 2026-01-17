@@ -115,6 +115,16 @@ export function renderOrderFormPage() {
     // 2. Content ready
     hideLoader();
 
+    // DEBUG: Verifica SSOT prima del render
+    const summaryCount = orderFormState.order.selectedIngredients.length;
+    const selectedIds = orderFormState.order.selectedIngredients.map(i => i.id);
+    console.log('[RenderOrderForm] SSOT check:', {
+        mode: orderFormState.mode,
+        summaryCount,
+        selectedIds,
+        uniqueIds: [...new Set(selectedIds)].length,
+    });
+
     // 3. Render componenti
     renderTopBarComponent();
     renderSidebarComponent();

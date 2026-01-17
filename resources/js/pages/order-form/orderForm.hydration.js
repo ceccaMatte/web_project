@@ -11,9 +11,24 @@
  * - Chiama API per dati completi
  * - Popola orderFormState
  * - Trigger render
+ * 
+ * SSOT CRITICO:
+ * - REORDER e MODIFY usano la stessa funzione resetAndApplySelection()
+ * - Nessun merge, solo reset atomico
  */
 
-import { orderFormState, mutateUI, mutateUser, mutateMode, mutateOrder, mutateAvailability, mutateScheduler, mutateSelectedDay } from './orderForm.state.js';
+import { 
+    orderFormState, 
+    mutateUI, 
+    mutateUser, 
+    mutateMode, 
+    mutateOrder, 
+    mutateAvailability, 
+    mutateScheduler, 
+    mutateSelectedDay,
+    resetAndApplySelection,
+    deriveSelectedIds,
+} from './orderForm.state.js';
 import { fetchCreateData, fetchModifyData, fetchAvailability } from './orderForm.api.js';
 
 /**
@@ -45,18 +60,18 @@ export function hydrateFromInlineData() {
             });
         }
         
-        // Order base data
+        // Order base data (senza ingredienti - quelli vengono dopo)
         mutateOrder({
             id: data.orderId || null,
             selectedDay: data.selectedDate || new Date().toISOString().split('T')[0],
+            selectedTimeSlotId: null,
+            selectedIngredients: [], // Reset - verranno applicati atomicamente dopo
         });
         
-        // Reorder: prepopola ingredienti se presenti
+        // Reorder: usa resetAndApplySelection per SSOT
         if (data.reorderIngredients && data.reorderIngredients.length > 0) {
-            console.log('[Hydration] Prepopulating from reorder:', data.reorderIngredients.length, 'ingredients');
-            mutateOrder({
-                selectedIngredients: data.reorderIngredients,
-            });
+            console.log('[Hydration] REORDER: Applying initial selection with', data.reorderIngredients.length, 'ingredients');
+            resetAndApplySelection(data.reorderIngredients);
         }
         
         // Selected day per scheduler
@@ -127,36 +142,51 @@ export async function hydrateCreateMode(date) {
  * 
  * WORKFLOW:
  * 1. Fetch /api/orders/{orderId}/form
- * 2. Popola order.selectedIngredients
- * 3. Popola availability.ingredients
+ * 2. Aggiorna availability PRIMA della selezione
+ * 3. Usa resetAndApplySelection (STESSO di REORDER) per SSOT
  * 4. Set loading = false
  * 5. Trigger render
+ * 
+ * SSOT CRITICO:
+ * - NON fare merge con stato precedente
+ * - Usa resetAndApplySelection per reset atomico
  */
 export async function hydrateModifyMode(orderId) {
     console.log(`[Hydration] Hydrating MODIFY mode for order: ${orderId}`);
+    console.log('[Hydration] BEFORE: selectedIngredients count =', orderFormState.order.selectedIngredients.length);
     
     mutateUI({ isLoading: true });
     
     try {
         const data = await fetchModifyData(orderId);
+        console.log('[Hydration] MODIFY API response:', data);
         
-        // Order data
-        if (data.order) {
-            mutateOrder({
-                id: data.order.id,
-                selectedDay: data.order.date,
-                selectedTimeSlotId: null, // In modify non si cambia
-                selectedIngredients: data.order.selectedIngredients || [],
-            });
-        }
-        
-        // Availability (solo ingredienti in modify)
+        // 1. Availability PRIMA (così i dropdown hanno i dati)
         if (data.availability) {
             mutateAvailability({
                 ingredients: data.availability.ingredients || [],
                 timeSlots: [], // In modify non servono
             });
         }
+        
+        // 2. Order metadata (senza ingredienti - quelli vengono dopo)
+        if (data.order) {
+            mutateOrder({
+                id: data.order.id,
+                selectedDay: data.order.date,
+                selectedTimeSlotId: null, // In modify non si cambia
+                // NON settare selectedIngredients qui - usa resetAndApplySelection
+            });
+            
+            // 3. SSOT: Applica selezione atomicamente (come REORDER)
+            console.log('[Hydration] MODIFY: Applying selection with', data.order.selectedIngredients?.length || 0, 'ingredients');
+            resetAndApplySelection(data.order.selectedIngredients || []);
+        }
+        
+        // 4. Debug: verifica coerenza
+        const summaryCount = orderFormState.order.selectedIngredients.length;
+        const selectedIds = deriveSelectedIds();
+        console.log('[Hydration] AFTER: summary count =', summaryCount, ', selectedIds =', selectedIds);
         
         mutateUI({ isLoading: false });
         console.log('[Hydration] MODIFY mode hydrated successfully');

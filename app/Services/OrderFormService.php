@@ -63,9 +63,16 @@ class OrderFormService
         // Carica relazioni necessarie
         $order->load(['ingredients', 'workingDay', 'timeSlot']);
         
-        // Carica ingredienti selezionati
-        $selectedIngredients = $order->ingredients->map(fn($i) => [
-            'id' => $i->id,
+        // IMPORTANTE: OrderIngredient sono SNAPSHOT (name, category)
+        // NON hanno riferimento all'Ingredient.id originale.
+        // Dobbiamo matchare per nome per ottenere gli ID corretti.
+        $ingredientNames = $order->ingredients->pluck('name')->toArray();
+        
+        // Trova ingredienti attuali per nome (come fa REORDER)
+        $matchedIngredients = Ingredient::whereIn('name', $ingredientNames)->get();
+        
+        $selectedIngredients = $matchedIngredients->map(fn($i) => [
+            'id' => $i->id,  // Ingredient.id (corretto!)
             'name' => $i->name,
             'category' => $i->category,
         ])->toArray();

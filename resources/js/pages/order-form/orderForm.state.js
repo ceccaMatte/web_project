@@ -286,4 +286,98 @@ export function resetState() {
     orderFormState.selectedDayId = null;
 }
 
+/**
+ * FUNZIONE ATOMICA: Reset e applica selezione iniziale.
+ * 
+ * Usata sia da REORDER che da MODIFY per garantire SSOT.
+ * 
+ * REGOLE:
+ * - Reset TOTALE della selezione (atomico)
+ * - Usa Set per deduplica automatica
+ * - Nessun merge con stato precedente
+ * 
+ * @param {Array<{id, name, category}>} ingredients - Ingredienti da selezionare
+ */
+export function resetAndApplySelection(ingredients) {
+    console.log('[State] resetAndApplySelection called with:', ingredients?.length || 0, 'ingredients');
+    
+    // 1. RESET TOTALE (atomico)
+    orderFormState.order.selectedIngredients = [];
+    
+    if (!ingredients || !Array.isArray(ingredients)) {
+        console.warn('[State] resetAndApplySelection: No ingredients provided');
+        return;
+    }
+    
+    // 2. Deduplica usando Set di ID
+    const seenIds = new Set();
+    const deduplicatedIngredients = [];
+    
+    for (const ing of ingredients) {
+        if (!ing || typeof ing.id === 'undefined') {
+            console.warn('[State] Skipping invalid ingredient:', ing);
+            continue;
+        }
+        
+        if (seenIds.has(ing.id)) {
+            console.warn('[State] Skipping duplicate ingredient ID:', ing.id, ing.name);
+            continue;
+        }
+        
+        seenIds.add(ing.id);
+        deduplicatedIngredients.push({
+            id: ing.id,
+            name: ing.name,
+            category: ing.category,
+        });
+    }
+    
+    // 3. Applica in modo atomico
+    orderFormState.order.selectedIngredients = deduplicatedIngredients;
+    
+    // 4. Debug: verifica invarianti
+    validateSelectionInvariants();
+}
+
+/**
+ * Valida invarianti della selezione (debug).
+ * 
+ * Logga errori se lo stato è inconsistente.
+ */
+function validateSelectionInvariants() {
+    const selected = orderFormState.order.selectedIngredients;
+    
+    // Check: nessun duplicato
+    const ids = selected.map(i => i.id);
+    const uniqueIds = new Set(ids);
+    
+    if (ids.length !== uniqueIds.size) {
+        console.error('[State] INVARIANT VIOLATION: Duplicate IDs in selectedIngredients!', ids);
+    }
+    
+    // Check: massimo 1 bread
+    const breads = selected.filter(i => i.category === 'bread');
+    if (breads.length > 1) {
+        console.error('[State] INVARIANT VIOLATION: Multiple breads selected!', breads);
+    }
+    
+    console.log('[State] Selection validated:', {
+        totalCount: selected.length,
+        uniqueIdCount: uniqueIds.size,
+        breadCount: breads.length,
+        categories: [...new Set(selected.map(i => i.category))],
+    });
+}
+
+/**
+ * Deriva gli IDs selezionati (per passare ai componenti).
+ * 
+ * Questa è una funzione DERIVATA, non modifica lo stato.
+ * 
+ * @returns {number[]} Array di IDs ingredienti selezionati
+ */
+export function deriveSelectedIds() {
+    return orderFormState.order.selectedIngredients.map(i => i.id);
+}
+
 export default orderFormState;
