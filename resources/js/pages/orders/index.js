@@ -31,9 +31,12 @@
  */
 
 import { ordersView } from './orders.view.js';
-import { ordersState } from './orders.state.js';
+import { ordersState, mutateLoading } from './orders.state.js';
 import { hydrateUserFromDOM, hydrateSchedulerFromDOM, refreshOrdersState } from './orders.hydration.js';
-import { goBack, navigateToCreate, navigateToModify } from './orders.actions.js';
+import { goBack, navigateToCreate, navigateToModify, logout } from './orders.actions.js';
+
+// Polling interval ID (globale per cleanup)
+let pollingIntervalId = null;
 
 /**
  * Inizializza pagina Orders
@@ -41,9 +44,11 @@ import { goBack, navigateToCreate, navigateToModify } from './orders.actions.js'
  * WORKFLOW:
  * 1. Inizializza DOM refs
  * 2. Hydrate dati inline (user, scheduler) per render veloce
- * 3. Fetch stato completo da API
- * 4. Render completo UI
- * 5. Registra event delegation globale
+ * 3. Mostra loader iniziale
+ * 4. Fetch stato completo da API
+ * 5. Render completo UI (loader spento automaticamente)
+ * 6. Avvia polling ogni 5 secondi
+ * 7. Registra event delegation globale
  * 
  * Chiamato da app.js quando data-page="orders".
  */
@@ -54,15 +59,72 @@ export async function initOrdersPage() {
     ordersView.init();
 
     // 2. Hydrate dati inline dal DOM (per render veloce senza flicker)
-    hydrateInlineData();
+    await hydrateInlineData();
 
-    // 3. Fetch stato iniziale da API e render
+    // 3. Mostra loader iniziale (prima del fetch)
+    mutateLoading(true);
+    const { renderOrdersPage } = await import('./orders.render.js');
+    renderOrdersPage();
+    console.log('[Orders] Initial render with loader shown');
+
+    // 4. Fetch stato iniziale da API e render (loader spento automaticamente)
     await refreshOrdersState();
 
-    // 4. Registra event delegation globale
+    // 5. Avvia polling ogni 5 secondi
+    startPolling();
+
+    // 6. Registra event delegation globale
     registerGlobalEventDelegation();
 
+    // 7. Cleanup polling quando si esce dalla pagina
+    window.addEventListener('beforeunload', stopPolling);
+
     console.log('[Orders] Orders page initialized successfully');
+}
+
+/**
+ * Avvia polling automatico ogni 5 secondi
+ * 
+ * Richiama il fetch degli ordini e aggiorna la UI.
+ * Il polling viene avviato DOPO il primo caricamento completo.
+ */
+function startPolling() {
+    // Evita duplicati
+    if (pollingIntervalId) {
+        console.warn('[Orders] Polling already active, skipping');
+        return;
+    }
+
+    console.log('[Orders] Starting polling every 5 seconds...');
+
+    pollingIntervalId = setInterval(async () => {
+        console.log('[Orders] Polling: fetching orders snapshot...');
+        
+        try {
+            // Fetch senza mostrare loader (aggiornamento silenzioso)
+            await refreshOrdersState();
+            console.log('[Orders] Polling: orders updated successfully');
+        } catch (error) {
+            console.error('[Orders] Polling: fetch failed', error);
+            // Non stoppiamo il polling in caso di errore singolo
+        }
+    }, 5000);
+
+    console.log('[Orders] Polling started with interval ID:', pollingIntervalId);
+}
+
+/**
+ * Stoppa il polling
+ * 
+ * Chiamato quando si esce dalla pagina o quando si vuole disattivare
+ * l'aggiornamento automatico.
+ */
+function stopPolling() {
+    if (pollingIntervalId) {
+        console.log('[Orders] Stopping polling...');
+        clearInterval(pollingIntervalId);
+        pollingIntervalId = null;
+    }
 }
 
 /**
@@ -142,6 +204,11 @@ function registerGlobalEventDelegation() {
                 event.preventDefault();
                 const modifyOrderId = parseInt(actionTarget.dataset.orderId, 10);
                 if (modifyOrderId) navigateToModify(modifyOrderId);
+                break;
+
+            case 'logout':
+                event.preventDefault();
+                logout();
                 break;
 
             default:

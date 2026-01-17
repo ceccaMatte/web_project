@@ -18,9 +18,10 @@
  * onDaySelected: (dayId) => selectDay(dayId)
  */
 
-import { ordersState, mutateSidebar, mutateSelectedDay, mutateActiveOrders, toggleExpandedOrder, toggleFavoritesFilter, mutateOrderFavorite, navigateCarousel, resetCarouselIndex } from './orders.state.js';
+import { ordersState, mutateSidebar, mutateSelectedDay, mutateActiveOrders, toggleExpandedOrder, toggleFavoritesFilter, mutateOrderFavorite, navigateCarousel, resetCarouselIndex, mutateUser } from './orders.state.js';
 import { ordersView } from './orders.view.js';
 import { fetchActiveOrders, toggleFavorite as toggleFavoriteApi } from './orders.api.js';
+import { logoutUser } from '../../pages/home/home.api.js';
 
 // ============================================================================
 // SIDEBAR ACTIONS
@@ -260,6 +261,48 @@ export function goBack() {
 }
 
 /**
+ * Gestisce logout utente
+ * 
+ * WORKFLOW:
+ * 1. Chiama API POST /logout
+ * 2. Aggiorna ordersState.user.authenticated = false
+ * 3. Naviga manualmente a / (NO redirect automatico)
+ * 
+ * VINCOLI:
+ * - Nessun redirect automatico backend
+ * - Controllo completo lato client
+ * - Navigazione solo dopo conferma logout OK
+ */
+export async function logout() {
+    console.log('[Actions] Logging out user...');
+
+    try {
+        // 1. Chiamata POST /logout
+        const response = await logoutUser();
+
+        // 2. Se OK, aggiorna state
+        if (response.success) {
+            console.log('[Actions] Logout successful, updating state...');
+            
+            mutateUser({
+                authenticated: false,
+                enabled: false,
+                name: null,
+            });
+
+            // 3. Naviga manualmente a home
+            console.log('[Actions] Navigating to home after logout');
+            window.location.href = '/';
+        } else {
+            console.error('[Actions] Logout failed:', response);
+        }
+    } catch (error) {
+        console.error('[Actions] Logout request failed:', error);
+        // TODO: Mostra messaggio errore all'utente
+    }
+}
+
+/**
  * Reorder: naviga a create con configurazione ingredienti precompilata
  * 
  * @param {number} configId - ID della configurazione ingredienti da replicare
@@ -287,4 +330,5 @@ export default {
     navigateToModify,
     goBack,
     reorder,
+    logout,
 };

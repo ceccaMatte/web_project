@@ -51,7 +51,10 @@ export async function refreshOrdersState() {
         // 2. Hydrate state
         hydrateOrdersState(data);
 
-        // 3. Render UI (importato dinamicamente per evitare circular deps)
+        // 3. SPEGNI LOADER PRIMA DEL RENDER
+        mutateLoading(false);
+
+        // 4. Render UI (importato dinamicamente per evitare circular deps)
         const { renderOrdersPage } = await import('./orders.render.js');
         renderOrdersPage();
 
@@ -60,11 +63,12 @@ export async function refreshOrdersState() {
         console.error('[Hydration] Failed to refresh orders state:', error);
         mutateError('Failed to load orders. Please try again.');
         
+        // Spegni loader anche in caso di errore
+        mutateLoading(false);
+        
         // Render comunque per mostrare errore
         const { renderOrdersPage } = await import('./orders.render.js');
         renderOrdersPage();
-    } finally {
-        mutateLoading(false);
     }
 }
 
