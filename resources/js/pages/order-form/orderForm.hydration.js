@@ -182,24 +182,28 @@ export async function refreshAvailability(date = null) {
             timeSlots: data.timeSlots || orderFormState.availability.timeSlots,
         });
         
-        // Rimuovi ingredienti selezionati se non più disponibili
-        const availableIds = new Set();
-        (data.ingredients || []).forEach(cat => {
-            cat.items.forEach(item => {
-                if (item.available) {
-                    availableIds.add(item.id);
-                }
+        // In MODIFY: preserva ingredienti selezionati anche se non disponibili
+        // In CREATE: rimuovi ingredienti selezionati se non più disponibili
+        if (orderFormState.mode === 'create') {
+            const availableIds = new Set();
+            (data.ingredients || []).forEach(cat => {
+                cat.items.forEach(item => {
+                    if (item.available) {
+                        availableIds.add(item.id);
+                    }
+                });
             });
-        });
-        
-        const updatedIngredients = orderFormState.order.selectedIngredients.filter(
-            ing => availableIds.has(ing.id)
-        );
-        
-        if (updatedIngredients.length !== orderFormState.order.selectedIngredients.length) {
-            console.log('[Hydration] Removed unavailable ingredients');
-            mutateOrder({ selectedIngredients: updatedIngredients });
+            
+            const updatedIngredients = orderFormState.order.selectedIngredients.filter(
+                ing => availableIds.has(ing.id)
+            );
+            
+            if (updatedIngredients.length !== orderFormState.order.selectedIngredients.length) {
+                console.log('[Hydration] Removed unavailable ingredients from CREATE');
+                mutateOrder({ selectedIngredients: updatedIngredients });
+            }
         }
+        // In MODIFY mode non rimuovere MAI ingredienti selezionati
         
         // Verifica time slot selezionato (solo create)
         if (orderFormState.mode === 'create' && orderFormState.order.selectedTimeSlotId) {

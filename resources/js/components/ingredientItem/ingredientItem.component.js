@@ -32,8 +32,37 @@
 export function renderIngredientItem(ingredient) {
     const { id, name, category, available, selected } = ingredient;
 
+    // Caso speciale: selezionato ma non disponibile (in MODIFY)
+    // Mostra come selezionato ma con badge "Out of Stock", ancora cliccabile per rimuovere
+    if (selected && !available) {
+        return `
+            <div 
+                class="flex items-center justify-between cursor-pointer hover:bg-slate-800/50 -mx-4 px-4 py-1 rounded transition-colors"
+                data-ingredient-id="${id}"
+                data-ingredient-name="${name}"
+                data-ingredient-category="${category}"
+                data-ingredient-available="false"
+                data-action="toggle-ingredient"
+                role="button"
+                tabindex="0"
+                aria-pressed="true"
+                aria-label="${name}, selezionato ma non disponibile"
+            >
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-white">${name}</span>
+                    <span class="text-[9px] font-bold text-red-500 uppercase border border-red-500/30 px-1.5 py-0.5 rounded">
+                        Out of Stock
+                    </span>
+                </div>
+                <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">
+                    check_circle
+                </span>
+            </div>
+        `;
+    }
+
     if (!available) {
-        // OUT OF STOCK
+        // OUT OF STOCK (non selezionato)
         return `
             <div 
                 class="flex items-center justify-between opacity-40"

@@ -68,7 +68,7 @@ export function renderIngredientSectionHTML(section, isOpen, selectedIds) {
                     expand_more
                 </span>
             </summary>
-            <div class="max-h-48 overflow-y-auto px-4 pb-4 space-y-3 border-t border-border-dark pt-4">
+            <div class="max-h-[280px] overflow-y-auto px-4 pb-4 space-y-3 border-t border-border-dark pt-4">
                 ${itemsHTML}
             </div>
         </details>

@@ -207,7 +207,8 @@ export function toggleSection(sectionId) {
  * Seleziona/deseleziona ingrediente.
  * 
  * REGOLE:
- * - Se available === false → IGNORA
+ * - Se available === false E non è già selezionato → IGNORA
+ * - Se available === false MA è selezionato → permetti deselect (per MODIFY)
  * - Se categoria bread → deseleziona pane precedente
  * 
  * @param {Object} ingredient - { id, name, category, available }
@@ -215,8 +216,12 @@ export function toggleSection(sectionId) {
 export function selectIngredient(ingredient) {
     console.log(`[Actions] Selecting ingredient:`, ingredient);
     
-    // Verifica disponibilità
-    if (!ingredient.available) {
+    // Verifica se è già selezionato
+    const isSelected = orderFormState.order.selectedIngredients.some(i => i.id === ingredient.id);
+    
+    // Se non disponibile E non è già selezionato → IGNORA
+    // Se non disponibile MA è selezionato → permetti deselect
+    if (!ingredient.available && !isSelected) {
         console.warn('[Actions] Ingredient not available, ignoring');
         return;
     }
