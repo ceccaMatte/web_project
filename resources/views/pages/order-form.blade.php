@@ -151,7 +151,7 @@
          ======================================== --}}
     <footer 
         data-footer
-        class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-surface-dark/95 backdrop-blur-xl border-t border-border-dark p-4 z-30 md:hidden"
+        class="fixed bottom-0 left-0 right-0 mx-auto bg-surface-dark/95 backdrop-blur-xl border-t border-border-dark p-4 z-30 md:hidden"
     >
         <div data-footer-actions class="flex gap-3">
             {{-- Rendered by JS --}}

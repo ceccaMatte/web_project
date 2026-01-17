@@ -17,7 +17,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="dark">
-    <div class="relative flex min-h-screen w-full max-w-[430px] mx-auto flex-col bg-[#0a0e1a] overflow-x-hidden">
+    <div class="relative flex min-h-screen w-full  mx-auto flex-col bg-[#0a0e1a] overflow-x-hidden">
         @yield('content')
     </div>
 </body>
