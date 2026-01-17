@@ -28,6 +28,24 @@ import { renderTimeSlotsList } from '../../components/timeSlotCard/timeSlotCard.
 import { homeView } from './home.view.js';
 
 /**
+ * Aggiorna isSelected nei weekDays in base al selectedDayId corrente
+ * 
+ * @param {Array} weekDays - Array weekDays
+ * @param {string} selectedDayId - ID del giorno selezionato
+ * @returns {Array} - weekDays aggiornato
+ */
+function updateSchedulerSelection(weekDays, selectedDayId) {
+    if (!selectedDayId || !weekDays || weekDays.length === 0) {
+        return weekDays;
+    }
+    
+    return weekDays.map(day => ({
+        ...day,
+        isSelected: day.id === selectedDayId,
+    }));
+}
+
+/**
  * Apri sidebar
  * 
  * WORKFLOW:
@@ -108,9 +126,15 @@ export async function selectDay(dayId) {
     console.log('[Actions] State updated, weekDays:', homeState.weekDays.map(d => ({id: d.id, isSelected: d.isSelected})));
 
     // 2. Re-render scheduler (immediato per feedback visivo)
+    // IMPORTANTE: Aggiorna isSelected con il nuovo selectedDayId
+    const updatedWeekDays = updateSchedulerSelection(
+        homeState.weekDays,
+        homeState.selectedDayId
+    );
+    
     renderWeekScheduler(
         homeView.refs.schedulerSection,
-        { monthLabel: homeState.monthLabel, weekDays: homeState.weekDays },
+        { monthLabel: homeState.monthLabel, weekDays: updatedWeekDays },
         { onDaySelected: selectDay }
     );
 

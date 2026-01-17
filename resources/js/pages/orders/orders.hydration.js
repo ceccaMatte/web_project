@@ -114,14 +114,18 @@ export function hydrateOrdersState(data) {
 
     // Scheduler state
     if (data.scheduler) {
+        // IMPORTANTE: Preserva selectedDayId corrente per mantenere la selezione dell'utente
+        // durante il refresh/polling. Solo alla prima init viene usato quello del backend.
+        const currentSelectedDayId = ordersState.selectedDayId;
+        
         mutateScheduler({
-            selectedDayId: data.scheduler.selectedDayId || null,
+            selectedDayId: currentSelectedDayId || data.scheduler.selectedDayId || null,
             monthLabel: data.scheduler.monthLabel || null,
             weekDays: Array.isArray(data.scheduler.weekDays) 
                 ? data.scheduler.weekDays 
                 : [],
         });
-        console.debug('[Hydration] Scheduler state updated');
+        console.debug('[Hydration] Scheduler state updated (preserving selectedDayId:', currentSelectedDayId, ')');
     }
 
     // Active Orders

@@ -208,14 +208,46 @@ export function renderSidebarAndTopbar() {
 // ============================================================================
 
 /**
+ * Aggiorna isSelected nei weekDays in base al selectedDayId corrente
+ * 
+ * RESPONSABILITÀ:
+ * - Assicura che solo il giorno selezionato abbia isSelected = true
+ * - Usato prima di renderizzare lo scheduler per preservare la selezione
+ * - RISOLVE il bug dove il refresh/polling resettava la selezione a "today"
+ * 
+ * @param {Array} weekDays - Array weekDays da state
+ * @param {string} selectedDayId - ID del giorno attualmente selezionato (es. "2026-01-16")
+ * @returns {Array} - weekDays aggiornato con isSelected corretto
+ */
+function updateSchedulerSelection(weekDays, selectedDayId) {
+    if (!selectedDayId || !weekDays || weekDays.length === 0) {
+        return weekDays;
+    }
+    
+    return weekDays.map(day => ({
+        ...day,
+        isSelected: day.id === selectedDayId,
+    }));
+}
+
+/**
  * Render Week Scheduler component
+ * 
+ * IMPORTANTE: Preserva la selezione del giorno durante i refresh/polling
+ * aggiornando isSelected in base a ordersState.selectedDayId
  */
 export function renderScheduler() {
+    // Aggiorna isSelected con il selectedDayId corrente (NON usare quello del backend)
+    const weekDaysWithSelection = updateSchedulerSelection(
+        ordersState.weekDays,
+        ordersState.selectedDayId
+    );
+    
     renderWeekScheduler(
         ordersView.refs.schedulerSection,
         {
             monthLabel: ordersState.monthLabel,
-            weekDays: ordersState.weekDays,
+            weekDays: weekDaysWithSelection,
         },
         {
             onDaySelected: selectDay,

@@ -22,6 +22,28 @@ import { homeState } from './home.state.js';
 import { homeView } from './home.view.js';
 import { openSidebar, closeSidebar, selectDay } from './home.actions.js';
 
+/**
+ * Aggiorna isSelected nei weekDays in base al selectedDayId corrente
+ * 
+ * RESPONSABILITÀ:
+ * - Assicura che solo il giorno selezionato abbia isSelected = true
+ * - Usato prima di renderizzare lo scheduler per preservare la selezione
+ * 
+ * @param {Array} weekDays - Array weekDays da state
+ * @param {string} selectedDayId - ID del giorno attualmente selezionato
+ * @returns {Array} - weekDays aggiornato con isSelected corretto
+ */
+function updateSchedulerSelection(weekDays, selectedDayId) {
+    if (!selectedDayId || !weekDays || weekDays.length === 0) {
+        return weekDays;
+    }
+    
+    return weekDays.map(day => ({
+        ...day,
+        isSelected: day.id === selectedDayId,
+    }));
+}
+
 // Components
 import { renderTopBar } from '../../components/topbar/topbar.component.js';
 import { renderSidebar } from '../../components/sidebar/sidebar.component.js';
@@ -76,11 +98,17 @@ export function renderHome() {
     );
 
     // 4. Week Scheduler
+    // IMPORTANTE: Aggiorna isSelected in base a selectedDayId corrente
+    const weekDaysWithSelection = updateSchedulerSelection(
+        homeState.weekDays,
+        homeState.selectedDayId
+    );
+    
     renderWeekScheduler(
         homeView.refs.schedulerSection,
         {
             monthLabel: homeState.monthLabel,
-            weekDays: homeState.weekDays,
+            weekDays: weekDaysWithSelection,
         },
         {
             onDaySelected: selectDay,
