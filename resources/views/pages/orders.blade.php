@@ -101,9 +101,9 @@
         {{--
             DESKTOP GRID WRAPPER
             - Su mobile: block (ordine verticale)
-            - Su desktop: 2 colonne [380px_1fr] con gap
+            - Su desktop: 2 colonne [480px_1fr] con gap (left column wider)
         --}}
-        <div class="md:grid md:grid-cols-[380px_1fr] md:gap-6">
+        <div class="md:grid md:grid-cols-[480px_1fr] md:gap-6">
 
             {{-- ========================================
                  COLONNA SINISTRA: Scheduler + Active Orders
