@@ -66,13 +66,13 @@
         </div>
 
         {{-- Content container (nascosto durante loading) --}}
-        {{-- Desktop: 2-column grid layout --}}
-        <div data-content class="hidden md:grid md:grid-cols-[1fr_360px] md:gap-6">
+        {{-- Desktop: 2-column grid layout; right column constrained with minmax so it never overflows --}}
+        <div data-content class="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(240px,360px)] md:gap-6">
 
             {{-- ========================================
                  LEFT COLUMN: Scheduler + TimeSlots + Ingredients
                  ======================================== --}}
-            <div class="flex flex-col {{ $mode === 'create' ? 'md:max-w-[600px]' : 'md:max-w-[400px]' }}">
+            <div class="flex flex-col min-w-0 {{ $mode === 'create' ? 'md:max-w-[600px]' : 'md:max-w-[400px]' }}">
 
                 {{-- SCHEDULER SECTION (solo CREATE mode) --}}
                 @if($mode === 'create')
@@ -121,7 +121,7 @@
             {{-- ========================================
                  RIGHT COLUMN: Your Selection + CTA (Desktop only)
                  ======================================== --}}
-            <div class="hidden md:block">
+            <div class="hidden md:block md:min-w-0">
                 <div class="sticky top-24 space-y-4">
 
                     {{-- SELECTED INGREDIENTS SUMMARY (Desktop) --}}
