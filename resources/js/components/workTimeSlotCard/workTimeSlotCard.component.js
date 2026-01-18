@@ -28,53 +28,97 @@ export function buildWorkTimeSlotCardHTML(slot) {
 
     const timeLabel = `${formatTime(start_time)} - ${formatTime(end_time)}`;
     
-    // Calcola totale ordini in pipeline (esclude pending)
-    const pipelineTotal = (counts?.confirmed || 0) + (counts?.ready || 0) + (counts?.picked_up || 0);
+    // Calcola totali
+    const confirmedCount = counts?.confirmed || 0;
+    const readyCount = counts?.ready || 0;
+    const pickedUpCount = counts?.picked_up || 0;
     const pendingCount = counts?.pending || 0;
+    const totalOrders = confirmedCount + readyCount + pickedUpCount;
 
-    // Classes condizionali per stato selezionato
-    const baseClasses = 'flex flex-col gap-2 px-4 py-3 rounded-xl border transition-all cursor-pointer';
-    const selectedClasses = 'bg-primary/10 border-primary text-primary';
-    const defaultClasses = 'bg-slate-900/50 border-slate-700 text-slate-400 hover:border-slate-600';
-    
-    const classes = isSelected 
-        ? `${baseClasses} ${selectedClasses}`
-        : `${baseClasses} ${defaultClasses}`;
-
-    return `
-        <button 
-            type="button"
-            class="${classes}"
-            data-action="select-time-slot"
-            data-slot-id="${id}"
-            aria-pressed="${isSelected}"
-            aria-label="Time slot ${timeLabel}, ${pipelineTotal} orders in pipeline${pendingCount > 0 ? `, ${pendingCount} pending` : ''}"
-        >
-            <span class="font-semibold text-sm ${isSelected ? 'text-white' : 'text-slate-300'}">
-                ${timeLabel}
-            </span>
-            <div class="flex items-center gap-3 text-[10px] uppercase tracking-wider">
-                <span class="flex items-center gap-1">
-                    <span class="size-2 rounded-full bg-blue-500"></span>
-                    ${counts?.confirmed || 0}
-                </span>
-                <span class="flex items-center gap-1">
-                    <span class="size-2 rounded-full bg-emerald-500"></span>
-                    ${counts?.ready || 0}
-                </span>
-                <span class="flex items-center gap-1">
-                    <span class="size-2 rounded-full bg-slate-400"></span>
-                    ${counts?.picked_up || 0}
-                </span>
+    // Layout secondo il design specificato
+    if (isSelected) {
+        // TIME SLOT SELECTED - design completo
+        return `
+            <button 
+                type="button"
+                class="relative flex-shrink-0 w-[240px] p-4 rounded-3xl bg-primary border border-primary/50 shadow-2xl shadow-primary/10 transition-all"
+                data-action="select-time-slot"
+                data-slot-id="${id}"
+                aria-pressed="true"
+                aria-label="Time slot ${timeLabel}, ${totalOrders} orders, selected"
+            >
                 ${pendingCount > 0 ? `
-                    <span class="flex items-center gap-1 text-amber-500">
-                        <span class="size-2 rounded-full bg-amber-500"></span>
-                        ${pendingCount}
-                    </span>
+                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500 border border-orange-400 shadow-sm">
+                    <span class="material-symbols-outlined text-white text-[14px] fill-1">warning</span>
+                    <span class="text-[11px] font-black text-white">${pendingCount}</span>
+                </div>
                 ` : ''}
-            </div>
-        </button>
-    `;
+                
+                <span class="block text-[11px] font-black text-white/80 mb-1 uppercase tracking-wider">${timeLabel}</span>
+                
+                <div class="flex items-baseline gap-1.5 mb-3">
+                    <span class="text-3xl font-extrabold text-white tracking-tighter">${totalOrders}</span>
+                    <span class="text-[10px] font-black text-white/60 uppercase tracking-widest">Orders</span>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-white/15 rounded-xl py-2 border border-white/10">
+                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">task_alt</span>
+                        <span class="text-[12px] font-black text-white leading-none">${confirmedCount}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-emerald-500/30 rounded-xl py-2 border border-emerald-400/30">
+                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">check_circle</span>
+                        <span class="text-[12px] font-black text-white leading-none">${readyCount}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-white/10 rounded-xl py-2 border border-white/5 ${pickedUpCount === 0 ? 'opacity-50' : ''}">
+                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">shopping_bag</span>
+                        <span class="text-[12px] font-black text-white leading-none">${pickedUpCount}</span>
+                    </div>
+                </div>
+            </button>
+        `;
+    } else {
+        // TIME SLOT UNSELECTED - design semplificato ma stessa struttura base
+        return `
+            <button 
+                type="button"
+                class="relative flex-shrink-0 w-[240px] p-4 rounded-3xl bg-slate-900/50 border border-slate-700 hover:border-slate-600 transition-all"
+                data-action="select-time-slot"
+                data-slot-id="${id}"
+                aria-pressed="false"
+                aria-label="Time slot ${timeLabel}, ${totalOrders} orders"
+            >
+                ${pendingCount > 0 ? `
+                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 border border-amber-400 shadow-sm">
+                    <span class="material-symbols-outlined text-white text-[14px] fill-1">warning</span>
+                    <span class="text-[11px] font-black text-white">${pendingCount}</span>
+                </div>
+                ` : ''}
+                
+                <span class="block text-[11px] font-black text-slate-400 mb-1 uppercase tracking-wider">${timeLabel}</span>
+                
+                <div class="flex items-baseline gap-1.5 mb-3">
+                    <span class="text-3xl font-extrabold text-slate-300 tracking-tighter">${totalOrders}</span>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Orders</span>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-slate-800/50 rounded-xl py-2 border border-slate-700/50">
+                        <span class="material-symbols-outlined text-slate-400 text-[16px] opacity-80">task_alt</span>
+                        <span class="text-[12px] font-black text-slate-300 leading-none">${confirmedCount}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-slate-800/50 rounded-xl py-2 border border-slate-700/50">
+                        <span class="material-symbols-outlined text-slate-400 text-[16px] opacity-80">check_circle</span>
+                        <span class="text-[12px] font-black text-slate-300 leading-none">${readyCount}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-slate-800/50 rounded-xl py-2 border border-slate-700/50 ${pickedUpCount === 0 ? 'opacity-50' : ''}">
+                        <span class="material-symbols-outlined text-slate-400 text-[16px] opacity-80">shopping_bag</span>
+                        <span class="text-[12px] font-black text-slate-300 leading-none">${pickedUpCount}</span>
+                    </div>
+                </div>
+            </button>
+        `;
+    }
 }
 
 /**

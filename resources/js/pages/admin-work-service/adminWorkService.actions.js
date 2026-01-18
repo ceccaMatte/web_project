@@ -111,18 +111,40 @@ export function selectOrder(orderId) {
     // Toggle selection if clicking same order
     if (orderId === workServiceState.selectedOrderId) {
         mutateSelectedOrder(null);
-        toggleRecapModal(false);
+        hideMobileRecap();
     } else {
         mutateSelectedOrder(orderId);
         
-        // Show modal on mobile
+        // Show mobile recap on mobile devices
         if (window.innerWidth < 1024) {
-            toggleRecapModal(true);
+            showMobileRecap();
         }
     }
 
     renderOrdersPipeline();
     renderRecapCard();
+}
+
+/**
+ * Mostra mobile recap (bottom sheet)
+ */
+function showMobileRecap() {
+    const mobileRecap = document.querySelector('[data-recap-mobile]');
+    if (mobileRecap) {
+        mobileRecap.classList.remove('translate-y-full');
+        mobileRecap.classList.add('translate-y-0');
+    }
+}
+
+/**
+ * Nasconde mobile recap
+ */
+function hideMobileRecap() {
+    const mobileRecap = document.querySelector('[data-recap-mobile]');
+    if (mobileRecap) {
+        mobileRecap.classList.remove('translate-y-0');
+        mobileRecap.classList.add('translate-y-full');
+    }
 }
 
 /**

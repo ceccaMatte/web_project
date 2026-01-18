@@ -14,3 +14,28 @@ order ready
 </div>
 <p class="text-xs font-bold text-white truncate mt-0.5">Jason R.</p>
 </div>
+§
+ora è così<div data-status-orders="confirmed" class="overflow-x-auto">
+        <div class="relative p-4 rounded-xl border transition-all cursor-pointer bg-blue-500/10 border-blue-500/30 hover:border-opacity-60" data-order-card="5" data-action="select-order" data-order-id="5" role="button" tabindex="0" aria-label="Order #5 by Mario at 11:15">
+            <!-- Header: Order number + Time -->
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-white font-bold text-lg">#5</span>
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider">11:15</span>
+            </div>
+            
+            <!-- User nickname -->
+            <p class="text-sm text-blue-400 font-medium mb-3">Mario</p>
+            
+            <!-- Ingredients preview -->
+            <p class="text-[10px] text-slate-500 line-clamp-2 mb-4">
+                PT • POR • PEC • SV
+            </p>
+            
+            <!-- Action button (if has next status) -->
+            
+                <button type="button" class="w-full py-2 px-3 rounded-lg text-white text-xs font-bold uppercase transition-colors bg-blue-500 hover:bg-blue-600" data-action="change-status" data-order-id="5" data-new-status="ready" aria-label="Mark Ready for order #5">
+                    Mark Ready
+                </button>
+            
+        </div>
+    </div>

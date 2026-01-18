@@ -51,3 +51,29 @@ TIMESLOT UNSELECTED
 </div>
 </div>
 </div>
+
+ora è così<button type="button" class="flex flex-col gap-2 px-4 py-3 rounded-xl border transition-all cursor-pointer bg-slate-900/50 border-slate-700 text-slate-400 hover:border-slate-600" data-action="select-time-slot" data-slot-id="7" aria-pressed="false" aria-label="Time slot 11:00 - 11:15, 0 orders in pipeline, 3 pending">
+            <span class="font-semibold text-sm text-slate-300">
+                11:00 - 11:15
+            </span>
+            <div class="flex items-center gap-3 text-[10px] uppercase tracking-wider">
+                <span class="flex items-center gap-1">
+                    <span class="size-2 rounded-full bg-blue-500"></span>
+                    0
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="size-2 rounded-full bg-emerald-500"></span>
+                    0
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="size-2 rounded-full bg-slate-400"></span>
+                    0
+                </span>
+                
+                    <span class="flex items-center gap-1 text-amber-500">
+                        <span class="size-2 rounded-full bg-amber-500"></span>
+                        3
+                    </span>
+                
+            </div>
+        </button>

@@ -77,9 +77,9 @@ export function buildWorkOrderCardHTML(order, isSelected = false) {
     // Build ingredients preview (abbreviations)
     const ingredientsPreview = buildIngredientsPreview(ingredients);
 
-    // Selected state styling
+    // Selected state styling - più evidente
     const selectedClasses = isSelected 
-        ? 'ring-2 ring-primary shadow-lg shadow-primary/20' 
+        ? 'ring-2 ring-primary/60 shadow-xl shadow-primary/30 border-primary/40' 
         : '';
 
     // Card classes

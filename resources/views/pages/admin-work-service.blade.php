@@ -44,10 +44,11 @@
         data-action="close-sidebar"
     ></div>
 
-    {{-- Sidebar panel --}}
+    {{-- Sidebar panel - da DESTRA --}}
     <aside 
         data-admin-sidebar
-        class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300 lg:left-0 lg:translate-x-0 lg:right-auto"
+        class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300"
+        id="sidebar-menu"
     >
         {{-- Header sidebar con close button --}}
         <div class="p-6 border-b border-slate-800">
@@ -150,46 +151,58 @@
          MAIN CONTENT
          No offset su mobile, offset lg:ml-64 su desktop
          ======================================== --}}
-    <main class="min-h-screen lg:ml-64">
+    <main class="min-h-screen">
 
         {{-- ========================================
-             TOP BAR - Solo titolo + hamburger
+             TOP BAR - Logo + branding + menu
              ======================================== --}}
-        <header class="sticky top-0 z-30 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-slate-800">
-            <div class="px-4 py-3 flex items-center justify-between">
-                {{-- Hamburger menu (mobile) --}}
-                <button 
-                    type="button"
-                    data-action="open-sidebar"
-                    class="lg:hidden p-2 -ml-2 text-slate-400 hover:text-white"
-                    aria-label="Open menu"
-                >
-                    <span class="material-symbols-outlined text-2xl">menu</span>
-                </button>
-                
-                {{-- Titolo pagina --}}
-                <h1 class="text-white text-lg font-bold flex-1 lg:flex-none">
-                    {{ config('ui.admin_work_service.page_title') }}
-                </h1>
-                
-                {{-- Spacer per bilanciare layout --}}
-                <div class="w-10 lg:hidden"></div>
+        <header class="flex items-center bg-background-dark/80 backdrop-blur-md px-5 py-4 justify-between sticky top-0 z-30 border-b border-border-dark/50">
+            {{-- Logo + Brand --}}
+            <div class="flex items-center gap-3">
+                {{-- Logo Icon --}}
+                <div class="flex size-9 items-center justify-center rounded-lg bg-primary/20 text-primary">
+                    <span class="material-symbols-outlined text-2xl">
+                        local_shipping
+                    </span>
+                </div>
+                {{-- Title --}}
+                <div>
+                    <h1 class="text-white text-base font-bold leading-tight">
+                        {{ config('ui.admin_work_service.page_title') }}
+                    </h1>
+                </div>
             </div>
-            
-            {{-- ========================================
-                 SCHEDULER - Full width sotto top bar
-                 ======================================== --}}
-            <div class="px-4 py-4 border-t border-slate-800/50">
-                <section 
-                    data-scheduler-container
-                    class="w-full"
-                    aria-label="{{ config('ui.admin_work_service.aria.scheduler_section') }}"
+
+            {{-- Actions --}}
+            <div class="flex items-center gap-2">
+                <button 
+                    type="button" 
+                    data-action="open-sidebar"
+                    class="flex items-center justify-center rounded-full h-10 w-10 bg-surface-dark border border-border-dark text-slate-300 hover:text-white active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
+                    aria-label="Apri menu di navigazione" 
+                    aria-expanded="false" 
+                    aria-controls="sidebar-menu"
                 >
-                    {{-- Popolato da JS: weekScheduler.component.js --}}
-                    <div data-scheduler-week></div>
-                </section>
+                    <span class="material-symbols-outlined text-[22px]">
+                        menu
+                    </span>
+                </button>
             </div>
         </header>
+
+        {{-- ========================================
+             SCHEDULER - Sempre visibile sotto top bar
+             ======================================== --}}
+        <div class="px-4 py-4 border-b border-slate-800/50">
+            <section 
+                data-scheduler-container
+                class="w-full"
+                aria-label="{{ config('ui.admin_work_service.aria.scheduler_section') }}"
+            >
+                {{-- Popolato da JS: weekScheduler.component.js --}}
+                <div data-scheduler-week></div>
+            </section>
+        </div>
 
         {{-- ========================================
              CONTENT AREA
@@ -337,7 +350,7 @@
          ======================================== --}}
     <div 
         data-recap-mobile
-        class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0d1117] border-t border-slate-800 shadow-2xl transition-transform duration-300"
+        class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0d1117] border-t border-slate-800 shadow-2xl transition-transform duration-300 translate-y-full"
     >
         {{-- Handle per collassare --}}
         <button 
