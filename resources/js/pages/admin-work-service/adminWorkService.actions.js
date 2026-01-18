@@ -14,10 +14,12 @@ import {
     mutateSelectedTimeSlot,
     mutateSelectedOrder,
     mutateOrderStatus,
+    setUserInteracting,
+    resetUserInteractionAfterDelay,
 } from './adminWorkService.state.js';
 import { changeOrderStatus as apiChangeOrderStatus } from './adminWorkService.api.js';
 import { refreshWorkServiceState } from './adminWorkService.hydration.js';
-import { renderWorkServicePage, renderOrdersPipeline, renderRecapCard, toggleRecapModal } from './adminWorkService.render.js';
+import { renderWorkServicePage, renderOrdersPipeline, renderRecapCard, toggleRecapModal, renderTimeSlotSelector } from './adminWorkService.render.js';
 
 /**
  * Seleziona un giorno diverso nello scheduler
@@ -32,6 +34,12 @@ export async function selectDay(dayId) {
         return;
     }
 
+    // Reset user interaction flag quando si cambia giorno
+    setUserInteracting(false);
+    
+    // Reset user interaction flag quando si cambia giorno
+    setUserInteracting(false);
+    
     mutateSelectedDay(dayId);
     
     // Refresh data for new day
@@ -39,16 +47,57 @@ export async function selectDay(dayId) {
 }
 
 /**
- * Seleziona un time slot
+ * Seleziona un time slot (IDEMPOTENTE)
  * 
  * @param {number|'all'} slotId - ID time slot o 'all'
  */
 export function selectTimeSlot(slotId) {
-    console.log(`[WorkServiceActions] Selecting time slot: ${slotId}`);
+    const actionStartTime = performance.now();
+    console.log(`[WorkServiceActions] ⚡ START selectTimeSlot(${slotId}) at ${actionStartTime}ms`);
+    console.log(`[WorkServiceActions] 📊 Current state:`, {
+        currentSelectedSlot: workServiceState.selectedTimeSlotId,
+        isUserInteracting: workServiceState.isUserInteracting,
+        ordersCount: workServiceState.orders?.length || 0,
+        timeSlotsCount: workServiceState.timeSlots?.length || 0
+    });
 
-    mutateSelectedTimeSlot(slotId);
+    // IDEMPOTENZA: Non fare nulla se lo slot è già selezionato
+    const mutateStartTime = performance.now();
+    const wasChanged = mutateSelectedTimeSlot(slotId);
+    const mutateEndTime = performance.now();
+    console.log(`[WorkServiceActions] 🔄 State mutation took ${(mutateEndTime - mutateStartTime).toFixed(2)}ms`);
+    
+    if (!wasChanged) {
+        const totalTime = performance.now() - actionStartTime;
+        console.log(`[WorkServiceActions] ⏭️  SKIP: Time slot ${slotId} already selected, completed in ${totalTime.toFixed(2)}ms`);
+        return;
+    }
+
+    console.log(`[WorkServiceActions] 🚫 Setting user interaction flag to block polling...`);
+    // Marca che l'utente sta interagendo (blocca polling interferenza)
+    setUserInteracting(true);
+    resetUserInteractionAfterDelay(3000);
+
+    // Render solo i componenti interessati
+    const renderStartTime = performance.now();
+    console.log(`[WorkServiceActions] 🖼️  Starting selective renders...`);
+    
     renderTimeSlotSelector();
+    const selectorRenderTime = performance.now();
+    console.log(`[WorkServiceActions] ✅ TimeSlotSelector rendered in ${(selectorRenderTime - renderStartTime).toFixed(2)}ms`);
+    
     renderOrdersPipeline();
+    const pipelineRenderTime = performance.now();
+    console.log(`[WorkServiceActions] ✅ OrdersPipeline rendered in ${(pipelineRenderTime - selectorRenderTime).toFixed(2)}ms`);
+    
+    const totalTime = performance.now() - actionStartTime;
+    console.log(`[WorkServiceActions] ✅ COMPLETE selectTimeSlot(${slotId}) in ${totalTime.toFixed(2)}ms`, {
+        mutationTime: (mutateEndTime - mutateStartTime).toFixed(2) + 'ms',
+        selectorRenderTime: (selectorRenderTime - renderStartTime).toFixed(2) + 'ms',
+        pipelineRenderTime: (pipelineRenderTime - selectorRenderTime).toFixed(2) + 'ms',
+        totalRenderTime: (pipelineRenderTime - renderStartTime).toFixed(2) + 'ms',
+        totalActionTime: totalTime.toFixed(2) + 'ms'
+    });
 }
 
 /**

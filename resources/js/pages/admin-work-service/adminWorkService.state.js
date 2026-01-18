@@ -123,6 +123,12 @@ export const workServiceState = {
      * (per auto-select time slot solo alla prima volta)
      */
     isFirstLoad: true,
+
+    /**
+     * Flag per indicare se l'utente sta interagendo con i time slot
+     * (blocca interferenza del polling)
+     */
+    isUserInteracting: false,
 };
 
 // ============================================================================
@@ -173,25 +179,34 @@ export function mutateSelectedDay(dayId) {
 export function mutateTimeSlots(timeSlots, currentTimeSlotId = null) {
     workServiceState.timeSlots = timeSlots || [];
     
-    // Auto-select time slot only on first load
-    if (workServiceState.isFirstLoad && currentTimeSlotId !== null) {
+    // Auto-select time slot SOLO al primo caricamento E se l'utente non sta interagendo
+    if (workServiceState.isFirstLoad && currentTimeSlotId !== null && !workServiceState.isUserInteracting) {
         workServiceState.currentTimeSlotId = currentTimeSlotId;
         workServiceState.selectedTimeSlotId = currentTimeSlotId;
         workServiceState.isFirstLoad = false;
         console.log('[WorkServiceState] Auto-selected time slot:', currentTimeSlotId);
+    } else if (workServiceState.isUserInteracting) {
+        console.log('[WorkServiceState] User interacting, skipping auto-selection');
     }
     
     console.log('[WorkServiceState] Time slots updated:', timeSlots?.length || 0);
 }
 
 /**
- * Seleziona un time slot
+ * Seleziona un time slot (IDEMPOTENTE)
  */
 export function mutateSelectedTimeSlot(slotId) {
+    // IDEMPOTENZA: Non fare nulla se lo slot è già selezionato
+    if (workServiceState.selectedTimeSlotId === slotId) {
+        console.log(`[WorkServiceState] Time slot ${slotId} already selected, ignoring`);
+        return false;
+    }
+    
     workServiceState.selectedTimeSlotId = slotId;
     // Reset order selection when time slot changes
     workServiceState.selectedOrderId = null;
     console.log('[WorkServiceState] Selected time slot:', slotId);
+    return true;
 }
 
 /**
@@ -253,6 +268,26 @@ export function mutatePolling(isPolling) {
  */
 export function mutateError(error) {
     workServiceState.error = error;
+}
+
+/**
+ * Setta flag user interaction (per bloccare polling interferenza)
+ */
+export function setUserInteracting(isInteracting) {
+    workServiceState.isUserInteracting = isInteracting;
+    console.log('[WorkServiceState] User interacting:', isInteracting);
+}
+
+/**
+ * Reset flag user interaction dopo timeout
+ */
+export function resetUserInteractionAfterDelay(delayMs = 3000) {
+    setTimeout(() => {
+        if (workServiceState.isUserInteracting) {
+            workServiceState.isUserInteracting = false;
+            console.log('[WorkServiceState] User interaction timeout, reset flag');
+        }
+    }, delayMs);
 }
 
 // ============================================================================

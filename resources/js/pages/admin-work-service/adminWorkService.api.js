@@ -32,9 +32,11 @@ export async function fetchWorkServiceData(date) {
         throw new Error('[WorkServiceAPI] fetchWorkServiceData: date is required');
     }
 
-    console.log(`[WorkServiceAPI] Fetching /api/admin/work-service?date=${date}...`);
+    const startTime = performance.now();
+    console.log(`[WorkServiceAPI] 🚀 START fetch /api/admin/work-service?date=${date} at ${startTime}ms`);
 
     try {
+        const fetchStartTime = performance.now();
         const response = await fetch(`/api/admin/work-service?date=${date}`, {
             method: 'GET',
             headers: {
@@ -43,21 +45,32 @@ export async function fetchWorkServiceData(date) {
             },
             credentials: 'include',
         });
+        const fetchEndTime = performance.now();
+        console.log(`[WorkServiceAPI] 🌐 Network request completed in ${(fetchEndTime - fetchStartTime).toFixed(2)}ms`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
+        const parseStartTime = performance.now();
         const data = await response.json();
-        console.log(`[WorkServiceAPI] Data fetched for ${date}:`, {
+        const parseEndTime = performance.now();
+        console.log(`[WorkServiceAPI] 📝 JSON parsing completed in ${(parseEndTime - parseStartTime).toFixed(2)}ms`);
+        
+        const totalTime = performance.now() - startTime;
+        console.log(`[WorkServiceAPI] ✅ COMPLETE fetch for ${date} in ${totalTime.toFixed(2)}ms:`, {
             timeSlots: data.timeSlots?.length || 0,
             orders: data.orders?.length || 0,
             currentTimeSlotId: data.currentTimeSlotId,
+            networkTime: (fetchEndTime - fetchStartTime).toFixed(2) + 'ms',
+            parseTime: (parseEndTime - parseStartTime).toFixed(2) + 'ms',
+            totalTime: totalTime.toFixed(2) + 'ms'
         });
         
         return data;
     } catch (error) {
-        console.error(`[WorkServiceAPI] Failed to fetch data for ${date}:`, error);
+        const totalTime = performance.now() - startTime;
+        console.error(`[WorkServiceAPI] ❌ FAILED fetch for ${date} after ${totalTime.toFixed(2)}ms:`, error);
         throw error;
     }
 }
@@ -75,9 +88,11 @@ export async function pollWorkServiceData(date) {
         throw new Error('[WorkServiceAPI] pollWorkServiceData: date is required');
     }
 
-    console.log(`[WorkServiceAPI] Polling /api/admin/work-service/poll?date=${date}...`);
+    const startTime = performance.now();
+    console.log(`[WorkServiceAPI] 🔄 START poll /api/admin/work-service/poll?date=${date} at ${startTime}ms`);
 
     try {
+        const fetchStartTime = performance.now();
         const response = await fetch(`/api/admin/work-service/poll?date=${date}`, {
             method: 'GET',
             headers: {
@@ -86,15 +101,25 @@ export async function pollWorkServiceData(date) {
             },
             credentials: 'include',
         });
+        const fetchEndTime = performance.now();
+        console.log(`[WorkServiceAPI] 🌐 Poll network request completed in ${(fetchEndTime - fetchStartTime).toFixed(2)}ms`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
+        const parseStartTime = performance.now();
         const data = await response.json();
-        console.log(`[WorkServiceAPI] Poll data received for ${date}:`, {
+        const parseEndTime = performance.now();
+        console.log(`[WorkServiceAPI] 📝 Poll JSON parsing completed in ${(parseEndTime - parseStartTime).toFixed(2)}ms`);
+        
+        const totalTime = performance.now() - startTime;
+        console.log(`[WorkServiceAPI] ✅ COMPLETE poll for ${date} in ${totalTime.toFixed(2)}ms:`, {
             timeSlots: data.timeSlots?.length || 0,
             orders: data.orders?.length || 0,
+            networkTime: (fetchEndTime - fetchStartTime).toFixed(2) + 'ms',
+            parseTime: (parseEndTime - parseStartTime).toFixed(2) + 'ms',
+            totalTime: totalTime.toFixed(2) + 'ms'
         });
         
         return data;

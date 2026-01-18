@@ -110,7 +110,28 @@ export function renderWorkTimeSlotSelector(container, props, callbacks) {
             const button = e.target.closest('[data-action="select-time-slot"]');
             if (button) {
                 const slotId = button.dataset.slotId;
-                onSlotSelect(slotId === 'all' ? 'all' : parseInt(slotId, 10));
+                const parsedSlotId = slotId === 'all' ? 'all' : parseInt(slotId, 10);
+                
+                console.log(`[WorkTimeSlotSelector] 🖱️  CLICK detected on time slot button`);
+                console.log(`[WorkTimeSlotSelector] 📋 Slot data:`, {
+                    rawSlotId: slotId,
+                    parsedSlotId: parsedSlotId,
+                    currentlySelected: selectedSlotId,
+                    buttonElement: button,
+                    timestamp: new Date().toISOString()
+                });
+                
+                const startTime = performance.now();
+                console.log(`[WorkTimeSlotSelector] ⚡ Calling onSlotSelect at ${startTime}ms`);
+                
+                try {
+                    onSlotSelect(parsedSlotId);
+                    const endTime = performance.now();
+                    console.log(`[WorkTimeSlotSelector] ✅ onSlotSelect completed in ${(endTime - startTime).toFixed(2)}ms`);
+                } catch (error) {
+                    const endTime = performance.now();
+                    console.error(`[WorkTimeSlotSelector] ❌ onSlotSelect failed after ${(endTime - startTime).toFixed(2)}ms:`, error);
+                }
             }
         });
     }

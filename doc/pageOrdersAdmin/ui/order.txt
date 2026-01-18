@@ -5,3 +5,12 @@
 </div>
 <p class="text-xs font-bold text-white truncate mt-0.5">Alex K.</p>
 </div>
+
+order ready
+<div class="p-2 bg-emerald-500/5 border border-emerald-500/30 rounded-lg">
+<div class="flex justify-between items-start">
+<span class="text-[8px] font-bold text-emerald-500/70">#8419</span>
+<span class="material-symbols-outlined text-[10px] text-emerald-500 fill-1">check_circle</span>
+</div>
+<p class="text-xs font-bold text-white truncate mt-0.5">Jason R.</p>
+</div>
