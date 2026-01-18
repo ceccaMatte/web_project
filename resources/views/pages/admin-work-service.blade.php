@@ -47,7 +47,7 @@
     {{-- Sidebar panel --}}
     <aside 
         data-admin-sidebar
-        class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300 lg:left-0 lg:right-auto lg:border-r lg:border-l-0 lg:translate-x-0 lg:w-64"
+        class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300 lg:left-0 lg:translate-x-0 lg:right-auto"
     >
         {{-- Header sidebar con close button --}}
         <div class="p-6 border-b border-slate-800">

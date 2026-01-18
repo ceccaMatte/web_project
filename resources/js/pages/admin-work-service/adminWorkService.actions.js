@@ -47,7 +47,8 @@ export function selectTimeSlot(slotId) {
     console.log(`[WorkServiceActions] Selecting time slot: ${slotId}`);
 
     mutateSelectedTimeSlot(slotId);
-    renderWorkServicePage();
+    renderTimeSlotSelector();
+    renderOrdersPipeline();
 }
 
 /**

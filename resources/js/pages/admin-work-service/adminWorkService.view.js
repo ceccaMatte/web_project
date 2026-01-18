@@ -31,10 +31,10 @@ export const workServiceView = {
             currentTimeEl: document.querySelector('[data-current-time]'),
 
             // Scheduler section
-            schedulerSection: document.querySelector('[data-scheduler-section]'),
+            schedulerSection: document.querySelector('[data-scheduler-container]'),
 
             // Time slots section
-            timeSlotsSection: document.querySelector('[data-time-slots-section]'),
+            timeSlotsSection: document.querySelector('[data-timeslot-selector-container]'),
 
             // Orders pipeline container
             ordersPipeline: document.querySelector('[data-orders-pipeline]'),

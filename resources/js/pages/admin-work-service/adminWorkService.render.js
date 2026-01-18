@@ -57,7 +57,7 @@ export function renderScheduler() {
         monthLabel: workServiceState.monthLabel,
         weekDays: workServiceState.weekDays,
     }, {
-        onDayClick: selectDay,
+        onDaySelected: selectDay,
     });
 }
 

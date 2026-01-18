@@ -1,0 +1,7 @@
+<div class="p-2 bg-surface-dark border border-border-dark rounded-lg ring-1 ring-primary/20">
+<div class="flex justify-between items-start">
+<span class="text-[8px] font-bold text-slate-500">#8421</span>
+<span class="text-[8px] font-black text-primary">04:12</span>
+</div>
+<p class="text-xs font-bold text-white truncate mt-0.5">Alex K.</p>
+</div>

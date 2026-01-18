@@ -19,7 +19,7 @@ import {
     mutateError,
 } from './adminWorkService.state.js';
 import { fetchWorkServiceData, pollWorkServiceData } from './adminWorkService.api.js';
-import { renderWorkServicePage } from './adminWorkService.render.js';
+import { renderWorkServicePage, renderTimeSlotSelector, renderOrdersPipeline } from './adminWorkService.render.js';
 
 /**
  * Idrata user state da script inline
@@ -116,7 +116,8 @@ export async function pollRefresh(date) {
         // Non mostrare errore per polling fallito, riprova al prossimo ciclo
     } finally {
         mutatePolling(false);
-        renderWorkServicePage();
+        renderTimeSlotSelector();
+        renderOrdersPipeline();
     }
 }
 
