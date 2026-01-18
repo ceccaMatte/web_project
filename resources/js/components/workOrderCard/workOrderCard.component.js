@@ -20,6 +20,25 @@
  * buildWorkOrderCardHTML(order, isSelected)
  */
 
+// Status colors
+const STATUS_COLORS = {
+    confirmed: {
+        bg: 'bg-blue-500/10',
+        border: 'border-blue-500/30',
+        badge: 'bg-blue-500/20 text-blue-400',
+    },
+    ready: {
+        bg: 'bg-emerald-500/10',
+        border: 'border-emerald-500/30',
+        badge: 'bg-emerald-500/20 text-emerald-400',
+    },
+    picked_up: {
+        bg: 'bg-slate-500/10',
+        border: 'border-slate-500/30',
+        badge: 'bg-slate-500/20 text-slate-400',
+    },
+};
+
 /**
  * Build HTML for work order card
  * 
@@ -30,6 +49,7 @@
 export function buildWorkOrderCardHTML(order, isSelected = false) {
     const { id, daily_number, status, time_slot, user, ingredients } = order;
     
+    const colors = STATUS_COLORS[status] || STATUS_COLORS.confirmed;
     const nickname = user?.nickname || 'Unknown';
     const timeLabel = time_slot 
         ? `${formatTime(time_slot.start_time)}` 
@@ -38,14 +58,14 @@ export function buildWorkOrderCardHTML(order, isSelected = false) {
     // Build ingredients preview (abbreviations)
     const ingredientsPreview = buildIngredientsPreview(ingredients);
 
-    // Selected state styling
+    // Selected state styling - più evidente
     const selectedClasses = isSelected 
-        ? 'ring-2 ring-primary/60' 
+        ? 'ring-2 ring-primary shadow-lg shadow-primary/30 border-primary/50' 
         : 'ring-1 ring-primary/20';
 
     return `
         <div 
-            class="p-2 bg-surface-dark border border-border-dark rounded-lg ${selectedClasses} transition-all cursor-pointer max-w-[120px]"
+            class="p-2 ${colors.bg} ${colors.border} rounded-lg ${selectedClasses} transition-all cursor-pointer max-w-[120px]"
             data-order-card="${id}"
             data-action="select-order"
             data-order-id="${id}"
@@ -55,7 +75,7 @@ export function buildWorkOrderCardHTML(order, isSelected = false) {
         >
             <!-- Prima riga: Badge numero ordine + Nickname -->
             <div class="flex items-center gap-1 mb-1">
-                <span class="px-1.5 py-0.5 bg-primary/20 text-primary text-[8px] font-bold rounded">#${daily_number}</span>
+                <span class="px-1.5 py-0.5 ${colors.badge} text-[8px] font-bold rounded">#${daily_number}</span>
                 <span class="text-xs font-bold text-white truncate">${nickname}</span>
             </div>
             
