@@ -107,7 +107,7 @@ export function selectTimeSlot(slotId) {
  */
 export function selectOrder(orderId) {
     console.log(`[WorkServiceActions] Selecting order: ${orderId}`);
-
+    
     // Toggle selection if clicking same order
     if (orderId === workServiceState.selectedOrderId) {
         mutateSelectedOrder(null);

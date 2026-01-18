@@ -58,9 +58,10 @@ export function buildWorkOrderCardHTML(order, isSelected = false) {
     // Build ingredients preview (abbreviations)
     const ingredientsPreview = buildIngredientsPreview(ingredients);
 
-    // Selected state styling - più evidente
-    const selectedClasses = isSelected 
-        ? 'ring-2 ring-primary shadow-lg shadow-primary/30 border-primary/50' 
+
+    // Selected state styling - molto più evidente
+    const selectedClasses = isSelected
+        ? 'ring-4 ring-primary border-2 border-primary/80 shadow-2xl shadow-primary/40 scale-[1.04] bg-white/5 z-10'
         : 'ring-1 ring-primary/20';
 
     return `
@@ -119,6 +120,21 @@ function buildIngredientsPreview(ingredients) {
 function formatTime(time) {
     if (!time) return '--:--';
     return time.substring(0, 5);
+}
+
+/**
+ * Render work order card for a specific order
+ * 
+ * @param {Object} order - Order object
+ * @param {boolean} isSelected - Whether card is selected
+ * @returns {string} - HTML string for the order card
+ */
+export function renderWorkOrderCard(order, isSelected) {
+    if (!order) {
+        console.warn('[WorkOrderCard] Order object is null or undefined');
+        return '';
+    }
+    return buildWorkOrderCardHTML(order, isSelected);
 }
 
 export default { buildWorkOrderCardHTML };

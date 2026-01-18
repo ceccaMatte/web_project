@@ -21,6 +21,7 @@
  */
 
 import { buildWorkOrderCardHTML } from '../workOrderCard/workOrderCard.component.js';
+import { renderWorkOrderCard } from '../workOrderCard/workOrderCard.component.js';
 import { listen } from '../../utils/dom.js';
 
 // Status configuration
@@ -103,12 +104,13 @@ export function renderWorkStatusRow(container, props, callbacks) {
 
     // Event delegation
     listen(ordersContainer, 'click', (e) => {
-        // Handle order selection
         const selectBtn = e.target.closest('[data-action="select-order"]');
         if (selectBtn && onSelectOrder) {
             e.stopPropagation();
             const orderId = parseInt(selectBtn.dataset.orderId, 10);
             onSelectOrder(orderId);
+            
+            // No immediate updates - let state management system handle re-rendering
             return;
         }
 
