@@ -42,5 +42,15 @@ class UserSeeder extends Seeder
         ]);
 
         // Utente guest (non autenticato) - non serve creare, è lo stato di default
+
+        // Crea utente admin
+        User::create([
+            'name' => 'Admin User',
+            'nickname' => 'Admin',
+            'email' => 'admin@test.it',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'enabled' => true,
+        ]);
     }
 }

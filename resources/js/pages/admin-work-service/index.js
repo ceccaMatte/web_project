@@ -168,6 +168,8 @@ function cleanup() {
  * Registra event delegation globale
  * 
  * Gestisce eventi che non sono gestiti dai componenti:
+ * - Open/Close sidebar (mobile)
+ * - Toggle recap mobile
  * - Chiusura modal recap (mobile)
  * - Altri eventi globali
  */
@@ -178,7 +180,28 @@ function registerGlobalEventDelegation() {
     page.addEventListener('click', (event) => {
         const target = event.target;
 
-        // Close recap modal
+        // Open sidebar (hamburger)
+        if (target.closest('[data-action="open-sidebar"]')) {
+            event.preventDefault();
+            openSidebar();
+            return;
+        }
+
+        // Close sidebar
+        if (target.closest('[data-action="close-sidebar"]')) {
+            event.preventDefault();
+            closeSidebar();
+            return;
+        }
+
+        // Toggle recap mobile
+        if (target.closest('[data-action="toggle-recap"]')) {
+            event.preventDefault();
+            toggleRecapMobile();
+            return;
+        }
+
+        // Close recap modal (legacy, kept for compatibility)
         if (target.closest('[data-action="close-recap"]')) {
             event.preventDefault();
             closeRecapModal();
@@ -186,14 +209,67 @@ function registerGlobalEventDelegation() {
         }
     });
 
-    // Escape key closes modal
+    // Escape key closes sidebar or modal
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && workServiceState.selectedOrderId && window.innerWidth < 1024) {
-            closeRecapModal();
+        if (event.key === 'Escape') {
+            // Close sidebar if open
+            const sidebar = document.querySelector('[data-admin-sidebar]');
+            if (sidebar && !sidebar.classList.contains('translate-x-full')) {
+                closeSidebar();
+                return;
+            }
+            
+            // Close recap modal if open (mobile)
+            if (workServiceState.selectedOrderId && window.innerWidth < 1024) {
+                closeRecapModal();
+            }
         }
     });
 
     console.log('[AdminWorkService] Global event delegation registered');
+}
+
+/**
+ * Apre la sidebar (mobile)
+ */
+function openSidebar() {
+    const sidebar = document.querySelector('[data-admin-sidebar]');
+    const backdrop = document.querySelector('[data-sidebar-backdrop]');
+    
+    if (sidebar && backdrop) {
+        sidebar.classList.remove('translate-x-full');
+        backdrop.classList.remove('hidden');
+    }
+}
+
+/**
+ * Chiude la sidebar (mobile)
+ */
+function closeSidebar() {
+    const sidebar = document.querySelector('[data-admin-sidebar]');
+    const backdrop = document.querySelector('[data-sidebar-backdrop]');
+    
+    if (sidebar && backdrop) {
+        sidebar.classList.add('translate-x-full');
+        backdrop.classList.add('hidden');
+    }
+}
+
+/**
+ * Toggle recap mobile (espande/collassa)
+ */
+function toggleRecapMobile() {
+    const recapMobile = document.querySelector('[data-recap-mobile]');
+    if (!recapMobile) return;
+    
+    // Toggle tra espanso e collassato
+    if (recapMobile.classList.contains('translate-y-0')) {
+        recapMobile.classList.remove('translate-y-0');
+        recapMobile.classList.add('translate-y-[calc(100%-3rem)]');
+    } else {
+        recapMobile.classList.remove('translate-y-[calc(100%-3rem)]');
+        recapMobile.classList.add('translate-y-0');
+    }
 }
 
 // Export for app.js

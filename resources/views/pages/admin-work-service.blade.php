@@ -4,50 +4,64 @@
 
 @section('content')
 {{--
-    ADMIN WORK SERVICE PAGE
+    ADMIN WORK SERVICE PAGE - MOBILE FIRST
     
-    RESPONSABILITÀ:
-    - Dashboard gestione operativa ordini in tempo reale
-    - Scheduler per navigazione date
-    - Time slot selector per filtrare ordini
-    - Pipeline ordini: confirmed → ready → picked_up
-    - Recap card sticky per dettagli ordine selezionato
+    LAYOUT MOBILE (BASE):
+    - Top bar sticky (titolo + hamburger)
+    - Scheduler full width
+    - Time slot selector horizontal scroll
+    - Pipeline 3 sezioni verticali
+    - Recap sticky bottom
     
-    PATTERN:
-    - data-page="admin-work-service" per inizializzazione JS
-    - Polling ogni 5s senza reset selezioni
-    - Componenti agnostici (work*) non role-specific
+    SIDEBAR:
+    - Hidden di default
+    - Overlay da DESTRA (non sinistra)
+    - Si apre con hamburger
+    - Fixed + backdrop
     
-    DATI RICEVUTI DAL CONTROLLER:
-    - $user: { authenticated, name, nickname, role }
-    
-    ACCESSIBILITÀ (WCAG 2.1 AAA):
-    - Navigazione via tastiera completa
-    - ARIA labels su tutti gli elementi interattivi
-    - Focus visibile su tutti i bottoni
-    - Stati non comunicati solo via colore
+    DESKTOP:
+    - Sidebar diventa fissa a sinistra
+    - Recap diventa sidebar destra
+    - Layout a colonne
 --}}
 
 {{-- Wrapper con data-page per JS --}}
-<div data-page="admin-work-service" class="flex min-h-screen">
+<div data-page="admin-work-service" class="min-h-screen bg-[#0a0e1a]">
 
-    {{--
-        User State per JavaScript
-        - Passa stato user dal backend a JS
-    --}}
+    {{-- User State per JavaScript --}}
     <script type="application/json" data-user-state>
         @json($user)
     </script>
 
     {{-- ========================================
-         SIDEBAR ADMIN (FIXED LEFT)
+         SIDEBAR ADMIN - OVERLAY DA DESTRA (mobile first)
+         Hidden di default, si apre con hamburger
          ======================================== --}}
+    {{-- Backdrop --}}
+    <div 
+        data-sidebar-backdrop
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden"
+        data-action="close-sidebar"
+    ></div>
+
+    {{-- Sidebar panel --}}
     <aside 
         data-admin-sidebar
-        class="fixed top-0 left-0 h-full w-64 bg-[#0d1117] border-r border-slate-800 flex flex-col z-40"
+        class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300 lg:left-0 lg:right-auto lg:border-r lg:border-l-0 lg:translate-x-0 lg:w-64"
     >
-        {{-- Logo + Titolo --}}
+        {{-- Header sidebar con close button --}}
         <div class="p-6 border-b border-slate-800">
+            {{-- Close button (solo mobile) --}}
+            <button 
+                type="button"
+                data-action="close-sidebar"
+                class="lg:hidden mb-4 p-2 -ml-2 text-slate-400 hover:text-white"
+                aria-label="Close menu"
+            >
+                <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+            
+            {{-- Logo + Titolo --}}
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
                     <span class="material-symbols-outlined text-2xl">
@@ -55,9 +69,9 @@
                     </span>
                 </div>
                 <div>
-                    <h1 class="text-white text-base font-bold leading-tight">
+                    <h2 class="text-white text-base font-bold leading-tight">
                         {{ config('ui.app_name') }}
-                    </h1>
+                    </h2>
                     <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
                         {{ config('ui.admin_work_service.sidebar.title') }}
                     </p>
@@ -89,6 +103,7 @@
                             <a 
                                 href="{{ route($item['route']) }}"
                                 class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors {{ $isCurrent ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300' }}"
+                                data-action="close-sidebar"
                             >
                                 <span class="material-symbols-outlined text-xl" style="{{ $isCurrent ? 'font-variation-settings: \'FILL\' 1' : '' }}">
                                     {{ $item['icon'] }}
@@ -132,65 +147,84 @@
     </aside>
 
     {{-- ========================================
-         MAIN CONTENT (con offset per sidebar)
+         MAIN CONTENT
+         No offset su mobile, offset lg:ml-64 su desktop
          ======================================== --}}
-    <main class="flex-1 ml-64 min-h-screen">
+    <main class="min-h-screen lg:ml-64">
 
         {{-- ========================================
-             HEADER CON SCHEDULER
+             TOP BAR - Solo titolo + hamburger
              ======================================== --}}
         <header class="sticky top-0 z-30 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-slate-800">
-            <div class="px-6 py-4">
-                {{-- Titolo pagina --}}
-                <div class="flex items-center justify-between mb-4">
-                    <h1 class="text-xl font-bold text-white">
-                        {{ config('ui.admin_work_service.page_title') }}
-                    </h1>
-                    <div class="flex items-center gap-2 text-sm text-slate-500">
-                        <span class="material-symbols-outlined text-lg">schedule</span>
-                        <span data-current-time>--:--</span>
-                    </div>
-                </div>
+            <div class="px-4 py-3 flex items-center justify-between">
+                {{-- Hamburger menu (mobile) --}}
+                <button 
+                    type="button"
+                    data-action="open-sidebar"
+                    class="lg:hidden p-2 -ml-2 text-slate-400 hover:text-white"
+                    aria-label="Open menu"
+                >
+                    <span class="material-symbols-outlined text-2xl">menu</span>
+                </button>
                 
-                {{-- Scheduler Week Container --}}
+                {{-- Titolo pagina --}}
+                <h1 class="text-white text-lg font-bold flex-1 lg:flex-none">
+                    {{ config('ui.admin_work_service.page_title') }}
+                </h1>
+                
+                {{-- Spacer per bilanciare layout --}}
+                <div class="w-10 lg:hidden"></div>
+            </div>
+            
+            {{-- ========================================
+                 SCHEDULER - Full width sotto top bar
+                 ======================================== --}}
+            <div class="px-4 py-4 border-t border-slate-800/50">
                 <section 
-                    class="py-2" 
-                    data-scheduler-section
+                    data-scheduler-container
+                    class="w-full"
                     aria-label="{{ config('ui.admin_work_service.aria.scheduler_section') }}"
                 >
-                    {{-- Popolato da JS renderScheduler() --}}
-                    <div class="flex items-center justify-center">
-                        <div class="h-16 w-full max-w-2xl bg-slate-900/50 rounded-xl animate-pulse"></div>
-                    </div>
+                    {{-- Popolato da JS: weekScheduler.component.js --}}
+                    <div data-scheduler-week></div>
                 </section>
             </div>
         </header>
 
         {{-- ========================================
-             CONTENT AREA (2 column on desktop)
+             CONTENT AREA
+             Mobile: single column
+             Desktop: 2 columns (flex)
              ======================================== --}}
-        <div class="flex">
+        <div class="lg:flex">
 
             {{-- ========================================
-                 LEFT COLUMN: Time Slots + Pipeline
+                 MAIN COLUMN: Time Slots + Pipeline
+                 Mobile: full width
+                 Desktop: flex-1
                  ======================================== --}}
-            <div class="flex-1 p-6">
+            <div class="lg:flex-1">
 
-                {{-- Time Slot Selector --}}
+                {{-- ========================================
+                     TIME SLOT SELECTOR
+                     Scroll orizzontale, card larghe ~240px
+                     ======================================== --}}
                 <section 
-                    class="mb-6"
-                    data-time-slots-section
+                    data-timeslot-selector-container
+                    class="px-4 py-6 border-b border-slate-800/50"
                     aria-label="{{ config('ui.admin_work_service.aria.time_slots_section') }}"
                 >
-                    {{-- Popolato da JS renderTimeSlotSelector() --}}
-                    <div class="h-20 bg-slate-900/50 rounded-xl animate-pulse"></div>
+                    {{-- Popolato da JS: workTimeSlotSelector.component.js --}}
+                    <div data-timeslot-selector class="overflow-x-auto"></div>
                 </section>
 
-                {{-- Orders Pipeline --}}
+                {{-- ========================================
+                     ORDERS PIPELINE
+                     3 sezioni verticali su mobile
+                     ======================================== --}}
                 <section 
                     data-orders-pipeline
-                    aria-label="{{ config('ui.admin_work_service.aria.orders_pipeline') }}"
-                    class="space-y-6"
+                    class="px-4 py-6 space-y-6 mb-32 lg:mb-0"
                 >
                     {{-- Status Row: Confirmed --}}
                     <div 
@@ -209,10 +243,9 @@
                         </div>
                         <div 
                             data-status-orders="confirmed"
-                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                            class="overflow-x-auto"
                         >
                             {{-- Ordini confirmed popolati da JS --}}
-                            <div class="h-24 bg-slate-800/50 rounded-xl animate-pulse"></div>
                         </div>
                     </div>
 
@@ -233,10 +266,9 @@
                         </div>
                         <div 
                             data-status-orders="ready"
-                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                            class="overflow-x-auto"
                         >
                             {{-- Ordini ready popolati da JS --}}
-                            <div class="h-24 bg-slate-800/50 rounded-xl animate-pulse"></div>
                         </div>
                     </div>
 
@@ -257,10 +289,9 @@
                         </div>
                         <div 
                             data-status-orders="picked_up"
-                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                            class="overflow-x-auto"
                         >
                             {{-- Ordini picked_up popolati da JS --}}
-                            <div class="h-24 bg-slate-800/50 rounded-xl animate-pulse"></div>
                         </div>
                     </div>
                 </section>
@@ -268,13 +299,13 @@
             </div>
 
             {{-- ========================================
-                 RIGHT COLUMN: Order Recap Card (Sticky)
+                 DESKTOP RECAP SIDEBAR (solo lg+)
                  ======================================== --}}
             <aside 
                 data-recap-sidebar
-                class="hidden lg:block w-96 border-l border-slate-800 bg-[#0d1117]/50"
+                class="hidden lg:block lg:w-96 lg:border-l lg:border-slate-800 lg:bg-[#0d1117]/50"
             >
-                <div class="sticky top-[140px] p-6">
+                <div class="sticky top-[200px] p-6">
                     <div 
                         data-recap-card
                         class="bg-slate-900/50 rounded-2xl p-6"
@@ -290,7 +321,7 @@
                         </div>
                         {{-- Contenuto ordine (nascosto inizialmente) --}}
                         <div data-recap-content class="hidden">
-                            {{-- Popolato da JS renderRecapCard() --}}
+                            {{-- Popolato da JS: workOrderRecapCard.component.js --}}
                         </div>
                     </div>
                 </div>
@@ -301,39 +332,31 @@
     </main>
 
     {{-- ========================================
-         MOBILE RECAP MODAL (visible on < lg)
+         MOBILE RECAP STICKY BOTTOM
+         Sempre visibile, collassabile
          ======================================== --}}
     <div 
-        data-recap-modal
-        class="fixed inset-0 z-50 hidden lg:hidden"
+        data-recap-mobile
+        class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0d1117] border-t border-slate-800 shadow-2xl transition-transform duration-300"
     >
-        {{-- Overlay --}}
-        <div 
-            class="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            data-action="close-recap"
-        ></div>
+        {{-- Handle per collassare --}}
+        <button 
+            type="button"
+            data-action="toggle-recap"
+            class="w-full py-2 flex items-center justify-center text-slate-400 hover:text-white border-b border-slate-800/50"
+            aria-label="Toggle order details"
+        >
+            <div class="w-12 h-1 bg-slate-700 rounded-full"></div>
+        </button>
         
-        {{-- Modal content --}}
-        <div class="absolute bottom-0 left-0 right-0 bg-[#0d1117] rounded-t-3xl max-h-[80vh] overflow-y-auto">
-            <div class="p-6">
-                {{-- Header con close --}}
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold text-white">
-                        {{ config('ui.admin_work_service.recap_card.title') }}
-                    </h3>
-                    <button 
-                        type="button"
-                        data-action="close-recap"
-                        class="size-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-                        aria-label="{{ config('ui.admin_work_service.aria.close_recap') }}"
-                    >
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
-                </div>
+        {{-- Contenuto recap --}}
+        <div data-recap-mobile-content class="px-4 py-4 max-h-[60vh] overflow-y-auto">
+            {{-- Popolato da JS: workOrderRecapCard.component.js --}}
+            <div class="text-center py-8 text-slate-500 text-sm" data-recap-empty>
+                Select an order to see details
+            </div>
+            <div data-recap-content class="hidden">
                 {{-- Contenuto ordine --}}
-                <div data-recap-modal-content>
-                    {{-- Popolato da JS --}}
-                </div>
             </div>
         </div>
     </div>

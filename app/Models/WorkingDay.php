@@ -22,6 +22,8 @@ class WorkingDay extends Model
         'location',      // Luogo del servizio
         'max_orders',    // Numero massimo di ordini per slot
         'max_time',      // Minuti limite per modifiche ordini
+        'start_time',    // Ora di inizio del servizio
+        'end_time',      // Ora di fine del servizio
     ];
 
     /**
@@ -32,6 +34,8 @@ class WorkingDay extends Model
         'day' => 'date',        // Converte in oggetto Carbon/Date
         'max_orders' => 'integer',       // Assicura sia intero
         'max_time' => 'integer',         // Assicura sia intero
+        'start_time' => 'string',        // Ora di inizio come stringa
+        'end_time' => 'string',          // Ora di fine come stringa
     ];
 
     /**

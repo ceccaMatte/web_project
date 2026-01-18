@@ -33,9 +33,15 @@ class AuthController extends Controller
         if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']], $request->filled('remember'))) {
             $request->session()->regenerate();
 
+            // Redirect diverso per admin
+            $user = Auth::user();
+            $redirectUrl = $user->role === 'admin' 
+                ? route('admin.work-service') 
+                : route('home');
+
             return response()->json([
                 'success' => true,
-                'redirect' => route('home'),
+                'redirect' => $redirectUrl,
             ]);
         }
 
@@ -77,6 +83,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // Gli utenti registrati sono sempre 'user', non admin
         return response()->json([
             'success' => true,
             'redirect' => route('home'),
