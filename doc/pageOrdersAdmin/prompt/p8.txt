@@ -1,0 +1,265 @@
+PROMPT 8 — Accessibilità & WCAG
+
+Admin · Work Service
+
+PREMESSA (OBBLIGATORIA)
+
+Questa pagina DEVE essere accessibile secondo WCAG 2.1 livello AA.
+Non è un optional.
+Non è “nice to have”.
+Non è “poi vediamo”.
+
+❌ Vietato ignorare l’accessibilità
+❌ Vietato demandarla a refactor futuri
+❌ Vietato “tanto è admin”
+
+1️⃣ PRINCIPI GENERALI (DA RISPETTARE TUTTI)
+
+Segui tutti e 4 i principi WCAG:
+
+Percepibile
+
+Utilizzabile
+
+Comprensibile
+
+Robusto
+
+Se una scelta viola anche uno solo di questi → è sbagliata.
+
+2️⃣ STRUTTURA SEMANTICA HTML (NON DISCUTIBILE)
+
+Usare tag semantici reali, non <div> ovunque
+
+Obbligatori:
+
+<header> → top bar
+
+<nav> → sidebar
+
+<main> → contenuto principale
+
+<section> → scheduler, time slot, righe di stato
+
+<button> → TUTTE le azioni cliccabili
+
+<ul>/<li> quando c’è una lista concettuale
+
+❌ Vietato:
+
+click handler su <div>
+
+ruoli ARIA messi per “sistemare” HTML sbagliato
+
+3️⃣ NAVIGAZIONE DA TASTIERA (CRITICA)
+
+La pagina DEVE essere completamente utilizzabile solo da tastiera.
+
+Obblighi:
+
+Tutti i controlli raggiungibili con Tab
+
+Ordine di tab coerente con il layout visivo
+
+Enter / Space attivano i bottoni
+
+Esc chiude:
+
+sidebar
+
+dropdown
+
+sezioni espandibili
+
+❌ Vietato:
+
+focus trap
+
+elementi non raggiungibili
+
+click-only UI
+
+4️⃣ FOCUS VISIBILE (WCAG 2.4.7)
+
+Ogni elemento interattivo DEVE avere:
+
+focus visibile
+
+contrasto sufficiente
+
+non dipendere SOLO dal colore
+
+Esempio corretto:
+
+outline
+
+ring
+
+background change
+
+❌ Vietato:
+
+outline: none senza alternativa
+
+focus invisibile su dark mode
+
+5️⃣ CONTRASTO COLORI (WCAG 1.4.3)
+
+Tutto il testo deve rispettare:
+
+4.5:1 per testo normale
+
+3:1 per testo grande / badge
+
+Questo vale per:
+
+card
+
+badge di stato
+
+CTA
+
+placeholder
+
+testi secondari
+
+❌ Vietato usare:
+
+grigio “bello” ma illeggibile
+
+opacity come unico mezzo di distinzione
+
+6️⃣ STATO ≠ COLORE (WCAG 1.4.1)
+
+Lo stato NON può essere comunicato solo col colore.
+
+Esempio:
+
+stato ordine → colore + testo
+
+card selezionata → colore + icona + aria-selected
+
+time slot selezionato → colore + aria-pressed
+
+7️⃣ ARIA ATTRIBUTES (SOLO DOVE SERVONO)
+
+Usare ARIA solo quando necessario, in modo corretto.
+
+Obbligatori:
+
+aria-expanded
+
+dropdown stato ordine
+
+sezione dettagli ordine
+
+aria-selected
+
+ordine selezionato
+
+aria-pressed
+
+toggle
+
+aria-label
+
+bottoni icon-only
+
+role="status"
+
+badge di stato dinamico
+
+❌ Vietato:
+
+ARIA ridondante
+
+ARIA per sostituire semantica HTML
+
+8️⃣ SCREEN READER (OBBLIGO)
+
+La pagina DEVE essere leggibile da screen reader.
+
+Requisiti:
+
+Ogni sezione ha un titolo leggibile
+
+Le righe di stato sono annunciate come gruppi
+
+La card recap:
+
+annuncia cambio ordine selezionato
+
+annuncia cambio stato ordine
+
+Dropdown stato:
+
+annuncia stato corrente
+
+annuncia nuova selezione
+
+9️⃣ CONTENUTI DINAMICI (POLLING)
+
+Quando il polling aggiorna i dati:
+
+NON rubare il focus
+
+NON annunciare tutto
+
+Annunciare solo:
+
+cambio stato ordine selezionato
+
+nuove quantità nel time slot selezionato (opzionale)
+
+Usare:
+
+aria-live="polite"
+MA SOLO su elementi mirati
+
+❌ Vietato:
+
+aria-live globale sulla pagina
+
+🔟 ELEMENTI COLLASSABILI
+
+Ogni sezione espandibile:
+
+è un <button>
+
+ha aria-expanded
+
+è apribile/chiudibile da tastiera
+
+mantiene stato coerente visivo + semantico
+
+1️⃣1️⃣ PLACEHOLDER & EMPTY STATE
+
+Se non c’è nulla selezionato:
+
+testo chiaro (“Select an order”)
+
+NON solo icona
+
+leggibile da screen reader
+
+1️⃣2️⃣ ERRORI DA NON COMMETTERE (LISTA NERA)
+
+❌ Tooltip solo hover
+❌ Icon-only senza label
+❌ Stato comunicato solo da colore
+❌ Focus che scompare
+❌ Dropdown non navigabili
+❌ Sidebar non chiudibile da tastiera
+
+Se anche uno solo è presente → pagina NON conforme.
+
+OBIETTIVO FINALE
+
+Questa pagina deve essere:
+
+Usabile al buio, senza mouse, con screen reader,
+sotto polling continuo, senza perdere il controllo.
+
+Se non soddisfa questo → non è finita.
+
+Se vuoi, il prossimo prompt possibile è:

@@ -1,0 +1,249 @@
+PROMPT 7 — Frontend State & Sync
+
+Admin · Work Service
+
+SCOPO DEL PROMPT
+
+Definire in modo rigoroso:
+
+come deve essere modellato lo state frontend
+
+come devono convivere:
+
+fetch iniziale
+
+polling
+
+selezioni dell’admin
+
+come evitare reset distruttivi
+
+come garantire coerenza assoluta tra:
+
+time slot selezionato
+
+ordine selezionato
+
+righe di stato
+
+card di recap ordine
+
+Se rompi uno di questi punti → la pagina è sbagliata.
+
+PRINCIPIO NON NEGOZIABILE
+
+Il frontend ha una SINGLE SOURCE OF TRUTH.
+Il polling aggiorna i dati, NON le scelte dell’admin.
+
+Il polling:
+
+aggiorna
+
+non decide
+
+non resetta
+
+1️⃣ STRUTTURA DELLO STATE (OBBLIGATORIA)
+
+Lo state deve essere esplicito, separato, immutabile per responsabilità.
+
+State minimo richiesto
+state = {
+  selectedDate: "2026-01-17",
+
+  timeSlots: [],        // dati dal backend
+  orders: [],           // dati dal backend
+
+  selectedTimeSlotId: null,
+  selectedOrderId: null,
+
+  ui: {
+    isLoading: true,
+    pollingActive: true
+  }
+}
+
+2️⃣ FETCH INIZIALE — COSA SUCCEDE
+
+All’ingresso pagina:
+
+selectedDate = today
+
+selectedTimeSlotId = null
+
+selectedOrderId = null
+
+isLoading = true
+
+fetch /work-service?date=selectedDate
+
+solo quando i dati arrivano:
+
+popoli timeSlots
+
+popoli orders
+
+isLoading = false
+
+❌ NON selezionare automaticamente:
+
+ordini
+
+righe
+
+card recap
+
+3️⃣ SELEZIONE TIME SLOT (FRONTEND ONLY)
+
+Quando l’admin clicca un time slot:
+
+selectedTimeSlotId = timeSlot.id
+selectedOrderId = null
+
+
+Effetti:
+
+le righe di stato mostrano solo ordini di quel time slot
+
+la card recap torna in placeholder
+
+⚠️ Il backend non viene interrogato per la selezione
+⚠️ La selezione è 100% frontend
+
+4️⃣ SELEZIONE ORDINE (FRONTEND ONLY)
+
+Quando l’admin clicca una card ordine:
+
+selectedOrderId = order.id
+
+
+Effetti:
+
+la card recap mostra quel preciso ordine
+
+lo stato selezionato è evidente
+
+tutte le altre card sono non-attive
+
+❌ NON ricaricare dati
+❌ NON rifare fetch
+❌ NON mutare altri stati
+
+5️⃣ POLLING — REGOLA D’ORO
+
+Il polling NON può:
+
+azzerare selectedTimeSlotId
+
+azzerare selectedOrderId
+
+cambiare selezione attiva
+
+cambiare ordine delle card selezionate
+
+Come applicare il polling correttamente
+
+Al tick del polling:
+
+fetch /work-service/poll?date=selectedDate
+
+aggiorna:
+
+timeSlots
+
+orders
+
+NON TOCCARE:
+
+selectedTimeSlotId
+
+selectedOrderId
+
+Caso critico (obbligatorio gestirlo)
+
+ordine selezionato = #13
+
+polling arriva
+
+#13 cambia stato (confirmed → ready)
+
+Risultato corretto:
+
+l’ordine resta selezionato
+
+appare nella nuova riga di stato
+
+la card recap resta aperta
+
+il badge di stato si aggiorna
+
+❌ Se l’ordine sparisce → BUG
+❌ Se la selezione si perde → BUG
+
+6️⃣ UPDATE STATO ORDINE (DROPDOWN / CTA)
+
+Quando lo stato viene cambiato:
+
+invii POST al backend
+
+NON resetti nulla
+
+aspetti la risposta
+
+aggiorni solo quell’ordine nello state
+
+Esempio:
+
+orders = orders.map(o =>
+  o.id === updated.id ? { ...o, state: updated.state } : o
+)
+
+
+⚠️ selectedOrderId rimane invariato
+
+7️⃣ ORDINI NELLE RIGHE DI STATO
+
+Le righe di stato sono derivate, NON persistite.
+
+visibleOrders = orders
+  .filter(o => o.timeSlotId === selectedTimeSlotId)
+  .filter(o => o.state === rowState)
+  .sort((a, b) => a.id - b.id)
+
+
+❌ Mai salvare liste “cached” per riga
+❌ Mai duplicare dati
+
+8️⃣ CARD RECAP — STATO STICKY
+
+La card recap:
+
+è sticky bottom
+
+se selectedOrderId === null:
+
+mostra placeholder “Select order”
+
+se selezionato:
+
+mostra solo quell’ordine
+
+NON collassa su polling
+
+NON cambia ordine visivo
+
+9️⃣ ERRORE DA NON RIPETERE (ESPRESSO)
+
+❌ “Arrivano dati → rerender totale → perdi selezioni”
+❌ “Polling = reset UI”
+❌ “State sparso in 10 file senza controllo”
+
+Se succede anche una sola volta, l’architettura è sbagliata.
+
+OBIETTIVO FINALE
+
+Il frontend deve comportarsi così:
+
+L’admin guarda, seleziona e lavora.
+I dati si aggiornano attorno a lui.
+Non il contrario.

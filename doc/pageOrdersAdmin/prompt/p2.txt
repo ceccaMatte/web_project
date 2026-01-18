@@ -1,0 +1,252 @@
+PROMPT 2 — Struttura reale del workspace frontend e responsabilità architetturali
+Contesto generale (OBBLIGATORIO)
+
+Stai lavorando su un frontend modulare, con componenti JavaScript condivisi, già utilizzati in più pagine e più ruoli (user / admin).
+L’architettura è component-based ma page-orchestrated.
+
+La struttura reale e vincolante del progetto è la seguente:
+
+resources/
+├── css
+├── js
+│   ├── components
+│   ├── config
+│   ├── mockup
+│   ├── pages
+│   └── utils
+└── views
+
+
+Questa struttura NON va modificata, NON va reinterpretata, NON va rifattorizzata.
+
+PRINCIPIO ARCHITETTURALE FONDAMENTALE (NON NEGOZIABILE)
+I componenti sono AGNOSTICI
+
+I componenti vivono esclusivamente in:
+
+resources/js/components/
+
+
+Un componente:
+
+non appartiene a una pagina
+
+non appartiene a un ruolo
+
+non contiene logica di business
+
+non fa fetch
+
+non conosce il backend
+
+non gestisce navigazione
+
+Un componente:
+
+riceve dati (props)
+
+emette eventi
+
+renderizza UI
+
+❌ È un errore concettuale grave:
+
+creare admin/components
+
+duplicare componenti per ruolo
+
+legare un componente a una singola pagina
+
+✅ Un componente esiste una volta sola e viene riutilizzato ovunque serva.
+
+COMPONENTI ESISTENTI (NON DA CREARE)
+
+I seguenti componenti esistono già e DEVONO essere riutilizzati:
+
+resources/js/components/
+├── topbar
+├── sidebar
+├── weekScheduler
+├── timeSlotCard
+├── timeSlotSelector
+├── activeOrderCard
+├── activeOrdersSection
+├── recentOrderCard
+├── selectedIngredientsSummary
+├── ordersHeader
+├── orderFormHeader
+├── ...
+
+
+👉 NON vanno:
+
+rinominati
+
+duplicati
+
+spostati
+
+specializzati per admin
+
+DOVE VIVE LA NUOVA PAGINA ADMIN (WORK SERVICE)
+
+La pagina NON introduce nuovi componenti condivisi.
+
+La pagina vive solo come orchestratore sotto:
+
+resources/js/pages/admin-work-service/
+
+
+Se la cartella non esiste:
+
+va creata solo come pagina
+
+non come dominio di componenti
+
+FILE CHE DEVONO ESISTERE IN admin-work-service/
+1️⃣ index.js — Entry point della pagina
+
+Responsabilità:
+
+rilevare data-page="admin-work-service"
+
+inizializzare la pagina
+
+montare i componenti condivisi
+
+coordinare il flusso generale
+
+Vincoli:
+
+❌ non contiene HTML dei componenti
+
+❌ non contiene fetch diretti
+
+❌ non contiene logica di business
+
+2️⃣ state.js — Stato locale della pagina
+
+Responsabilità:
+
+giorno selezionato nello scheduler
+
+time slot selezionato
+
+ordine selezionato
+
+snapshot dei dati del giorno
+
+Regola fondamentale:
+
+Il polling NON deve mai invalidare selezioni attive dell’admin
+
+Se arrivano nuovi dati:
+
+si aggiornano solo le parti non selezionate
+
+lo stato attuale resta stabile
+
+3️⃣ api.js — Comunicazione backend
+
+Responsabilità:
+
+fetch iniziale dati del giorno
+
+polling ogni 5 secondi
+
+richiesta di modifica stato ordine
+
+Vincoli:
+
+❌ nessuna manipolazione DOM
+
+❌ nessuna logica di selezione
+
+❌ nessuna decisione UI
+
+4️⃣ render.js — Rendering orchestrato
+
+Responsabilità:
+
+leggere lo stato
+
+decidere cosa mostrare
+
+invocare i componenti condivisi con i dati corretti
+
+Vincoli:
+
+❌ non muta lo stato
+
+❌ non fa fetch
+
+5️⃣ events.js — Event delegation
+
+Responsabilità:
+
+click su giorno scheduler
+
+click su time slot
+
+click su card ordine
+
+cambio stato ordine
+
+Vincoli:
+
+❌ non fa fetch
+
+❌ non renderizza direttamente
+
+RELAZIONE PAGINA ↔ COMPONENTI
+
+La pagina:
+
+compone i componenti
+
+coordina i dati
+
+gestisce lo stato
+
+I componenti:
+
+visualizzano
+
+emettono eventi
+
+non prendono decisioni
+
+COSA È VIETATO CREARE IN QUESTO STEP
+
+❌ Nuovi componenti sotto components/
+❌ Folder tipo adminComponents
+❌ Varianti di componenti esistenti
+❌ Refactor architetturali non richiesti
+
+OBIETTIVO DI QUESTO PROMPT
+
+L’IA di coding deve:
+
+Confermare esplicitamente di aver compreso che:
+
+components/ è shared
+
+i componenti sono agnostici
+
+Elencare solo i file da creare in pages/admin-work-service/
+
+Spiegare con precisione:
+
+responsabilità
+
+limiti
+
+confini di ogni file
+
+NON introdurre:
+
+nuove strutture
+
+nuovi pattern
+
+nuove cartelle

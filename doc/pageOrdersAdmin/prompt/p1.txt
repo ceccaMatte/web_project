@@ -1,0 +1,111 @@
+PROMPT 1 — Admin Work Service: obiettivo, vincoli e regole (NO invenzioni)
+
+Ruolo IA: Sei un’IA di coding che deve implementare la pagina Admin “Work Service” seguendo pedissequamente queste specifiche. Non inventare flussi, componenti, stati, modali, o UX alternative.
+
+1) Obiettivo pagina
+
+Implementare la pagina Admin → Work Service per la gestione operativa del servizio in tempo reale:
+
+selezione giorno (scheduler)
+
+overview produzione per time slot
+
+pipeline ordini per stato
+
+recap ordine sticky per cambiare stato e vedere ingredienti
+
+2) Stati ordine (definizione precisa)
+
+Stati possibili:
+
+pending = ordine ancora modificabile dall’utente, quindi non lavorabile
+
+confirmed = ordine fissato, lavorabile
+
+ready = pronto
+
+picked_up = consegnato (finale)
+
+⚠️ Regola chiave:
+pending è uno stato reale, ma NON compare nelle righe di lavoro (pipeline).
+pending si mostra solo nella sezione Time Slot come indicatore “ci sono ordini che potrebbero variare”.
+
+3) Stato iniziale UI (quando entro nella pagina)
+
+Nessun time slot selezionato (a meno che esista lo slot dell’ora corrente: vedi regola 4)
+
+Nessun ordine selezionato
+
+Le righe pipeline vuote
+
+La recap card sticky vuota con placeholder “Select order”
+
+4) Selezione automatica time slot (solo se ha senso)
+
+Comportamento desiderato:
+
+se l’orario corrente cade dentro un time slot del servizio (es: 12:05 → seleziona 12:00–12:15) allora auto-seleziona quello
+
+se l’orario corrente è fuori dalla finestra di servizio (es: sono le 17) → nessuna selezione
+
+5) Polling ogni 5 secondi (regola di stabilità UI)
+
+La pagina fa polling ogni 5s sui dati del giorno selezionato.
+
+⚠️ Vincolo inviolabile:
+Il polling può aggiornare SOLO i dati (es: pending che diventa confirmed, nuovi pending, ecc.) ma NON deve mai alterare le selezioni correnti dell’admin:
+
+selectedDay resta quello
+
+selectedTimeSlot resta quello (se era selezionato)
+
+selectedOrder resta quello (se era selezionato)
+
+Anche se arrivano nuovi ordini o cambiano stati, la UI non deve “saltare”.
+
+6) Interazioni principali (riassunto)
+
+Scheduler: seleziono giorno → fetch dati di quel giorno (time slot + ordini)
+
+Time slot: seleziono time slot → popolo pipeline (confirmed/ready/picked_up) per quello slot
+
+Card ordine in pipeline: seleziono ordine → recap sticky mostra dettagli ordine
+
+Dropdown stato in recap: posso spostare ordine in qualsiasi stato senza conferme/modali
+
+CTA in recap: fa avanzare SOLO in avanti: confirmed → ready → picked_up
+
+se picked_up: CTA hidden o disabled (decidi una sola soluzione coerente e applicala ovunque)
+
+7) Sorting obbligatorio
+
+Dentro ogni riga (confirmed/ready/picked_up) gli ordini devono essere ordinati per:
+
+numero ordine crescente (es: 2,4,7,19)
+
+8) Ingredienti nel recap
+
+Categorie fisse:
+
+bread, meat, vegetable, sauce, cheese, other
+
+Regola:
+
+se una categoria non ha ingredienti → non renderizzare la riga (niente righe vuote)
+
+Visual:
+
+ingredienti come “tag” con sigla, non nome esteso (es: Ciabatta → “CB”)
+
+9) Divieti espliciti (non farlo)
+
+NIENTE modali di conferma per cambio stato
+
+NIENTE reset automatici della selezione per “comodità”
+
+NIENTE spostare/duplicare componenti shared in folder pagina (quello si gestisce nel prompt successivo)
+
+NIENTE logica “pending in pipeline”: pending non deve apparire nelle righe
+
+Deliverable richiesto da questo step:
+Conferma di aver capito i vincoli e lista sintetica (bullet) delle regole che applicherai durante l’implementazione, senza proporre alternative.

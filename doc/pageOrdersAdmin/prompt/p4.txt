@@ -1,0 +1,282 @@
+2️⃣ PROMPT 4 — Componenti (versione corretta e definitiva)
+
+Usa QUESTO prompt, senza modificarlo.
+
+PROMPT 4 — Componenti: separazione corretta, riuso e nuove creazioni (Admin · Work Service)
+Contesto (vincolante)
+
+Stiamo implementando la pagina Admin – Work Service.
+
+⚠️ REGOLE ARCHITETTURALI NON NEGOZIABILI
+
+La cartella resources/js/components ESISTE GIÀ
+
+I componenti sono agnostici rispetto:
+
+al ruolo (user / admin)
+
+alla pagina
+
+❌ È VIETATO creare componenti dentro pages/*
+
+❌ È VIETATO accoppiare un componente a un ruolo o a una pagina
+
+I componenti:
+
+ricevono solo props
+
+emettono solo eventi
+
+NON fetchano
+
+NON fanno polling
+
+NON gestiscono stato globale
+
+La pagina orchestra, i componenti renderizzano.
+
+COMPONENTI DA RIUTILIZZARE (SENZA MODIFICHE CONCETTUALI)
+1️⃣ topbar
+
+stessa implementazione esistente
+
+cambia solo la label
+
+Props:
+
+title: string
+
+2️⃣ sidebar
+
+stessa logica open / close
+
+stesso overlay
+
+cambia solo il contenuto delle voci
+
+Voci:
+
+Work
+
+Ingredients
+
+Planning
+
+Logout
+
+3️⃣ weekScheduler
+
+stesso componente già esistente
+
+stessa semantica (selezione giorno)
+
+Props:
+
+days
+
+selectedDayId
+
+showLabel (default true)
+
+COMPONENTI CHE NON DEVONO ESSERE RIUTILIZZATI
+
+⚠️ QUESTO È FONDAMENTALE
+
+I componenti time slot user:
+
+❌ timeSlotCard
+
+❌ timeSlotSelector
+
+NON DEVONO essere riutilizzati
+
+Motivo:
+
+semantica diversa
+
+ciclo di vita diverso
+
+dominio diverso (input vs monitoraggio)
+
+riuso = errore architetturale
+
+COMPONENTI DA CREARE (NUOVI, ADMIN)
+
+Tutti da creare in
+resources/js/components/
+
+4️⃣ adminTimeSlotSelector
+
+Responsabilità:
+
+container orizzontale scrollabile
+
+visualizza i time slot di una giornata
+
+non è un input form
+
+Props:
+
+timeSlots
+
+selectedTimeSlotId
+
+Eventi:
+
+onSelect(timeSlotId)
+
+❌ NON calcola stati
+❌ NON fa fetch
+
+5️⃣ adminTimeSlotCard
+
+Responsabilità:
+
+rappresenta lo stato operativo di un time slot
+
+mostra:
+
+orario (es. 12:00–12:15)
+
+numero ordini pending
+
+totale ordini
+
+badge per:
+
+confirmed
+
+ready
+
+picked_up
+
+Props:
+
+slot
+
+selected: boolean
+
+❌ NON modifica ordini
+❌ NON seleziona da sola
+
+6️⃣ workStatusRow
+
+Responsabilità:
+
+rappresenta una riga della pipeline di lavoro
+
+Props:
+
+status: 'confirmed' | 'ready' | 'picked_up'
+
+orders
+
+selectedOrderId
+
+Render:
+
+header con:
+
+nome stato
+
+numero ordini
+
+lista ordinata per numero ordine (ASC)
+
+7️⃣ workOrderCard
+
+Responsabilità:
+
+card compatta nella pipeline
+
+mostra:
+
+#ordine
+
+nickname
+
+Props:
+
+orderNumber
+
+nickname
+
+selected
+
+Eventi:
+
+onSelect(orderId)
+
+8️⃣ workOrderRecapCard (sticky bottom)
+
+Responsabilità:
+
+dettaglio ordine selezionato
+
+collapse / expand
+
+Props:
+
+order?: Order
+
+collapsed
+
+Eventi:
+
+onToggleCollapse
+
+onChangeState(newState)
+
+onAdvanceState
+
+9️⃣ orderIngredientsSection
+
+Responsabilità:
+
+mostra una categoria
+
+titolo + ingredienti (tag)
+
+Props:
+
+category
+
+ingredients
+
+Regole:
+
+se vuota → NON renderizzare
+
+RESPONSABILITÀ DELLA PAGINA (E SOLO DELLA PAGINA)
+
+La pagina admin:
+
+mantiene:
+
+giorno selezionato
+
+time slot selezionato
+
+ordine selezionato
+
+coordina polling
+
+garantisce stabilità selezioni
+
+mappa dati → props
+
+I componenti:
+
+NON sanno nulla di questo
+
+OBIETTIVO
+
+Implementare una pipeline di lavoro admin:
+
+semanticamente corretta
+
+senza riusi forzati
+
+senza accoppiamenti
+
+senza side-effects nascosti
