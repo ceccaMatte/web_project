@@ -40,6 +40,10 @@ const pageRegistry = {
         const { initOrdersPage } = await import('./pages/orders/index.js');
         return initOrdersPage;
     },
+    'admin-work-service': async () => {
+        const { initAdminWorkServicePage } = await import('./pages/admin-work-service/index.js');
+        return initAdminWorkServicePage;
+    },
     // TODO: Aggiungere altre pagine qui
     // admin: async () => { ... },
 };

@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminWeeklyConfigurationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\AdminWorkServiceController;
 
 // ========================================
 // AUTH ROUTES
@@ -150,5 +151,26 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
     // Body: { status: "confirmed" }
     Route::put('/admin/orders/{order}/status', [OrderController::class, 'changeStatus'])
         ->name('admin.orders.changeStatus');
+
+    // ========================================
+    // ADMIN WORK SERVICE
+    // ========================================
+    // Pagina gestione operativa ordini in tempo reale
+    
+    // GET /admin/work-service - Vista pagina Work Service
+    Route::get('/admin/work-service', [AdminWorkServiceController::class, 'index'])
+        ->name('admin.work-service');
+    
+    // GET /api/admin/work-service?date=YYYY-MM-DD - Fetch dati iniziale
+    Route::get('/api/admin/work-service', [AdminWorkServiceController::class, 'apiIndex'])
+        ->name('api.admin.work-service');
+    
+    // GET /api/admin/work-service/poll?date=YYYY-MM-DD - Polling endpoint
+    Route::get('/api/admin/work-service/poll', [AdminWorkServiceController::class, 'apiPoll'])
+        ->name('api.admin.work-service.poll');
+    
+    // POST /api/admin/orders/{order}/status - Cambia stato ordine
+    Route::post('/api/admin/orders/{order}/status', [AdminWorkServiceController::class, 'changeStatus'])
+        ->name('api.admin.orders.changeStatus');
 });
 

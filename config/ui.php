@@ -401,4 +401,124 @@ return [
             'order_carousel' => 'Scroll through your active orders',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Work Service Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configurazione per la pagina Admin Work Service.
+    | Dashboard per gestione operativa ordini in tempo reale.
+    |
+    */
+    'admin_work_service' => [
+        // Header
+        'page_title' => 'Work Service',
+        'brand_label' => 'Campus Truck Admin',
+        
+        // Sidebar
+        'sidebar' => [
+            'title' => 'Admin',
+            'menu' => [
+                [
+                    'label' => 'Work Service',
+                    'icon' => 'work',
+                    'route' => 'admin.work-service',
+                ],
+                [
+                    'label' => 'Ingredients',
+                    'icon' => 'restaurant_menu',
+                    'route' => null, // Placeholder
+                    'disabled' => true,
+                ],
+                [
+                    'label' => 'Planning',
+                    'icon' => 'calendar_month',
+                    'route' => null, // Placeholder
+                    'disabled' => true,
+                ],
+            ],
+        ],
+        
+        // Time Slot Selector
+        'time_slots' => [
+            'title' => 'Time Slots',
+            'all_label' => 'All',
+        ],
+        
+        // Status rows
+        'status_rows' => [
+            'confirmed' => [
+                'label' => 'Confirmed',
+                'icon' => 'schedule',
+                'color' => 'blue',
+            ],
+            'ready' => [
+                'label' => 'Ready',
+                'icon' => 'check_circle',
+                'color' => 'emerald',
+            ],
+            'picked_up' => [
+                'label' => 'Picked Up',
+                'icon' => 'verified',
+                'color' => 'slate',
+            ],
+        ],
+        
+        // Order card
+        'order_card' => [
+            'next_status' => [
+                'confirmed' => 'ready',
+                'ready' => 'picked_up',
+            ],
+            'action_labels' => [
+                'confirmed' => 'Mark Ready',
+                'ready' => 'Mark Picked Up',
+            ],
+        ],
+        
+        // Recap card
+        'recap_card' => [
+            'title' => 'Order Summary',
+            'close_label' => 'Close',
+        ],
+        
+        // Empty states
+        'empty_states' => [
+            'no_time_slots' => 'No working day configured for this date.',
+            'no_orders' => 'No orders for this time slot.',
+            'no_confirmed' => 'No confirmed orders.',
+            'no_ready' => 'No ready orders.',
+            'no_picked_up' => 'No picked up orders.',
+        ],
+        
+        // Polling
+        'polling_interval' => 5000, // 5 seconds
+        
+        // Icons
+        'icons' => [
+            'work' => 'work',
+            'ingredients' => 'restaurant_menu',
+            'planning' => 'calendar_month',
+            'back' => 'arrow_back',
+            'close' => 'close',
+            'expand' => 'expand_more',
+            'collapse' => 'expand_less',
+            'next' => 'arrow_forward',
+            'pending' => 'hourglass_empty',
+        ],
+        
+        // Aria labels
+        'aria' => [
+            'back_to_home' => 'Go back to home',
+            'scheduler_section' => 'Select a date',
+            'time_slots_section' => 'Select a time slot',
+            'orders_pipeline' => 'Orders pipeline',
+            'order_recap' => 'Order details',
+            'mark_ready' => 'Mark order as ready',
+            'mark_picked_up' => 'Mark order as picked up',
+            'close_recap' => 'Close order details',
+            'select_time_slot' => 'Select time slot',
+        ],
+    ],
 ];
