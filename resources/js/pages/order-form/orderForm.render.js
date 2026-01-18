@@ -309,20 +309,26 @@ function renderFooterComponent() {
     
     // Mobile footer
     if (orderFormView.refs.footerActions) {
+        console.log('[RenderOrderForm] Rendering mobile footer');
         renderActionFooter(
             orderFormView.refs.footerActions,
             footerProps,
             footerCallbacks
         );
+    } else {
+        console.log('[RenderOrderForm] Mobile footer container not found');
     }
     
     // Desktop footer
     if (orderFormView.refs.footerActionsDesktop) {
+        console.log('[RenderOrderForm] Rendering desktop footer');
         renderActionFooter(
             orderFormView.refs.footerActionsDesktop,
             footerProps,
             footerCallbacks
         );
+    } else {
+        console.log('[RenderOrderForm] Desktop footer container not found');
     }
 }
 

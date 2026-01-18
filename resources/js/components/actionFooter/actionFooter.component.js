@@ -103,10 +103,11 @@ export function renderActionFooter(container, props, callbacks) {
         cleanupListener();
     }
 
-    // Event delegation
-    cleanupListener = listen(container, 'click', (e) => {
+    // Event delegation - use document to ensure capture
+    cleanupListener = listen(document, 'click', (e) => {
         const submitBtn = e.target.closest('[data-action="submit-order"]');
         if (submitBtn && onSubmit && !disabled && !loading) {
+            console.log('[ActionFooter] Submit button clicked, calling onSubmit');
             onSubmit();
             return;
         }

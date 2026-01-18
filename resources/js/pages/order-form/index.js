@@ -150,6 +150,12 @@ function setupEventDelegation() {
             logout();
             return;
         }
+
+        // Debug: log all clicks on submit buttons
+        const submitBtn = e.target.closest('[data-action="submit-order"]');
+        if (submitBtn) {
+            console.log('[DEBUG] Submit button clicked:', submitBtn);
+        }
     });
 
     console.log('[OrderForm] Event delegation setup complete');

@@ -114,7 +114,7 @@ class TestDataSeeder extends Seeder
         echo "✅ Creati " . count($yesterdaySlots) . " time slots per ieri\n";
 
         // ============================================
-        // 4️⃣  CREA WORKING DAY OGGI (18/01/2026 con orari 14:00-18:00 per test)
+        // 4️⃣  CREA WORKING DAY OGGI (18/01/2026 con orari 11:00-20:00 per test)
         // ============================================
         
         $today = now()->toDateString();
@@ -123,14 +123,14 @@ class TestDataSeeder extends Seeder
             'location' => 'Piazza Centrale - Engineering Hub',
             'max_orders' => 20,
             'max_time' => 30,
-            'start_time' => '14:00',
-            'end_time' => '18:00',
+            'start_time' => '11:00',
+            'end_time' => '20:00',
             'is_active' => true,
         ]);
 
-        echo "✅ Creato WorkingDay per oggi: {$today} (14:00-18:00 per test)\n";
+        echo "✅ Creato WorkingDay per oggi: {$today} (11:00-20:00 per test)\n";
 
-        $todaySlots = $this->createTimeSlots($todayWorkingDay, '14:00', '17:45', 15);
+        $todaySlots = $this->createTimeSlots($todayWorkingDay, '11:00', '19:45', 15);
         echo "✅ Creati " . count($todaySlots) . " time slots per oggi\n";
 
         // ============================================

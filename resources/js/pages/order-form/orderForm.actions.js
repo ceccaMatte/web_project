@@ -251,12 +251,12 @@ export function deselectIngredient(ingredientId) {
  */
 export async function submitOrder() {
     console.log('[Actions] Submitting order...');
-    
-    // Verifica validità
-    if (!isOrderValid()) {
-        console.warn('[Actions] Order not valid, cannot submit');
-        return;
-    }
+    console.log('[Actions] Current state:', {
+        mode: orderFormState.mode,
+        selectedTimeSlotId: orderFormState.order.selectedTimeSlotId,
+        selectedIngredients: orderFormState.order.selectedIngredients,
+        isValid: isOrderValid()
+    });
     
     mutateUI({ isSubmitting: true });
     renderOrderFormPage();

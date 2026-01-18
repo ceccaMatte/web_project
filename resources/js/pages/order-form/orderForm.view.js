@@ -108,6 +108,9 @@ export const orderFormView = {
         // Footer Actions (Desktop)
         this.refs.footerActionsDesktop = document.querySelector('[data-footer-actions-desktop]');
         
+        console.log('[OrderFormView] footerActions ref:', this.refs.footerActions);
+        console.log('[OrderFormView] footerActionsDesktop ref:', this.refs.footerActionsDesktop);
+        
         console.log('[OrderFormView] DOM refs initialized');
     },
 };

@@ -24,6 +24,7 @@ class WorkingDay extends Model
         'max_time',      // Minuti limite per modifiche ordini
         'start_time',    // Ora di inizio del servizio
         'end_time',      // Ora di fine del servizio
+        'is_active',     // Se il giorno è attivo
     ];
 
     /**
@@ -36,6 +37,7 @@ class WorkingDay extends Model
         'max_time' => 'integer',         // Assicura sia intero
         'start_time' => 'string',        // Ora di inizio come stringa
         'end_time' => 'string',          // Ora di fine come stringa
+        'is_active' => 'boolean',        // Converte in booleano
     ];
 
     /**
