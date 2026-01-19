@@ -13,6 +13,12 @@ import { renderWeekScheduler } from '../../components/weekScheduler/weekSchedule
 import { renderWorkTimeSlotSelector } from '../../components/workTimeSlotSelector/workTimeSlotSelector.component.js';
 import { renderWorkStatusRow } from '../../components/workStatusRow/workStatusRow.component.js';
 import { renderWorkOrderRecapCard, buildWorkOrderRecapCardHTML } from '../../components/workOrderRecapCard/workOrderRecapCard.component.js';
+import { listen } from '../../utils/dom.js';
+
+/**
+ * Flag to avoid adding multiple listeners to mobile recap
+ */
+let mobileRecapListenerAdded = false;
 
 /**
  * Render completo della pagina
@@ -141,7 +147,7 @@ export function renderOrdersPipeline() {
 }
 
 /**
- * Render recap card (desktop + mobile modal)
+ * Render recap card (desktop + mobile modal + mobile sticky)
  */
 export function renderRecapCard() {
     const selectedOrder = getSelectedOrder();
@@ -165,6 +171,62 @@ export function renderRecapCard() {
                 const newStatus = actionBtn.dataset.newStatus;
                 changeStatus(orderId, newStatus);
             });
+        }
+    }
+
+    // Mobile sticky recap
+    const mobileRecap = document.querySelector('[data-recap-mobile]');
+    if (mobileRecap) {
+        const isExpanded = workServiceState.mobileRecapExpanded;
+        
+        // Always position at bottom, expand up with max-height
+        mobileRecap.style.transform = 'translateY(calc(100% - 4rem))';
+        
+        const contentDiv = mobileRecap.querySelector('[data-recap-mobile-content]');
+        if (contentDiv) {
+            contentDiv.style.maxHeight = isExpanded ? '60vh' : '4rem';
+            contentDiv.style.overflow = 'hidden';
+        }
+        
+        if (selectedOrder) {
+            // Hide empty state
+            const emptyEl = mobileRecap.querySelector('[data-recap-empty]');
+            if (emptyEl) emptyEl.classList.add('hidden');
+            
+            // Show and populate content
+            const contentEl = mobileRecap.querySelector('[data-recap-content]');
+            if (contentEl) {
+                contentEl.innerHTML = buildWorkOrderRecapCardHTML(selectedOrder);
+                contentEl.classList.remove('hidden');
+            }
+        } else {
+            // Show empty state
+            const emptyEl = mobileRecap.querySelector('[data-recap-empty]');
+            if (emptyEl) emptyEl.classList.remove('hidden');
+            
+            // Hide content
+            const contentEl = mobileRecap.querySelector('[data-recap-content]');
+            if (contentEl) contentEl.classList.add('hidden');
+            
+            // Reset expanded state
+            workServiceState.mobileRecapExpanded = false;
+        }
+        
+        // Update toggle button aria
+        const toggleBtn = mobileRecap.querySelector('[data-action="toggle-recap"]');
+        if (toggleBtn) {
+            toggleBtn.setAttribute('aria-expanded', isExpanded);
+        }
+        
+        // Add listener once
+        if (!mobileRecapListenerAdded) {
+            listen(mobileRecap, 'click', (e) => {
+                if (e.target.closest('[data-action="toggle-recap"]')) {
+                    workServiceState.mobileRecapExpanded = !workServiceState.mobileRecapExpanded;
+                    renderRecapCard();
+                }
+            });
+            mobileRecapListenerAdded = true;
         }
     }
 }

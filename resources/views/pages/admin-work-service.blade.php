@@ -350,7 +350,7 @@
          ======================================== --}}
     <div 
         data-recap-mobile
-        class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0d1117] border-t border-slate-800 shadow-2xl transition-transform duration-300 translate-y-full"
+        class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0d1117] border-t border-slate-800 shadow-2xl transition-all duration-300"
     >
         {{-- Handle per collassare --}}
         <button 
@@ -363,7 +363,7 @@
         </button>
         
         {{-- Contenuto recap --}}
-        <div data-recap-mobile-content class="px-4 py-4 max-h-[60vh] overflow-y-auto">
+        <div data-recap-mobile-content class="px-4 py-4 max-h-[60vh] overflow-hidden transition-all duration-300">
             {{-- Popolato da JS: workOrderRecapCard.component.js --}}
             <div class="text-center py-8 text-slate-500 text-sm" data-recap-empty>
                 Select an order to see details

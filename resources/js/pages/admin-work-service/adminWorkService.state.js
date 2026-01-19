@@ -104,6 +104,13 @@ export const workServiceState = {
     selectedOrderId: null,
 
     /**
+     * Mobile Recap Expanded State
+     * 
+     * true = recap espanso, false = collassato
+     */
+    mobileRecapExpanded: false,
+
+    /**
      * Loading state
      */
     isLoading: true,
