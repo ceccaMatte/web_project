@@ -39,26 +39,26 @@ export function buildWorkTimeSlotCardHTML(slot) {
 
     // Layout secondo il design specificato
     if (isSelected) {
-        // TIME SLOT SELECTED - design completo
+        // TIME SLOT SELECTED - design con stile simile alle card ordine selezionate
         return `
             <button 
                 type="button"
-                class="relative flex-shrink-0 w-[240px] p-4 rounded-3xl bg-primary border border-primary/50 shadow-2xl shadow-primary/10 transition-all"
+                class="relative flex-shrink-0 w-[240px] p-4 rounded-3xl bg-blue-500/20 border border-blue-500/40 ring-2 ring-blue-500/60 shadow-lg shadow-blue-500/20 transition-all"
                 data-action="select-time-slot"
                 data-slot-id="${id}"
                 aria-pressed="true"
                 aria-label="Time slot ${timeLabel}, ${totalOrders} orders, selected"
             >
                 ${pendingCount > 0 ? `
-                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 border border-amber-400 shadow-sm">
-                    <span class="material-symbols-outlined text-white text-[14px] fill-1">${ORDER_STATUS_CONFIG.pending.icon}</span>
-                    <span class="text-[11px] font-black text-white">${pendingCount}</span>
+                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 shadow-sm">
+                    <span class="material-symbols-outlined text-amber-400 text-[14px] fill-1">${ORDER_STATUS_CONFIG.pending.icon}</span>
+                    <span class="text-[11px] font-black text-amber-400">${pendingCount}</span>
                 </div>
                 ` : ''}
                 
-                <span class="block text-[11px] font-black text-white/80 mb-1 uppercase tracking-wider">${timeLabel}</span>
+                <span class="block text-[11px] font-black text-white/80 mb-1 uppercase tracking-wider text-left">${timeLabel}</span>
                 
-                <div class="flex items-baseline gap-1.5 mb-3">
+                <div class="flex items-baseline gap-1.5 mb-2">
                     <span class="text-3xl font-extrabold text-white tracking-tighter">${totalOrders}</span>
                     <span class="text-[10px] font-black text-white/60 uppercase tracking-widest">Orders</span>
                 </div>
@@ -91,13 +91,13 @@ export function buildWorkTimeSlotCardHTML(slot) {
                 aria-label="Time slot ${timeLabel}, ${totalOrders} orders"
             >
                 ${pendingCount > 0 ? `
-                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 border border-amber-400 shadow-sm">
-                    <span class="material-symbols-outlined text-white text-[14px] fill-1">${ORDER_STATUS_CONFIG.pending.icon}</span>
-                    <span class="text-[11px] font-black text-white">${pendingCount}</span>
+                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 shadow-sm">
+                    <span class="material-symbols-outlined text-amber-400 text-[14px] fill-1">${ORDER_STATUS_CONFIG.pending.icon}</span>
+                    <span class="text-[11px] font-black text-amber-400">${pendingCount}</span>
                 </div>
                 ` : ''}
                 
-                <span class="block text-[11px] font-black text-slate-400 mb-1 uppercase tracking-wider">${timeLabel}</span>
+                <span class="block text-[11px] font-black text-slate-400 mb-1 uppercase tracking-wider text-left">${timeLabel}</span>
                 
                 <div class="flex items-baseline gap-1.5 mb-3">
                     <span class="text-3xl font-extrabold text-slate-300 tracking-tighter">${totalOrders}</span>

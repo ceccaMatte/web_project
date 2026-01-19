@@ -99,7 +99,7 @@ export function renderWorkTimeSlotSelector(container, props, callbacks) {
     ).join('');
 
     container.innerHTML = `
-        <div class="flex overflow-x-auto no-scrollbar gap-3 pb-2">
+        <div class="flex overflow-x-auto no-scrollbar gap-3 pb-1 pt-1">
             ${allButton}
             ${slotsHTML}
         </div>

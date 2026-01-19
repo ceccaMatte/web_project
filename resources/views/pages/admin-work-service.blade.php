@@ -237,14 +237,14 @@
                      ======================================== --}}
                 <section 
                     data-orders-pipeline
-                    class="px-4 py-6 space-y-6 mb-32 lg:mb-0"
+                    class="px-4 py-6 space-y-3 mb-32 lg:mb-0"
                 >
                     {{-- Status Row: Confirmed --}}
                     <div 
                         data-status-row="confirmed"
-                        class="bg-slate-900/30 rounded-2xl p-4"
+                        class="bg-slate-900/30 rounded-2xl p-1"
                     >
-                        <div class="flex items-center gap-2 mb-4">
+                        <div class="flex items-center gap-2 mb-2">
                             <span class="material-symbols-outlined text-blue-400">task_alt</span>
                             <h3 class="font-semibold text-blue-400">
                                 {{ config('ui.admin_work_service.status_rows.confirmed.label') }}
@@ -256,7 +256,7 @@
                         </div>
                         <div 
                             data-status-orders="confirmed"
-                            class="flex flex-row gap-4 overflow-x-auto"
+                            class="flex flex-row gap-4 overflow-x-auto p-1"
                         >
                             {{-- Ordini confirmed popolati da JS --}}
                         </div>
@@ -265,9 +265,9 @@
                     {{-- Status Row: Ready --}}
                     <div 
                         data-status-row="ready"
-                        class="bg-slate-900/30 rounded-2xl p-4"
+                        class="bg-slate-900/30 rounded-2xl p-1"
                     >
-                        <div class="flex items-center gap-2 mb-4">
+                        <div class="flex items-center gap-2 mb-2">
                             <span class="material-symbols-outlined text-emerald-400">verified</span>
                             <h3 class="font-semibold text-emerald-400">
                                 {{ config('ui.admin_work_service.status_rows.ready.label') }}
@@ -279,7 +279,7 @@
                         </div>
                         <div 
                             data-status-orders="ready"
-                            class="flex flex-row gap-4 overflow-x-auto"
+                            class="flex flex-row gap-4 overflow-x-auto p-1"
                         >
                             {{-- Ordini ready popolati da JS --}}
                         </div>
@@ -288,9 +288,9 @@
                     {{-- Status Row: Picked Up --}}
                     <div 
                         data-status-row="picked_up"
-                        class="bg-slate-900/30 rounded-2xl p-4"
+                        class="bg-slate-900/30 rounded-2xl p-1"
                     >
-                        <div class="flex items-center gap-2 mb-4">
+                        <div class="flex items-center gap-2 mb-2">
                             <span class="material-symbols-outlined text-slate-300">shopping_bag</span>
                             <h3 class="font-semibold text-slate-300">
                                 {{ config('ui.admin_work_service.status_rows.picked_up.label') }}
@@ -302,7 +302,7 @@
                         </div>
                         <div 
                             data-status-orders="picked_up"
-                            class="flex flex-row gap-4 overflow-x-auto"
+                            class="flex flex-row gap-4 overflow-x-auto p-1"
                         >
                             {{-- Ordini picked_up popolati da JS --}}
                         </div>
