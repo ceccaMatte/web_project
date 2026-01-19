@@ -352,16 +352,6 @@
         data-recap-mobile
         class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0d1117] border-t border-slate-800 shadow-2xl transition-all duration-300"
     >
-        {{-- Handle per collassare --}}
-        <button 
-            type="button"
-            data-action="toggle-recap"
-            class="w-full py-2 flex items-center justify-center text-slate-400 hover:text-white border-b border-slate-800/50"
-            aria-label="Toggle order details"
-        >
-            <div class="w-12 h-1 bg-slate-700 rounded-full"></div>
-        </button>
-        
         {{-- Contenuto recap --}}
         <div data-recap-mobile-content class="px-4 py-4 max-h-[60vh] overflow-hidden transition-all duration-300">
             {{-- Popolato da JS: workOrderRecapCard.component.js --}}

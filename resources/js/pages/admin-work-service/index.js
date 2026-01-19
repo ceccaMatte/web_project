@@ -194,13 +194,6 @@ function registerGlobalEventDelegation() {
             return;
         }
 
-        // Toggle recap mobile
-        if (target.closest('[data-action="toggle-recap"]')) {
-            event.preventDefault();
-            toggleRecapMobile();
-            return;
-        }
-
         // Close recap modal (legacy, kept for compatibility)
         if (target.closest('[data-action="close-recap"]')) {
             event.preventDefault();
@@ -252,23 +245,6 @@ function closeSidebar() {
     if (sidebar && backdrop) {
         sidebar.classList.add('translate-x-full');
         backdrop.classList.add('hidden');
-    }
-}
-
-/**
- * Toggle recap mobile (espande/collassa)
- */
-function toggleRecapMobile() {
-    const recapMobile = document.querySelector('[data-recap-mobile]');
-    if (!recapMobile) return;
-    
-    // Toggle tra espanso e collassato
-    if (recapMobile.classList.contains('translate-y-0')) {
-        recapMobile.classList.remove('translate-y-0');
-        recapMobile.classList.add('translate-y-[calc(100%-3rem)]');
-    } else {
-        recapMobile.classList.remove('translate-y-[calc(100%-3rem)]');
-        recapMobile.classList.add('translate-y-0');
     }
 }
 

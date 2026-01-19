@@ -90,9 +90,9 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
 
     return `
         <!-- Header -->
-        <div class="flex items-start justify-between mb-6">
-            <div>
-                <h3 class="text-2xl font-bold text-white mb-1">Order #${daily_number}</h3>
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-2">
+                <span class="text-base font-bold text-white">${nickname} #${daily_number}</span>
                 <span class="inline-block px-2 py-0.5 rounded-full ${config.bg} ${config.color} text-[10px] font-bold uppercase tracking-widest">
                     ${config.label}
                 </span>
@@ -110,17 +110,6 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
 
         <!-- Expandable Content -->
         <div class="${isExpanded ? '' : 'hidden'} transition-all duration-300">
-            <!-- User & Time -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-slate-800/30 rounded-xl p-3">
-                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Customer</p>
-                    <p class="text-sm text-white font-medium">${nickname}</p>
-                </div>
-                <div class="bg-slate-800/30 rounded-xl p-3">
-                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Pickup Time</p>
-                    <p class="text-sm text-white font-medium">${timeLabel}</p>
-                </div>
-            </div>
 
         <!-- Ingredients -->
         <div class="mb-6">
