@@ -41,15 +41,30 @@ export function buildWorkOrderCardHTML(order, isSelected = false) {
     // Build ingredients preview (abbreviations)
     const ingredientsPreview = buildIngredientsPreview(ingredients);
 
-
-    // Selected state styling - molto più evidente
-    const selectedClasses = isSelected
-        ? 'ring-4 ring-primary border-2 border-primary/80 shadow-2xl shadow-primary/40 scale-[1.04] bg-white/5 z-10'
-        : 'ring-1 ring-primary/20';
+    // Selected state styling - basato sul colore dello stato
+    let selectedClasses = '';
+    let selectedBgClass = '';
+    
+    if (isSelected) {
+        // Background più pieno basato sullo stato
+        if (status === 'confirmed') {
+            selectedBgClass = 'bg-blue-500/30';
+            selectedClasses = 'ring-2 ring-blue-500/60 border-blue-500/40 shadow-lg shadow-blue-500/20';
+        } else if (status === 'ready') {
+            selectedBgClass = 'bg-emerald-500/30';
+            selectedClasses = 'ring-2 ring-emerald-500/60 border-emerald-500/40 shadow-lg shadow-emerald-500/20';
+        } else if (status === 'picked_up') {
+            selectedBgClass = 'bg-slate-700/50';
+            selectedClasses = 'ring-2 ring-slate-600/60 border-slate-600/40 shadow-lg shadow-slate-600/20';
+        }
+        selectedClasses += ' scale-[1.02] z-10';
+    } else {
+        selectedClasses = 'ring-1 ring-white/10';
+    }
 
     return `
         <div 
-            class="p-2 ${statusClasses.softBgClass} ${statusClasses.borderClass} rounded-lg ${selectedClasses} transition-all cursor-pointer max-w-[120px]"
+            class="p-2 ${isSelected ? selectedBgClass : statusClasses.softBgClass} ${statusClasses.borderClass} rounded-lg ${selectedClasses} transition-all cursor-pointer max-w-[120px]"
             data-order-card="${id}"
             data-action="select-order"
             data-order-id="${id}"
