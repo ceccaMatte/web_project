@@ -179,14 +179,10 @@ export function renderRecapCard() {
     if (mobileRecap) {
         const isExpanded = workServiceState.mobileRecapExpanded;
         
-        // Always position at bottom, expand up with max-height
-        mobileRecap.style.transform = 'translateY(calc(100% - 4rem))';
+        // Always position at bottom (visible)
+        mobileRecap.style.transform = 'translateY(0)';
         
         const contentDiv = mobileRecap.querySelector('[data-recap-mobile-content]');
-        if (contentDiv) {
-            contentDiv.style.maxHeight = isExpanded ? '60vh' : '4rem';
-            contentDiv.style.overflow = 'hidden';
-        }
         
         if (selectedOrder) {
             // Hide empty state
@@ -196,8 +192,17 @@ export function renderRecapCard() {
             // Show and populate content
             const contentEl = mobileRecap.querySelector('[data-recap-content]');
             if (contentEl) {
-                contentEl.innerHTML = buildWorkOrderRecapCardHTML(selectedOrder);
+                contentEl.innerHTML = buildWorkOrderRecapCardHTML(selectedOrder, isExpanded);
                 contentEl.classList.remove('hidden');
+                
+                // Apply expansion state to content visibility
+                if (isExpanded) {
+                    contentDiv.style.maxHeight = '60vh';
+                    contentDiv.style.overflow = 'auto';
+                } else {
+                    contentDiv.style.maxHeight = 'auto';
+                    contentDiv.style.overflow = 'visible';
+                }
             }
         } else {
             // Show empty state
@@ -210,20 +215,18 @@ export function renderRecapCard() {
             
             // Reset expanded state
             workServiceState.mobileRecapExpanded = false;
+            
+            contentDiv.style.maxHeight = 'auto';
+            contentDiv.style.overflow = 'visible';
         }
         
-        // Update toggle button aria
-        const toggleBtn = mobileRecap.querySelector('[data-action="toggle-recap"]');
-        if (toggleBtn) {
-            toggleBtn.setAttribute('aria-expanded', isExpanded);
-        }
-        
-        // Add listener once
+        // Add listener once for toggle-recap-expansion button (inside content)
         if (!mobileRecapListenerAdded) {
             listen(mobileRecap, 'click', (e) => {
-                if (e.target.closest('[data-action="toggle-recap"]')) {
+                if (e.target.closest('[data-action="toggle-recap-expansion"]')) {
                     workServiceState.mobileRecapExpanded = !workServiceState.mobileRecapExpanded;
                     renderRecapCard();
+                    console.log(`[MobileRecap] Toggled to: ${workServiceState.mobileRecapExpanded ? 'expanded' : 'collapsed'}`);
                 }
             });
             mobileRecapListenerAdded = true;
