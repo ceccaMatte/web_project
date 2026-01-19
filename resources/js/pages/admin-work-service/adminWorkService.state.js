@@ -111,6 +111,20 @@ export const workServiceState = {
     mobileRecapExpanded: false,
 
     /**
+     * Desktop Recap Card Visibility
+     * 
+     * true = card visibile, false = card nascosta
+     */
+    recapCardVisible: true,
+
+    /**
+     * Desktop Recap Card Expanded State
+     * 
+     * true = card espansa (mostra dati), false = card collassata (solo header)
+     */
+    recapCardExpanded: true,
+
+    /**
      * Loading state
      */
     isLoading: true,

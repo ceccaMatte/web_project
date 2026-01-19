@@ -19,6 +19,7 @@
  */
 
 import { buildOrderIngredientsSectionHTML } from '../orderIngredientsSection/orderIngredientsSection.component.js';
+import { workServiceState } from '../../pages/admin-work-service/adminWorkService.state.js';
 
 // Status configuration
 const STATUS_CONFIG = {
@@ -63,9 +64,10 @@ const STATUS_CONFIG = {
  * Build HTML for work order recap card content
  * 
  * @param {Object} order - Order data
+ * @param {boolean} isExpanded - Whether the card is expanded
  * @returns {string} - HTML string
  */
-export function buildWorkOrderRecapCardHTML(order) {
+export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
     if (!order) {
         return `
             <div class="text-center py-12">
@@ -95,19 +97,30 @@ export function buildWorkOrderRecapCardHTML(order) {
                     ${config.label}
                 </span>
             </div>
+            <button 
+                type="button"
+                class="w-8 h-8 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                data-action="toggle-recap-expansion"
+                aria-label="${isExpanded ? 'Collapse' : 'Expand'} order details"
+                title="${isExpanded ? 'Collapse' : 'Expand'} order details"
+            >
+                <span class="material-symbols-outlined text-lg">${isExpanded ? 'expand_less' : 'expand_more'}</span>
+            </button>
         </div>
 
-        <!-- User & Time -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-slate-800/30 rounded-xl p-3">
-                <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Customer</p>
-                <p class="text-sm text-white font-medium">${nickname}</p>
+        <!-- Expandable Content -->
+        <div class="${isExpanded ? '' : 'hidden'} transition-all duration-300">
+            <!-- User & Time -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-slate-800/30 rounded-xl p-3">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Customer</p>
+                    <p class="text-sm text-white font-medium">${nickname}</p>
+                </div>
+                <div class="bg-slate-800/30 rounded-xl p-3">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Pickup Time</p>
+                    <p class="text-sm text-white font-medium">${timeLabel}</p>
+                </div>
             </div>
-            <div class="bg-slate-800/30 rounded-xl p-3">
-                <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Pickup Time</p>
-                <p class="text-sm text-white font-medium">${timeLabel}</p>
-            </div>
-        </div>
 
         <!-- Ingredients -->
         <div class="mb-6">
@@ -133,6 +146,7 @@ export function buildWorkOrderRecapCardHTML(order) {
                 Order Complete
             </div>
         `}
+        </div>
     `;
 }
 
@@ -147,6 +161,14 @@ export function renderWorkOrderRecapCard(container, order, callbacks) {
     if (!container) {
         console.warn('[WorkOrderRecapCard] Container is null');
         return;
+    }
+
+    // Check if recap card should be visible
+    if (!workServiceState.recapCardVisible) {
+        container.classList.add('hidden');
+        return;
+    } else {
+        container.classList.remove('hidden');
     }
 
     const emptyEl = container.querySelector('[data-recap-empty]');
@@ -166,7 +188,7 @@ export function renderWorkOrderRecapCard(container, order, callbacks) {
     if (emptyEl) emptyEl.classList.add('hidden');
     if (contentEl) {
         contentEl.classList.remove('hidden');
-        contentEl.innerHTML = buildWorkOrderRecapCardHTML(order);
+        contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
 
         // Event listener for action button
         const actionBtn = contentEl.querySelector('[data-action="change-status"]');
@@ -175,6 +197,17 @@ export function renderWorkOrderRecapCard(container, order, callbacks) {
                 const orderId = parseInt(actionBtn.dataset.orderId, 10);
                 const newStatus = actionBtn.dataset.newStatus;
                 callbacks.onChangeStatus(orderId, newStatus);
+            });
+        }
+
+        // Event listener for toggle expansion button
+        const toggleBtn = contentEl.querySelector('[data-action="toggle-recap-expansion"]');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                workServiceState.recapCardExpanded = !workServiceState.recapCardExpanded;
+                // Re-render to update the expansion state
+                renderWorkOrderRecapCard(container, order, callbacks);
+                console.log(`[WorkOrderRecapCard] Recap card ${workServiceState.recapCardExpanded ? 'expanded' : 'collapsed'}`);
             });
         }
     }
