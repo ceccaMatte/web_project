@@ -67,18 +67,22 @@ export function buildOrderIngredientsSectionHTML(ingredients, variant = 'recap')
         `;
     }
 
+    // Collect valid categories (those with items)
+    const validCategories = CATEGORY_ORDER.filter(category => {
+        const items = ingredients[category];
+        return items && Array.isArray(items) && items.length > 0;
+    });
+
     const sections = [];
 
-    for (const category of CATEGORY_ORDER) {
+    for (let i = 0; i < validCategories.length; i++) {
+        const category = validCategories[i];
         const items = ingredients[category];
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            continue; // Skip empty categories
-        }
-
         const config = CATEGORY_CONFIG[category] || CATEGORY_CONFIG.other;
+        const isLast = (i === validCategories.length - 1);
 
         if (variant === 'recap') {
-            sections.push(buildRecapCategoryHTML(config, items));
+            sections.push(buildRecapCategoryHTML(config, items, isLast));
         } else {
             sections.push(buildCardCategoryHTML(config, items));
         }
@@ -98,27 +102,22 @@ export function buildOrderIngredientsSectionHTML(ingredients, variant = 'recap')
 /**
  * Build category section for recap variant (larger, with icons)
  */
-function buildRecapCategoryHTML(config, items) {
-    const itemsHTML = items.map(item => `
-        <div class="flex items-center justify-between py-2 px-3 bg-slate-800/50 rounded-lg">
-            <div class="flex items-center gap-3">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider w-10">${item.code || '---'}</span>
-                <span class="text-sm text-white">${item.name}</span>
-            </div>
-            ${item.quantity && item.quantity > 1 ? `
-                <span class="text-xs text-slate-400">×${item.quantity}</span>
-            ` : ''}
-        </div>
+function buildRecapCategoryHTML(config, items, isLast = false) {
+    const marginClass = isLast ? 'mb-0' : 'mb-3';
+    const badgesHTML = items.map(item => `
+        <span class="inline-block px-2 py-1 bg-slate-800 rounded text-xs text-slate-400 whitespace-nowrap" title="${item.name}">
+            ${item.code || item.name}${item.quantity && item.quantity > 1 ? ` ×${item.quantity}` : ''}
+        </span>
     `).join('');
 
     return `
-        <div class="mb-4">
+        <div class="${marginClass}">
             <div class="flex items-center gap-2 mb-2">
                 <span class="material-symbols-outlined text-lg ${config.color}">${config.icon}</span>
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">${config.label}</h4>
             </div>
-            <div class="space-y-1">
-                ${itemsHTML}
+            <div class="overflow-x-auto whitespace-nowrap space-x-2 pb-2">
+                ${badgesHTML}
             </div>
         </div>
     `;

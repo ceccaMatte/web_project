@@ -83,7 +83,7 @@ export function renderWorkStatusRow(container, props, callbacks) {
     // Empty state
     if (count === 0) {
         ordersContainer.innerHTML = `
-            <div class="col-span-full py-8 text-center">
+            <div class="flex py-2 gap-x-2 text-center">
                 <span class="material-symbols-outlined text-3xl text-slate-600 mb-2 block">inbox</span>
                 <p class="text-slate-500 text-sm">${rowConfig.emptyMessage}</p>
             </div>

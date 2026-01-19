@@ -214,14 +214,14 @@
             {{-- ========================================
                  COLONNA SINISTRA: Time Slot + Rows di Stato
                  ======================================== --}}
-            <div class="space-y-6">
+            <div class="space-y-2">
 
                 {{-- ========================================
                      TIME SLOT SELECTOR
                      ======================================== --}}
                 <section 
                     data-timeslot-selector-container
-                    class="px-4 py-6 border-b border-slate-800/50 lg:px-0 lg:py-0 lg:border-b-0"
+                    class="px-4 border-b border-slate-800/50 lg:px-0 lg:py-0 lg:border-b-0"
                     aria-label="{{ config('ui.admin_work_service.aria.time_slots_section') }}"
                 >
                     {{-- Popolato da JS: workTimeSlotSelector.component.js --}}
