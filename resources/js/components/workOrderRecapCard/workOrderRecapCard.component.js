@@ -60,18 +60,30 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
     const dropdownOptionsHTML = DROPDOWN_STATUSES.map(statusKey => {
         const optionMeta = getStatusMeta(statusKey);
         const isSelected = currentStatus === statusKey;
+        
+        // Define colors for each status
+        const statusColors = {
+            confirmed: { bg: 'rgba(59, 130, 246, 0.19)', color: 'rgb(59, 130, 246)' },
+            ready: { bg: 'rgba(16, 185, 129, 0.19)', color: 'rgb(16, 185, 129)' },
+            picked_up: { bg: 'rgba(107, 114, 128, 0.19)', color: 'rgb(107, 114, 128)' }
+        };
+        
+        const colors = statusColors[statusKey] || statusColors.confirmed;
+        
         return `
             <button 
                 type="button"
-                class="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-700/50 transition-colors ${isSelected ? 'bg-slate-700/30 font-medium' : ''}"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-left ${isSelected ? 'bg-white/5' : ''}"
                 data-action="select-status"
                 data-status="${statusKey}"
                 data-order-id="${id}"
                 role="option"
                 aria-selected="${isSelected}"
             >
-                <span class="material-symbols-outlined text-base ${optionMeta.textClass}">${optionMeta.icon}</span>
-                <span class="${optionMeta.textClass}">${optionMeta.label}</span>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: ${colors.bg};">
+                    <span class="material-symbols-outlined text-base" style="color: ${colors.color};">${optionMeta.icon}</span>
+                </div>
+                <span class="text-white text-sm font-medium whitespace-nowrap">${optionMeta.label}</span>
                 ${isSelected ? '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>' : ''}
             </button>
         `;
@@ -97,11 +109,12 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
                 
                 <!-- Status Dropdown (inside header for proper positioning) -->
                 <div 
-                    class="absolute top-full left-0 mt-1 z-[100] ${workServiceState.isStatusDropdownOpen ? '' : 'hidden'}"
+                    class="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-white/20 rounded-xl shadow-2xl z-50 ${workServiceState.isStatusDropdownOpen ? '' : 'hidden'}"
                     data-status-dropdown
+                    style="max-height: 180px; overflow-y: auto;"
                 >
                     <div 
-                        class="w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1"
+                        class="p-2"
                         role="listbox"
                     >
                         ${dropdownOptionsHTML}
