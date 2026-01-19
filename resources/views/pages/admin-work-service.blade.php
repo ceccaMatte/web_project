@@ -245,8 +245,8 @@
                         class="bg-slate-900/30 rounded-2xl p-4"
                     >
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="material-symbols-outlined text-blue-500">schedule</span>
-                            <h3 class="font-semibold text-blue-500">
+                            <span class="material-symbols-outlined text-blue-400">task_alt</span>
+                            <h3 class="font-semibold text-blue-400">
                                 {{ config('ui.admin_work_service.status_rows.confirmed.label') }}
                             </h3>
                             <span 
@@ -268,8 +268,8 @@
                         class="bg-slate-900/30 rounded-2xl p-4"
                     >
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="material-symbols-outlined text-emerald-500">check_circle</span>
-                            <h3 class="font-semibold text-emerald-500">
+                            <span class="material-symbols-outlined text-emerald-400">verified</span>
+                            <h3 class="font-semibold text-emerald-400">
                                 {{ config('ui.admin_work_service.status_rows.ready.label') }}
                             </h3>
                             <span 
@@ -291,8 +291,8 @@
                         class="bg-slate-900/30 rounded-2xl p-4"
                     >
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="material-symbols-outlined text-slate-400">verified</span>
-                            <h3 class="font-semibold text-slate-400">
+                            <span class="material-symbols-outlined text-slate-300">shopping_bag</span>
+                            <h3 class="font-semibold text-slate-300">
                                 {{ config('ui.admin_work_service.status_rows.picked_up.label') }}
                             </h3>
                             <span 
@@ -321,7 +321,7 @@
                 <div class="sticky top-[200px] p-6">
                     <div 
                         data-recap-card
-                        class="bg-slate-900/50 rounded-2xl p-6"
+                        class="bg-slate-900/50 rounded-2xl p-6 overflow-visible"
                     >
                         {{-- Empty state iniziale --}}
                         <div class="text-center py-12" data-recap-empty>
@@ -353,7 +353,7 @@
         class="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-[#0d1117] border-t border-slate-800 shadow-2xl transition-all duration-300"
     >
         {{-- Contenuto recap --}}
-        <div data-recap-mobile-content class="px-4 py-4 max-h-[60vh] overflow-hidden transition-all duration-300">
+        <div data-recap-mobile-content class="px-4 py-4 max-h-[60vh] overflow-y-auto overflow-x-visible transition-all duration-300">
             {{-- Popolato da JS: workOrderRecapCard.component.js --}}
             <div class="text-center py-8 text-slate-500 text-sm" data-recap-empty>
                 Select an order to see details

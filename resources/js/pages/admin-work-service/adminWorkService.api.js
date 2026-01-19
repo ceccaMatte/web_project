@@ -145,16 +145,26 @@ export async function pollWorkServiceData(date) {
  * @returns {Promise<Object>} - Response
  */
 export async function changeOrderStatus(orderId, newStatus) {
+    console.log('🌐🌐🌐 API FUNCTION CALLED 🌐🌐🌐');
+    console.log('[WorkServiceAPI] 📊 changeOrderStatus called with:', { orderId, newStatus });
+    
     if (!orderId || !newStatus) {
-        throw new Error('[WorkServiceAPI] changeOrderStatus: orderId and newStatus are required');
+        const error = '[WorkServiceAPI] changeOrderStatus: orderId and newStatus are required';
+        console.error('[WorkServiceAPI] ❌', error);
+        throw new Error(error);
     }
 
-    console.log(`[WorkServiceAPI] POST /api/admin/orders/${orderId}/status -> ${newStatus}`);
+    console.log(`[WorkServiceAPI] 🚀 POST /api/admin/orders/${orderId}/status -> ${newStatus}`);
 
     try {
         // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        console.log('[WorkServiceAPI] 🔑 CSRF token:', csrfToken ? 'Found' : 'NOT FOUND');
 
+        console.log('[WorkServiceAPI] 📤 Sending POST request...');
+        console.log('[WorkServiceAPI] 📤 URL:', `/api/admin/orders/${orderId}/status`);
+        console.log('[WorkServiceAPI] 📤 Body:', JSON.stringify({ status: newStatus }));
+        
         const response = await fetch(`/api/admin/orders/${orderId}/status`, {
             method: 'POST',
             headers: {
@@ -166,13 +176,19 @@ export async function changeOrderStatus(orderId, newStatus) {
             body: JSON.stringify({ status: newStatus }),
         });
 
+        console.log('[WorkServiceAPI] 📥 Response received:', response.status, response.statusText);
+
         if (!response.ok) {
+            console.error('[WorkServiceAPI] ❌ Response not OK:', response.status);
             const errorData = await response.json().catch(() => ({}));
+            console.error('[WorkServiceAPI] ❌ Error data:', errorData);
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log(`[WorkServiceAPI] Order ${orderId} status changed to ${newStatus}`);
+        console.log('[WorkServiceAPI] ✅ Response data:', data);
+        console.log(`[WorkServiceAPI] ✅ Order ${orderId} status changed to ${newStatus}`);
+        console.log('🌐🌐🌐 API FUNCTION COMPLETE 🌐🌐🌐');
         
         return data;
     } catch (error) {

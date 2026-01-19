@@ -20,50 +20,11 @@
 
 import { buildOrderIngredientsSectionHTML } from '../orderIngredientsSection/orderIngredientsSection.component.js';
 import { workServiceState } from '../../pages/admin-work-service/adminWorkService.state.js';
-
-// Status configuration
-const STATUS_CONFIG = {
-    pending: {
-        label: 'Pending',
-        icon: 'schedule',
-        color: 'text-amber-500',
-        bg: 'bg-amber-500/10',
-        nextStatus: 'confirmed',
-        actionLabel: 'Confirm',
-    },
-    confirmed: {
-        label: 'Confirmed',
-        icon: 'check_circle',
-        color: 'text-blue-500',
-        bg: 'bg-blue-500/10',
-        nextStatus: 'ready',
-        actionLabel: 'Mark Ready',
-    },
-    ready: {
-        label: 'Ready',
-        icon: 'schedule',
-        color: 'text-emerald-500',
-        bg: 'bg-emerald-500/10',
-        nextStatus: 'picked_up',
-        actionLabel: 'Mark Picked Up',
-    },
-    picked_up: {
-        label: 'Picked Up',
-        icon: 'done_all',
-        color: 'text-slate-400',
-        bg: 'bg-slate-500/10',
-        nextStatus: null,
-        actionLabel: null,
-    },
-    rejected: {
-        label: 'Rejected',
-        icon: 'cancel',
-        color: 'text-rose-500',
-        bg: 'bg-rose-500/10',
-        nextStatus: null,
-        actionLabel: null,
-    },
-};
+import { 
+    ORDER_STATUS_CONFIG, 
+    DROPDOWN_STATUSES, 
+    getStatusMeta 
+} from '../../config/orderStatus.config.js';
 
 /**
  * Build HTML for work order recap card content
@@ -84,9 +45,9 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
 
     const { id, daily_number, status, time_slot, user, ingredients, created_at } = order;
 
-    // Use visual status for display (from dropdown selection)
-    const visualStatus = workServiceState.selectedOrderStatus || status;
-    const config = STATUS_CONFIG[visualStatus] || STATUS_CONFIG.pending;
+    // Always use the real order status (not visual override)
+    const currentStatus = status;
+    const statusMeta = getStatusMeta(currentStatus);
     const nickname = user?.nickname || 'Unknown';
     const timeLabel = time_slot 
         ? `${formatTime(time_slot.start_time)} - ${formatTime(time_slot.end_time)}`
@@ -95,23 +56,57 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
     // Build ingredients section
     const ingredientsHTML = buildOrderIngredientsSectionHTML(ingredients, 'recap');
 
+    // Build dropdown options
+    const dropdownOptionsHTML = DROPDOWN_STATUSES.map(statusKey => {
+        const optionMeta = getStatusMeta(statusKey);
+        const isSelected = currentStatus === statusKey;
+        return `
+            <button 
+                type="button"
+                class="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-700/50 transition-colors ${isSelected ? 'bg-slate-700/30 font-medium' : ''}"
+                data-action="select-status"
+                data-status="${statusKey}"
+                data-order-id="${id}"
+                role="option"
+                aria-selected="${isSelected}"
+            >
+                <span class="material-symbols-outlined text-base ${optionMeta.textClass}">${optionMeta.icon}</span>
+                <span class="${optionMeta.textClass}">${optionMeta.label}</span>
+                ${isSelected ? '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>' : ''}
+            </button>
+        `;
+    }).join('');
+
     return `
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
+        <!-- Header with relative positioning for dropdown -->
+        <div class="relative flex items-center justify-between mb-6">
             <div class="flex items-center gap-2">
                 <span class="text-base font-bold text-white">${nickname} #${daily_number}</span>
                 <button 
                     type="button"
-                    class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full ${config.bg} ${config.color} text-[10px] font-bold uppercase tracking-widest border border-transparent hover:border-white/20 transition-colors cursor-pointer"
+                    class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full ${statusMeta.softBgClass} ${statusMeta.textClass} text-[10px] font-bold uppercase tracking-widest border border-transparent hover:border-white/20 transition-colors cursor-pointer"
                     data-action="toggle-status-dropdown"
                     aria-haspopup="listbox"
                     aria-expanded="${workServiceState.isStatusDropdownOpen}"
                     aria-label="Change order status"
                 >
-                    <span class="material-symbols-outlined text-sm">${config.icon}</span>
-                    ${config.label}
-                    <span class="material-symbols-outlined text-xs">expand_more</span>
+                    <span class="material-symbols-outlined text-sm">${statusMeta.icon}</span>
+                    ${statusMeta.label}
+                    <span class="material-symbols-outlined text-xs">${workServiceState.isStatusDropdownOpen ? 'expand_less' : 'expand_more'}</span>
                 </button>
+                
+                <!-- Status Dropdown (inside header for proper positioning) -->
+                <div 
+                    class="absolute top-full left-0 mt-1 z-[100] ${workServiceState.isStatusDropdownOpen ? '' : 'hidden'}"
+                    data-status-dropdown
+                >
+                    <div 
+                        class="w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1"
+                        role="listbox"
+                    >
+                        ${dropdownOptionsHTML}
+                    </div>
+                </div>
             </div>
             <button 
                 type="button"
@@ -122,36 +117,6 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
             >
                 <span class="material-symbols-outlined text-lg">${isExpanded ? 'expand_less' : 'expand_more'}</span>
             </button>
-        </div>
-
-        <!-- Status Dropdown -->
-        <div 
-            class="relative ${workServiceState.isStatusDropdownOpen ? '' : 'hidden'}"
-            data-status-dropdown
-        >
-            <div 
-                class="absolute top-2 left-0 z-50 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1"
-                role="listbox"
-            >
-                ${['confirmed', 'ready', 'picked_up'].map(statusKey => {
-                    const optionConfig = STATUS_CONFIG[statusKey];
-                    const isSelected = visualStatus === statusKey;
-                    return `
-                        <button 
-                            type="button"
-                            class="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-700/50 transition-colors ${isSelected ? 'bg-slate-700/30 font-medium' : ''}"
-                            data-action="select-status"
-                            data-status="${statusKey}"
-                            role="option"
-                            aria-selected="${isSelected}"
-                        >
-                            <span class="material-symbols-outlined text-base ${optionConfig.color}">${optionConfig.icon}</span>
-                            <span class="${optionConfig.color}">${optionConfig.label}</span>
-                            ${isSelected ? '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>' : ''}
-                        </button>
-                    `;
-                }).join('')}
-            </div>
         </div>
 
         <!-- Expandable Content -->
@@ -165,24 +130,107 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
             </div>
         </div>
 
-        <!-- Action Button -->
-        ${config.nextStatus ? `
+        <!-- Action Button (only if status can advance) -->
+        ${statusMeta.nextStatus ? `
             <button 
                 type="button"
                 class="w-full py-3 px-4 rounded-xl bg-primary text-white font-bold uppercase transition-colors hover:bg-primary/90"
                 data-action="change-status"
                 data-order-id="${id}"
-                data-new-status="${config.nextStatus}"
+                data-new-status="${statusMeta.nextStatus}"
             >
-                ${config.actionLabel}
+                ${statusMeta.actionLabel}
             </button>
-        ` : `
-            <div class="w-full py-3 px-4 rounded-xl bg-slate-800/50 text-slate-500 font-bold uppercase text-center">
-                Order Complete
-            </div>
-        `}
+        ` : ''}
         </div>
     `;
+}
+
+// Store callbacks globally to persist across re-renders
+let _storedCallbacks = null;
+
+/**
+ * Setup event delegation on container (ONCE)
+ * This persists across innerHTML updates
+ */
+function setupEventDelegation(container) {
+    // Check if already setup
+    if (container.dataset.delegationSetup === 'true') {
+        console.log('[WorkOrderRecapCard] 🔁 Event delegation already setup, skipping');
+        return;
+    }
+    
+    console.log('[WorkOrderRecapCard] 🎯 Setting up EVENT DELEGATION on container');
+    
+    // Mark as setup
+    container.dataset.delegationSetup = 'true';
+    
+    // Single delegated click handler for ALL buttons
+    container.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        
+        const action = target.dataset.action;
+        console.log('[WorkOrderRecapCard] 🖱️ DELEGATED CLICK:', action);
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (action === 'change-status') {
+            console.log('[WorkOrderRecapCard] 🎯 CTA BUTTON CLICKED!');
+            const orderId = parseInt(target.dataset.orderId, 10);
+            const newStatus = target.dataset.newStatus;
+            console.log('[WorkOrderRecapCard] 📊 CTA data:', { orderId, newStatus });
+            
+            if (_storedCallbacks?.onChangeStatus) {
+                console.log('[WorkOrderRecapCard] ✅ Calling onChangeStatus...');
+                _storedCallbacks.onChangeStatus(orderId, newStatus);
+            } else {
+                console.error('[WorkOrderRecapCard] ❌ No callback available!');
+            }
+        }
+        
+        if (action === 'toggle-status-dropdown') {
+            console.log('[WorkOrderRecapCard] 🎯 DROPDOWN TOGGLE CLICKED!');
+            console.log('[WorkOrderRecapCard] 📊 Current state:', workServiceState.isStatusDropdownOpen);
+            workServiceState.isStatusDropdownOpen = !workServiceState.isStatusDropdownOpen;
+            console.log('[WorkOrderRecapCard] 📊 New state:', workServiceState.isStatusDropdownOpen);
+            // Re-render needed to show/hide dropdown
+            const contentEl = container.querySelector('[data-recap-content]');
+            const order = workServiceState.orders?.find(o => o.id === workServiceState.selectedOrderId);
+            if (contentEl && order) {
+                contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
+            }
+        }
+        
+        if (action === 'select-status') {
+            console.log('[WorkOrderRecapCard] 🎯 STATUS OPTION CLICKED!');
+            const orderId = parseInt(target.dataset.orderId, 10);
+            const newStatus = target.dataset.status;
+            console.log('[WorkOrderRecapCard] 📊 Selected:', { orderId, newStatus });
+            
+            workServiceState.isStatusDropdownOpen = false;
+            
+            if (_storedCallbacks?.onChangeStatus) {
+                console.log('[WorkOrderRecapCard] ✅ Calling onChangeStatus...');
+                _storedCallbacks.onChangeStatus(orderId, newStatus);
+            } else {
+                console.error('[WorkOrderRecapCard] ❌ No callback available!');
+            }
+        }
+        
+        if (action === 'toggle-recap-expansion') {
+            console.log('[WorkOrderRecapCard] 🎯 EXPANSION TOGGLE CLICKED!');
+            workServiceState.recapCardExpanded = !workServiceState.recapCardExpanded;
+            const contentEl = container.querySelector('[data-recap-content]');
+            const order = workServiceState.orders?.find(o => o.id === workServiceState.selectedOrderId);
+            if (contentEl && order) {
+                contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
+            }
+        }
+    });
+    
+    console.log('[WorkOrderRecapCard] ✅ Event delegation setup complete');
 }
 
 /**
@@ -197,6 +245,13 @@ export function renderWorkOrderRecapCard(container, order, callbacks) {
         console.warn('[WorkOrderRecapCard] Container is null');
         return;
     }
+    
+    // Store callbacks for event delegation
+    _storedCallbacks = callbacks;
+    console.log('[WorkOrderRecapCard] 📦 Stored callbacks:', !!callbacks?.onChangeStatus);
+    
+    // Setup event delegation ONCE
+    setupEventDelegation(container);
 
     // Check if recap card should be visible
     if (!workServiceState.recapCardVisible) {
@@ -224,60 +279,6 @@ export function renderWorkOrderRecapCard(container, order, callbacks) {
     if (contentEl) {
         contentEl.classList.remove('hidden');
         contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
-
-        // Event listener for action button
-        const actionBtn = contentEl.querySelector('[data-action="change-status"]');
-        if (actionBtn && callbacks?.onChangeStatus) {
-            actionBtn.addEventListener('click', () => {
-                const orderId = parseInt(actionBtn.dataset.orderId, 10);
-                const newStatus = actionBtn.dataset.newStatus;
-                callbacks.onChangeStatus(orderId, newStatus);
-            });
-        }
-
-        // Event listener for toggle expansion button
-        const toggleBtn = contentEl.querySelector('[data-action="toggle-recap-expansion"]');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                workServiceState.recapCardExpanded = !workServiceState.recapCardExpanded;
-                // Re-render to update the expansion state
-                renderWorkOrderRecapCard(container, order, callbacks);
-                console.log(`[WorkOrderRecapCard] Recap card ${workServiceState.recapCardExpanded ? 'expanded' : 'collapsed'}`);
-            });
-        }
-
-        // Event listener for status dropdown toggle
-        const dropdownBtn = contentEl.querySelector('[data-action="toggle-status-dropdown"]');
-        if (dropdownBtn) {
-            dropdownBtn.addEventListener('click', () => {
-                workServiceState.isStatusDropdownOpen = !workServiceState.isStatusDropdownOpen;
-                renderWorkOrderRecapCard(container, order, callbacks);
-            });
-        }
-
-        // Event listeners for status options
-        const statusOptions = contentEl.querySelectorAll('[data-action="select-status"]');
-        statusOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                const newStatus = option.dataset.status;
-                workServiceState.selectedOrderStatus = newStatus;
-                workServiceState.isStatusDropdownOpen = false;
-                renderWorkOrderRecapCard(container, order, callbacks);
-            });
-        });
-
-        // Close dropdown on outside click if open
-        if (workServiceState.isStatusDropdownOpen) {
-            const handleOutsideClick = (e) => {
-                if (!contentEl.contains(e.target)) {
-                    workServiceState.isStatusDropdownOpen = false;
-                    renderWorkOrderRecapCard(container, order, callbacks);
-                    document.removeEventListener('click', handleOutsideClick);
-                }
-            };
-            // Delay to avoid immediate trigger on button click
-            setTimeout(() => document.addEventListener('click', handleOutsideClick), 0);
-        }
     }
 
     console.log(`[WorkOrderRecapCard] Rendered order #${order.daily_number}`);

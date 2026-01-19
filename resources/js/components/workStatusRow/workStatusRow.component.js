@@ -22,29 +22,21 @@
 
 import { buildWorkOrderCardHTML } from '../workOrderCard/workOrderCard.component.js';
 import { renderWorkOrderCard } from '../workOrderCard/workOrderCard.component.js';
+import { ORDER_STATUS_CONFIG, getStatusMeta } from '../../config/orderStatus.config.js';
 
 // Registry per tracciare i listener già registrati
 // Previene registrazione multipla di listener sullo stesso container
 const listenerRegistry = new WeakMap();
 
-// Status configuration
-const STATUS_CONFIG = {
+// Status row configuration (empty messages)
+const STATUS_ROW_CONFIG = {
     confirmed: {
-        label: 'Confirmed',
-        icon: 'schedule',
-        color: 'text-blue-500',
         emptyMessage: 'No confirmed orders',
     },
     ready: {
-        label: 'Ready',
-        icon: 'check_circle',
-        color: 'text-emerald-500',
         emptyMessage: 'No ready orders',
     },
     picked_up: {
-        label: 'Picked Up',
-        icon: 'verified',
-        color: 'text-slate-400',
         emptyMessage: 'No picked up orders',
     },
 };
@@ -65,8 +57,9 @@ export function renderWorkStatusRow(container, props, callbacks) {
     const { status, orders, selectedOrderId } = props;
     const { onSelectOrder, onChangeStatus } = callbacks || {};
 
-    const config = STATUS_CONFIG[status];
-    if (!config) {
+    const statusMeta = getStatusMeta(status);
+    const rowConfig = STATUS_ROW_CONFIG[status];
+    if (!rowConfig) {
         console.warn(`[WorkStatusRow] Unknown status: ${status}`);
         return;
     }
@@ -92,7 +85,7 @@ export function renderWorkStatusRow(container, props, callbacks) {
         ordersContainer.innerHTML = `
             <div class="col-span-full py-8 text-center">
                 <span class="material-symbols-outlined text-3xl text-slate-600 mb-2 block">inbox</span>
-                <p class="text-slate-500 text-sm">${config.emptyMessage}</p>
+                <p class="text-slate-500 text-sm">${rowConfig.emptyMessage}</p>
             </div>
         `;
         return;

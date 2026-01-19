@@ -29,8 +29,9 @@
 import { workServiceView } from './adminWorkService.view.js';
 import { workServiceState, mutateLoading } from './adminWorkService.state.js';
 import { hydrateUserFromDOM, hydrateSchedulerFromDOM, refreshWorkServiceState, pollRefresh } from './adminWorkService.hydration.js';
-import { closeRecapModal } from './adminWorkService.actions.js';
-import { renderWorkServicePage, renderCurrentTime } from './adminWorkService.render.js';
+import { closeRecapModal, changeStatus } from './adminWorkService.actions.js';
+import { renderWorkServicePage, renderCurrentTime, renderRecapCard } from './adminWorkService.render.js';
+import { buildWorkOrderRecapCardHTML } from '../../components/workOrderRecapCard/workOrderRecapCard.component.js';
 
 // Polling interval ID (globale per cleanup)
 let pollingIntervalId = null;
@@ -171,31 +172,110 @@ function cleanup() {
  * - Open/Close sidebar (mobile)
  * - Toggle recap mobile
  * - Chiusura modal recap (mobile)
+ * - CAMBIO STATO ORDINE (CTA + dropdown)
  * - Altri eventi globali
  */
 function registerGlobalEventDelegation() {
-    const page = workServiceView.page;
-    if (!page) return;
+    // Use DOCUMENT level delegation to ALWAYS catch clicks
+    document.addEventListener('click', (event) => {
+        const target = event.target.closest('[data-action]');
+        
+        if (!target) return;
+        
+        const action = target.dataset.action;
+        
+        console.log('[AdminWorkService] 🖱️ GLOBAL CLICK DETECTED:', action);
 
-    page.addEventListener('click', (event) => {
-        const target = event.target;
+        // ============ RECAP CARD ACTIONS ============
+        
+        // CTA: Change status button (Mark Ready, Mark Picked Up)
+        if (action === 'change-status') {
+            console.log('[AdminWorkService] 🎯 CTA BUTTON - change-status');
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const orderId = parseInt(target.dataset.orderId, 10);
+            const newStatus = target.dataset.newStatus;
+            
+            console.log('[AdminWorkService] 📊 CTA data:', { orderId, newStatus });
+            
+            if (orderId && newStatus) {
+                console.log('[AdminWorkService] ✅ Calling changeStatus...');
+                changeStatus(orderId, newStatus);
+            } else {
+                console.error('[AdminWorkService] ❌ Missing orderId or newStatus');
+            }
+            return;
+        }
+        
+        // Dropdown toggle
+        if (action === 'toggle-status-dropdown') {
+            console.log('[AdminWorkService] 🎯 DROPDOWN TOGGLE clicked');
+            event.preventDefault();
+            event.stopPropagation();
+            
+            workServiceState.isStatusDropdownOpen = !workServiceState.isStatusDropdownOpen;
+            console.log('[AdminWorkService] 📊 Dropdown state now:', workServiceState.isStatusDropdownOpen);
+            
+            // Re-render recap card to show/hide dropdown
+            renderRecapCard();
+            return;
+        }
+        
+        // Status selection from dropdown
+        if (action === 'select-status') {
+            console.log('[AdminWorkService] 🎯 STATUS OPTION selected');
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const orderId = parseInt(target.dataset.orderId, 10);
+            const newStatus = target.dataset.status;
+            
+            console.log('[AdminWorkService] 📊 Selected:', { orderId, newStatus });
+            
+            workServiceState.isStatusDropdownOpen = false;
+            
+            if (orderId && newStatus) {
+                console.log('[AdminWorkService] ✅ Calling changeStatus...');
+                changeStatus(orderId, newStatus);
+            } else {
+                console.error('[AdminWorkService] ❌ Missing orderId or newStatus');
+            }
+            return;
+        }
+        
+        // Recap expansion toggle
+        if (action === 'toggle-recap-expansion') {
+            console.log('[AdminWorkService] 🎯 EXPANSION TOGGLE clicked');
+            event.preventDefault();
+            event.stopPropagation();
+            
+            workServiceState.recapCardExpanded = !workServiceState.recapCardExpanded;
+            console.log('[AdminWorkService] 📊 Expanded state now:', workServiceState.recapCardExpanded);
+            
+            // Re-render recap card
+            renderRecapCard();
+            return;
+        }
+
+        // ============ SIDEBAR ACTIONS ============
 
         // Open sidebar (hamburger)
-        if (target.closest('[data-action="open-sidebar"]')) {
+        if (action === 'open-sidebar') {
             event.preventDefault();
             openSidebar();
             return;
         }
 
         // Close sidebar
-        if (target.closest('[data-action="close-sidebar"]')) {
+        if (action === 'close-sidebar') {
             event.preventDefault();
             closeSidebar();
             return;
         }
 
         // Close recap modal (legacy, kept for compatibility)
-        if (target.closest('[data-action="close-recap"]')) {
+        if (action === 'close-recap') {
             event.preventDefault();
             closeRecapModal();
             return;

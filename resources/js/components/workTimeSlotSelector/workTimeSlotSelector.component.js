@@ -19,6 +19,7 @@
 
 import { buildWorkTimeSlotCardHTML } from '../workTimeSlotCard/workTimeSlotCard.component.js';
 import { listen } from '../../utils/dom.js';
+import { ORDER_STATUS_CONFIG } from '../../config/orderStatus.config.js';
 
 /**
  * Render work time slot selector
@@ -74,15 +75,15 @@ export function renderWorkTimeSlotSelector(container, props, callbacks) {
             </span>
             <div class="flex items-center gap-3 text-[10px] uppercase tracking-wider mt-2">
                 <span class="flex items-center gap-1">
-                    <span class="size-2 rounded-full bg-blue-500"></span>
+                    <span class="size-2 rounded-full ${ORDER_STATUS_CONFIG.confirmed.dotClass}"></span>
                     ${totalCounts.confirmed}
                 </span>
                 <span class="flex items-center gap-1">
-                    <span class="size-2 rounded-full bg-emerald-500"></span>
+                    <span class="size-2 rounded-full ${ORDER_STATUS_CONFIG.ready.dotClass}"></span>
                     ${totalCounts.ready}
                 </span>
                 <span class="flex items-center gap-1">
-                    <span class="size-2 rounded-full bg-slate-400"></span>
+                    <span class="size-2 rounded-full ${ORDER_STATUS_CONFIG.picked_up.dotClass}"></span>
                     ${totalCounts.picked_up}
                 </span>
             </div>

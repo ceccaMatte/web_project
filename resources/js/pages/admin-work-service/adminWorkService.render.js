@@ -57,7 +57,8 @@ export function renderScheduler() {
     const container = workServiceView.schedulerSection;
     if (!container) return;
 
-    const { selectDay } = getCallbacks();
+    const callbacks = getCallbacks();
+    const selectDay = callbacks?.selectDay || (() => console.warn('[Render] selectDay callback not ready'));
 
     renderWeekScheduler(container, {
         monthLabel: workServiceState.monthLabel,
@@ -74,7 +75,8 @@ export function renderTimeSlotSelector() {
     const container = workServiceView.timeSlotsSection;
     if (!container) return;
 
-    const { selectTimeSlot } = getCallbacks();
+    const callbacks = getCallbacks();
+    const selectTimeSlot = callbacks?.selectTimeSlot || (() => console.warn('[Render] selectTimeSlot callback not ready'));
 
     // Preserve scroll position by finding the topmost visible slot
     const scrollContainer = container.querySelector('.flex.overflow-x-auto');
@@ -115,7 +117,11 @@ export function renderTimeSlotSelector() {
  */
 export function renderOrdersPipeline() {
     const { confirmed, ready, picked_up } = getOrdersByStatus();
-    const { selectOrder, changeStatus } = getCallbacks();
+    const callbacks = getCallbacks();
+    
+    // Fallback if callbacks not loaded yet
+    const selectOrder = callbacks?.selectOrder || (() => console.warn('[Render] selectOrder callback not ready'));
+    const changeStatus = callbacks?.changeStatus || (() => console.warn('[Render] changeStatus callback not ready'));
 
     // Render each status row
     renderWorkStatusRow(workServiceView.confirmedRow, {
@@ -151,7 +157,17 @@ export function renderOrdersPipeline() {
  */
 export function renderRecapCard() {
     const selectedOrder = getSelectedOrder();
-    const { changeStatus } = getCallbacks();
+    const callbacks = getCallbacks();
+    
+    console.log('[WorkServiceRender] 🔍 renderRecapCard called');
+    console.log('[WorkServiceRender] 📊 callbacks object:', callbacks);
+    console.log('[WorkServiceRender] 📊 callbacks.changeStatus exists?', !!callbacks?.changeStatus);
+    console.log('[WorkServiceRender] 📊 callbacks.changeStatus type:', typeof callbacks?.changeStatus);
+    
+    // Fallback if callbacks not loaded yet
+    const changeStatus = callbacks?.changeStatus || (() => console.warn('[Render] changeStatus callback not ready'));
+    
+    console.log('[WorkServiceRender] 📊 Final changeStatus function type:', typeof changeStatus);
 
     // Desktop sidebar recap
     renderWorkOrderRecapCard(workServiceView.recapCard, selectedOrder, {
@@ -255,42 +271,42 @@ export function toggleRecapModal(show) {
 // ============================================================================
 
 /**
- * Lazy-loaded callbacks to avoid circular imports
+ * Cached callbacks - loaded once
  */
 let _callbacks = null;
+let _callbacksPromise = null;
 
+/**
+ * Get callbacks synchronously (after initialization)
+ * Returns null if not yet loaded
+ */
 function getCallbacks() {
-    if (!_callbacks) {
-        // Import actions module lazily
-        import('./adminWorkService.actions.js').then(module => {
+    return _callbacks;
+}
+
+/**
+ * Ensure callbacks are loaded - call this before using getCallbacks()
+ */
+async function ensureCallbacksLoaded() {
+    if (_callbacks) return _callbacks;
+    
+    if (!_callbacksPromise) {
+        _callbacksPromise = import('./adminWorkService.actions.js').then(module => {
             _callbacks = {
                 selectDay: module.selectDay,
                 selectTimeSlot: module.selectTimeSlot,
                 selectOrder: module.selectOrder,
                 changeStatus: module.changeStatus,
             };
+            console.log('[WorkServiceRender] Callbacks loaded successfully');
+            return _callbacks;
         });
-
-        // Return placeholder callbacks for first render
-        return {
-            selectDay: () => {},
-            selectTimeSlot: () => {},
-            selectOrder: () => {},
-            changeStatus: () => {},
-        };
     }
-
-    return _callbacks;
+    
+    return _callbacksPromise;
 }
 
-// Initialize callbacks immediately
-import('./adminWorkService.actions.js').then(module => {
-    _callbacks = {
-        selectDay: module.selectDay,
-        selectTimeSlot: module.selectTimeSlot,
-        selectOrder: module.selectOrder,
-        changeStatus: module.changeStatus,
-    };
-});
+// Initialize callbacks immediately on module load
+ensureCallbacksLoaded();
 
 export default { renderWorkServicePage, renderCurrentTime };

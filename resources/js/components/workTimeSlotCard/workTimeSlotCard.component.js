@@ -17,6 +17,8 @@
  * buildWorkTimeSlotCardHTML({ id, start_time, end_time, counts, isSelected })
  */
 
+import { ORDER_STATUS_CONFIG, ORDER_STATUS } from '../../config/orderStatus.config.js';
+
 /**
  * Build HTML for work time slot card
  * 
@@ -48,8 +50,8 @@ export function buildWorkTimeSlotCardHTML(slot) {
                 aria-label="Time slot ${timeLabel}, ${totalOrders} orders, selected"
             >
                 ${pendingCount > 0 ? `
-                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500 border border-orange-400 shadow-sm">
-                    <span class="material-symbols-outlined text-white text-[14px] fill-1">warning</span>
+                <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 border border-amber-400 shadow-sm">
+                    <span class="material-symbols-outlined text-white text-[14px] fill-1">${ORDER_STATUS_CONFIG.pending.icon}</span>
                     <span class="text-[11px] font-black text-white">${pendingCount}</span>
                 </div>
                 ` : ''}
@@ -62,16 +64,16 @@ export function buildWorkTimeSlotCardHTML(slot) {
                 </div>
                 
                 <div class="flex items-center gap-1.5">
-                    <div class="flex-1 flex items-center justify-center gap-2 bg-white/15 rounded-xl py-2 border border-white/10">
-                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">task_alt</span>
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-blue-500/30 rounded-xl py-2 border border-blue-400/30">
+                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">${ORDER_STATUS_CONFIG.confirmed.icon}</span>
                         <span class="text-[12px] font-black text-white leading-none">${confirmedCount}</span>
                     </div>
                     <div class="flex-1 flex items-center justify-center gap-2 bg-emerald-500/30 rounded-xl py-2 border border-emerald-400/30">
-                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">check_circle</span>
+                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">${ORDER_STATUS_CONFIG.ready.icon}</span>
                         <span class="text-[12px] font-black text-white leading-none">${readyCount}</span>
                     </div>
-                    <div class="flex-1 flex items-center justify-center gap-2 bg-white/10 rounded-xl py-2 border border-white/5 ${pickedUpCount === 0 ? 'opacity-50' : ''}">
-                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">shopping_bag</span>
+                    <div class="flex-1 flex items-center justify-center gap-2 bg-slate-500/30 rounded-xl py-2 border border-slate-400/30 ${pickedUpCount === 0 ? 'opacity-50' : ''}">
+                        <span class="material-symbols-outlined text-white text-[16px] opacity-80">${ORDER_STATUS_CONFIG.picked_up.icon}</span>
                         <span class="text-[12px] font-black text-white leading-none">${pickedUpCount}</span>
                     </div>
                 </div>
@@ -90,7 +92,7 @@ export function buildWorkTimeSlotCardHTML(slot) {
             >
                 ${pendingCount > 0 ? `
                 <div class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 border border-amber-400 shadow-sm">
-                    <span class="material-symbols-outlined text-white text-[14px] fill-1">warning</span>
+                    <span class="material-symbols-outlined text-white text-[14px] fill-1">${ORDER_STATUS_CONFIG.pending.icon}</span>
                     <span class="text-[11px] font-black text-white">${pendingCount}</span>
                 </div>
                 ` : ''}
@@ -104,15 +106,15 @@ export function buildWorkTimeSlotCardHTML(slot) {
                 
                 <div class="flex items-center gap-1.5">
                     <div class="flex-1 flex items-center justify-center gap-2 bg-slate-800/50 rounded-xl py-2 border border-slate-700/50">
-                        <span class="material-symbols-outlined text-slate-400 text-[16px] opacity-80">task_alt</span>
+                        <span class="material-symbols-outlined text-blue-400 text-[16px] opacity-80">${ORDER_STATUS_CONFIG.confirmed.icon}</span>
                         <span class="text-[12px] font-black text-slate-300 leading-none">${confirmedCount}</span>
                     </div>
                     <div class="flex-1 flex items-center justify-center gap-2 bg-slate-800/50 rounded-xl py-2 border border-slate-700/50">
-                        <span class="material-symbols-outlined text-slate-400 text-[16px] opacity-80">check_circle</span>
+                        <span class="material-symbols-outlined text-emerald-400 text-[16px] opacity-80">${ORDER_STATUS_CONFIG.ready.icon}</span>
                         <span class="text-[12px] font-black text-slate-300 leading-none">${readyCount}</span>
                     </div>
                     <div class="flex-1 flex items-center justify-center gap-2 bg-slate-800/50 rounded-xl py-2 border border-slate-700/50 ${pickedUpCount === 0 ? 'opacity-50' : ''}">
-                        <span class="material-symbols-outlined text-slate-400 text-[16px] opacity-80">shopping_bag</span>
+                        <span class="material-symbols-outlined text-slate-400 text-[16px] opacity-80">${ORDER_STATUS_CONFIG.picked_up.icon}</span>
                         <span class="text-[12px] font-black text-slate-300 leading-none">${pickedUpCount}</span>
                     </div>
                 </div>
