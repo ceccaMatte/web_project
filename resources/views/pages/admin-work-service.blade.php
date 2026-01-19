@@ -205,26 +205,23 @@
         </div>
 
         {{-- ========================================
-             CONTENT AREA
-             Mobile: single column
-             Desktop: 2 columns (flex)
+             CONTENT AREA - 2 COLONNE
+             Mobile: single column (time slot, then orders)
+             Desktop: grid [1fr, 420px] (time slot + orders sx, recap dx)
              ======================================== --}}
-        <div class="lg:flex">
+        <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-6 lg:px-4 lg:py-6">
 
             {{-- ========================================
-                 MAIN COLUMN: Time Slots + Pipeline
-                 Mobile: full width
-                 Desktop: flex-1
+                 COLONNA SINISTRA: Time Slot + Rows di Stato
                  ======================================== --}}
-            <div class="lg:flex-1">
+            <div class="space-y-6">
 
                 {{-- ========================================
                      TIME SLOT SELECTOR
-                     Scroll orizzontale, card larghe ~240px
                      ======================================== --}}
                 <section 
                     data-timeslot-selector-container
-                    class="px-4 py-6 border-b border-slate-800/50"
+                    class="px-4 py-6 border-b border-slate-800/50 lg:px-0 lg:py-0 lg:border-b-0"
                     aria-label="{{ config('ui.admin_work_service.aria.time_slots_section') }}"
                 >
                     {{-- Popolato da JS: workTimeSlotSelector.component.js --}}
@@ -233,11 +230,11 @@
 
                 {{-- ========================================
                      ORDERS PIPELINE
-                     3 sezioni verticali su mobile
+                     Rows di stato verticali
                      ======================================== --}}
                 <section 
                     data-orders-pipeline
-                    class="px-4 py-6 space-y-3 mb-32 lg:mb-0"
+                    class="px-4 py-6 space-y-3 mb-32 lg:mb-0 lg:px-0 lg:py-0"
                 >
                     {{-- Status Row: Confirmed --}}
                     <div 
@@ -308,34 +305,33 @@
                         </div>
                     </div>
                 </section>
-
             </div>
 
             {{-- ========================================
-                 DESKTOP RECAP SIDEBAR (solo lg+)
+                 COLONNA DESTRA: Recap Card (Responsive)
+                 Mobile: fixed bottom (via data-recap-mobile)
+                 Desktop: static sidebar destra
                  ======================================== --}}
             <aside 
                 data-recap-sidebar
-                class="hidden lg:block lg:w-96 lg:border-l lg:border-slate-800 lg:bg-[#0d1117]/50"
+                class="hidden lg:block lg:sticky lg:top-24 lg:h-max lg:bg-[#0d1117]/50 lg:rounded-2xl lg:border lg:border-slate-800 lg:p-6"
             >
-                <div class="sticky top-[200px] p-6">
-                    <div 
-                        data-recap-card
-                        class="bg-slate-900/50 rounded-2xl p-6 overflow-visible"
-                    >
-                        {{-- Empty state iniziale --}}
-                        <div class="text-center py-12" data-recap-empty>
-                            <span class="material-symbols-outlined text-4xl text-slate-600 mb-3 block">
-                                touch_app
-                            </span>
-                            <p class="text-slate-500 text-sm">
-                                Select an order to see details
-                            </p>
-                        </div>
-                        {{-- Contenuto ordine (nascosto inizialmente) --}}
-                        <div data-recap-content class="hidden">
-                            {{-- Popolato da JS: workOrderRecapCard.component.js --}}
-                        </div>
+                <div 
+                    data-recap-card
+                    class="bg-slate-900/50 rounded-2xl p-6 overflow-visible"
+                >
+                    {{-- Empty state iniziale --}}
+                    <div class="text-center py-12" data-recap-empty>
+                        <span class="material-symbols-outlined text-4xl text-slate-600 mb-3 block">
+                            touch_app
+                        </span>
+                        <p class="text-slate-500 text-sm">
+                            Select an order to see details
+                        </p>
+                    </div>
+                    {{-- Contenuto ordine (nascosto inizialmente) --}}
+                    <div data-recap-content class="hidden">
+                        {{-- Popolato da JS: workOrderRecapCard.component.js --}}
                     </div>
                 </div>
             </aside>
