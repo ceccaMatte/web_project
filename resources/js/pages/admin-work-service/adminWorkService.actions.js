@@ -117,6 +117,13 @@ export function selectOrder(orderId) {
     
     mutateSelectedOrder(orderId);
     
+    // Set visual status for dropdown
+    const selectedOrder = workServiceState.orders.find(o => o.id === orderId);
+    if (selectedOrder) {
+        workServiceState.selectedOrderStatus = selectedOrder.status;
+        workServiceState.isStatusDropdownOpen = false; // Close dropdown if open
+    }
+    
     // Show mobile recap on mobile devices
     if (window.innerWidth < 1024) {
         showMobileRecap();

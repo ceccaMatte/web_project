@@ -125,6 +125,20 @@ export const workServiceState = {
     recapCardExpanded: true,
 
     /**
+     * Selected Order Status for Visual Dropdown
+     * 
+     * Current status displayed in the dropdown (visual only)
+     */
+    selectedOrderStatus: null,
+
+    /**
+     * Status Dropdown Open State
+     * 
+     * true = dropdown aperto, false = dropdown chiuso
+     */
+    isStatusDropdownOpen: false,
+
+    /**
      * Loading state
      */
     isLoading: true,

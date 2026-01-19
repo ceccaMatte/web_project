@@ -25,6 +25,7 @@ import { workServiceState } from '../../pages/admin-work-service/adminWorkServic
 const STATUS_CONFIG = {
     pending: {
         label: 'Pending',
+        icon: 'schedule',
         color: 'text-amber-500',
         bg: 'bg-amber-500/10',
         nextStatus: 'confirmed',
@@ -32,6 +33,7 @@ const STATUS_CONFIG = {
     },
     confirmed: {
         label: 'Confirmed',
+        icon: 'check_circle',
         color: 'text-blue-500',
         bg: 'bg-blue-500/10',
         nextStatus: 'ready',
@@ -39,6 +41,7 @@ const STATUS_CONFIG = {
     },
     ready: {
         label: 'Ready',
+        icon: 'schedule',
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
         nextStatus: 'picked_up',
@@ -46,6 +49,7 @@ const STATUS_CONFIG = {
     },
     picked_up: {
         label: 'Picked Up',
+        icon: 'done_all',
         color: 'text-slate-400',
         bg: 'bg-slate-500/10',
         nextStatus: null,
@@ -53,6 +57,7 @@ const STATUS_CONFIG = {
     },
     rejected: {
         label: 'Rejected',
+        icon: 'cancel',
         color: 'text-rose-500',
         bg: 'bg-rose-500/10',
         nextStatus: null,
@@ -79,7 +84,9 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
 
     const { id, daily_number, status, time_slot, user, ingredients, created_at } = order;
 
-    const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+    // Use visual status for display (from dropdown selection)
+    const visualStatus = workServiceState.selectedOrderStatus || status;
+    const config = STATUS_CONFIG[visualStatus] || STATUS_CONFIG.pending;
     const nickname = user?.nickname || 'Unknown';
     const timeLabel = time_slot 
         ? `${formatTime(time_slot.start_time)} - ${formatTime(time_slot.end_time)}`
@@ -93,9 +100,18 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-2">
                 <span class="text-base font-bold text-white">${nickname} #${daily_number}</span>
-                <span class="inline-block px-2 py-0.5 rounded-full ${config.bg} ${config.color} text-[10px] font-bold uppercase tracking-widest">
+                <button 
+                    type="button"
+                    class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full ${config.bg} ${config.color} text-[10px] font-bold uppercase tracking-widest border border-transparent hover:border-white/20 transition-colors cursor-pointer"
+                    data-action="toggle-status-dropdown"
+                    aria-haspopup="listbox"
+                    aria-expanded="${workServiceState.isStatusDropdownOpen}"
+                    aria-label="Change order status"
+                >
+                    <span class="material-symbols-outlined text-sm">${config.icon}</span>
                     ${config.label}
-                </span>
+                    <span class="material-symbols-outlined text-xs">expand_more</span>
+                </button>
             </div>
             <button 
                 type="button"
@@ -106,6 +122,36 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
             >
                 <span class="material-symbols-outlined text-lg">${isExpanded ? 'expand_less' : 'expand_more'}</span>
             </button>
+        </div>
+
+        <!-- Status Dropdown -->
+        <div 
+            class="relative ${workServiceState.isStatusDropdownOpen ? '' : 'hidden'}"
+            data-status-dropdown
+        >
+            <div 
+                class="absolute top-2 left-0 z-50 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1"
+                role="listbox"
+            >
+                ${['confirmed', 'ready', 'picked_up'].map(statusKey => {
+                    const optionConfig = STATUS_CONFIG[statusKey];
+                    const isSelected = visualStatus === statusKey;
+                    return `
+                        <button 
+                            type="button"
+                            class="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-700/50 transition-colors ${isSelected ? 'bg-slate-700/30 font-medium' : ''}"
+                            data-action="select-status"
+                            data-status="${statusKey}"
+                            role="option"
+                            aria-selected="${isSelected}"
+                        >
+                            <span class="material-symbols-outlined text-base ${optionConfig.color}">${optionConfig.icon}</span>
+                            <span class="${optionConfig.color}">${optionConfig.label}</span>
+                            ${isSelected ? '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>' : ''}
+                        </button>
+                    `;
+                }).join('')}
+            </div>
         </div>
 
         <!-- Expandable Content -->
@@ -198,6 +244,39 @@ export function renderWorkOrderRecapCard(container, order, callbacks) {
                 renderWorkOrderRecapCard(container, order, callbacks);
                 console.log(`[WorkOrderRecapCard] Recap card ${workServiceState.recapCardExpanded ? 'expanded' : 'collapsed'}`);
             });
+        }
+
+        // Event listener for status dropdown toggle
+        const dropdownBtn = contentEl.querySelector('[data-action="toggle-status-dropdown"]');
+        if (dropdownBtn) {
+            dropdownBtn.addEventListener('click', () => {
+                workServiceState.isStatusDropdownOpen = !workServiceState.isStatusDropdownOpen;
+                renderWorkOrderRecapCard(container, order, callbacks);
+            });
+        }
+
+        // Event listeners for status options
+        const statusOptions = contentEl.querySelectorAll('[data-action="select-status"]');
+        statusOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const newStatus = option.dataset.status;
+                workServiceState.selectedOrderStatus = newStatus;
+                workServiceState.isStatusDropdownOpen = false;
+                renderWorkOrderRecapCard(container, order, callbacks);
+            });
+        });
+
+        // Close dropdown on outside click if open
+        if (workServiceState.isStatusDropdownOpen) {
+            const handleOutsideClick = (e) => {
+                if (!contentEl.contains(e.target)) {
+                    workServiceState.isStatusDropdownOpen = false;
+                    renderWorkOrderRecapCard(container, order, callbacks);
+                    document.removeEventListener('click', handleOutsideClick);
+                }
+            };
+            // Delay to avoid immediate trigger on button click
+            setTimeout(() => document.addEventListener('click', handleOutsideClick), 0);
         }
     }
 
