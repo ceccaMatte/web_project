@@ -15,17 +15,18 @@ use Carbon\Carbon;
 
 /**
  * SEEDER PER DATI DI TEST
- * 
+ *
  * Popola il database con dati realistici per sviluppo locale.
- * 
+ *
  * ✅ Crea:
  * - 3 utenti (1 loggabile principale, 2 aggiuntivi)
  * - Ingredienti per categoria (bread, meat, cheese, vegetable, sauce)
- * - WorkingDay per oggi e ieri (con time slots)
- * - Ordini attivi per oggi (pending, confirmed, ready)
- * - Ordini storici per ieri (picked_up, rejected)
+ * - 7 WorkingDay (3 giorni passati + 4 giorni attivi) con orari 08:00-20:00
+ * - Time slots: 48 slot/giorno (15 minuti ciascuno)
+ * - Ordini distribuiti: ~350+ ordini totali (~50+ per giorno)
+ * - Stati ordini realistici (pending, confirmed, ready, picked_up, rejected)
  * - Preferiti per testare il toggle
- * 
+ *
  * 🔐 CREDENZIALI DI TEST:
  * - Email: mario@test.it
  * - Password: password
@@ -94,139 +95,83 @@ class TestDataSeeder extends Seeder
         echo "✅ Creati " . count($ingredients) . " ingredienti\n";
 
         // ============================================
-        // 3️⃣  CREA WORKING DAY IERI (per ordini storici)
+        // 3️⃣  CREA WORKING DAYS (7 giorni con orari 8:00-20:00)
         // ============================================
-        
-        $yesterday = now()->subDay()->toDateString();
-        $yesterdayWorkingDay = WorkingDay::create([
-            'day' => $yesterday,
-            'location' => 'Piazza Centrale - Engineering Hub',
-            'max_orders' => 20,
-            'max_time' => 30,
-            'start_time' => '11:00',
-            'end_time' => '13:00',
-            'is_active' => false, // ieri è passato
-        ]);
 
-        echo "✅ Creato WorkingDay per ieri: {$yesterday}\n";
+        $workingDays = [];
+        $users = [$userMario, $userLuigi, $userAdmin];
 
-        $yesterdaySlots = $this->createTimeSlots($yesterdayWorkingDay, '11:00', '12:30', 15);
-        echo "✅ Creati " . count($yesterdaySlots) . " time slots per ieri\n";
+        // Crea 7 giorni lavorativi (da 3 giorni fa a 3 giorni avanti)
+        for ($i = -3; $i <= 3; $i++) {
+            $date = now()->addDays($i)->toDateString();
+            $isActive = $i >= 0; // Giorni passati non attivi
 
-        // ============================================
-        // 4️⃣  CREA WORKING DAY OGGI (18/01/2026 con orari 11:00-20:00 per test)
-        // ============================================
-        
-        $today = now()->toDateString();
-        $todayWorkingDay = WorkingDay::create([
-            'day' => $today,
-            'location' => 'Piazza Centrale - Engineering Hub',
-            'max_orders' => 20,
-            'max_time' => 30,
-            'start_time' => '11:00',
-            'end_time' => '20:00',
-            'is_active' => true,
-        ]);
+            $workingDay = WorkingDay::create([
+                'day' => $date,
+                'location' => 'Piazza Centrale - Engineering Hub',
+                'max_orders' => 100, // Aumentato per supportare più ordini
+                'max_time' => 30,
+                'start_time' => '08:00',
+                'end_time' => '20:00',
+                'is_active' => $isActive,
+            ]);
 
-        echo "✅ Creato WorkingDay per oggi: {$today} (11:00-20:00 per test)\n";
+            $workingDays[] = $workingDay;
 
-        $todaySlots = $this->createTimeSlots($todayWorkingDay, '11:00', '19:45', 15);
-        echo "✅ Creati " . count($todaySlots) . " time slots per oggi\n";
+            // Genera time slots per ogni giorno (8:00-20:00 = 48 slots)
+            $slots = $this->createTimeSlots($workingDay, '08:00', '19:45', 15);
+            echo "✅ Creato WorkingDay {$date}: 08:00-20:00 ({$workingDay->timeSlots()->count()} slots)\n";
+        }
+
+        echo "✅ Creati 7 giorni lavorativi con orari 08:00-20:00\n";
 
         // ============================================
-        // 5️⃣  CREA WORKING DAY DOMANI
+        // 6️⃣  CREA ORDINI DISTRIBUITI (almeno 50 per giorno)
         // ============================================
-        
-        $tomorrow = now()->addDay()->toDateString();
-        $tomorrowWorkingDay = WorkingDay::create([
-            'day' => $tomorrow,
-            'location' => 'Piazza Centrale - Engineering Hub',
-            'max_orders' => 20,
-            'max_time' => 30,
-            'start_time' => '11:00',
-            'end_time' => '13:00',
-            'is_active' => true,
-        ]);
 
-        echo "✅ Creato WorkingDay per domani: {$tomorrow}\n";
+        $totalOrders = 0;
 
-        $tomorrowSlots = $this->createTimeSlots($tomorrowWorkingDay, '11:00', '12:30', 15);
-        echo "✅ Creati " . count($tomorrowSlots) . " time slots per domani\n";
+        // Per ogni giorno lavorativo
+        foreach ($workingDays as $index => $workingDay) {
+            $daySlots = $workingDay->timeSlots;
+            $isPast = $index < 3; // Primi 3 giorni sono passati
 
-        // ============================================
-        // 6️⃣  CREA ORDINI STORICI (ieri - picked_up)
-        // ============================================
-        
-        // Ordine storico 1: Mario - Panino Classico (picked_up)
-        $order1 = $this->createOrderWithIngredients(
-            $userMario, 
-            $yesterdaySlots[0], 
-            $yesterdayWorkingDay, 
-            'picked_up',
-            ['Ciabatta', 'Prosciutto Cotto', 'Mozzarella', 'Lattuga', 'Maionese']
-        );
+            // Target: almeno 50 ordini per giorno
+            $targetOrders = 50;
+            $ordersCreated = 0;
 
-        // Ordine storico 2: Mario - Panino Vegetariano (picked_up)
-        $order2 = $this->createOrderWithIngredients(
-            $userMario, 
-            $yesterdaySlots[1], 
-            $yesterdayWorkingDay, 
-            'picked_up',
-            ['Pane Integrale', 'Mozzarella', 'Pomodoro', 'Basilico', 'Olio EVO']
-        );
+            // Distribuisci ordini sui time slots
+            foreach ($daySlots as $slotIndex => $timeSlot) {
+                // Calcola quanti ordini per questo slot (distribuzione non uniforme)
+                $slotOrders = $this->calculateOrdersForSlot($slotIndex, count($daySlots), $targetOrders);
+                $ordersCreated += $slotOrders;
 
-        // Ordine storico 3: Mario - Panino rifiutato (rejected)
-        $this->createOrderWithIngredients(
-            $userMario, 
-            $yesterdaySlots[2], 
-            $yesterdayWorkingDay, 
-            'rejected',
-            ['Focaccia', 'Salame', 'Gorgonzola']
-        );
+                // Crea ordini per questo slot
+                for ($i = 0; $i < $slotOrders; $i++) {
+                    // Stato ordine basato sul giorno e posizione
+                    $status = $this->getOrderStatusForSlot($isPast, $slotIndex, $i);
 
-        echo "✅ Creati 3 ordini storici per ieri\n";
+                    // Utente casuale
+                    $user = $users[array_rand($users)];
 
-        // ============================================
-        // 7️⃣  CREA ORDINI ATTIVI (oggi)
-        // ============================================
-        
-        // Ordine attivo 1: Mario - Pending (modificabile)
-        $this->createOrderWithIngredients(
-            $userMario, 
-            $todaySlots[0], 
-            $todayWorkingDay, 
-            'pending',
-            ['Ciabatta', 'Prosciutto Crudo', 'Burrata', 'Rucola']
-        );
+                    // Ingredienti casuali
+                    $orderIngredients = $this->getRandomIngredients();
 
-        // Ordine attivo 2: Mario - Confirmed (in preparazione)
-        $this->createOrderWithIngredients(
-            $userMario, 
-            $todaySlots[1], 
-            $todayWorkingDay, 
-            'confirmed',
-            ['Pane Toscano', 'Porchetta', 'Pecorino', 'Salsa Verde']
-        );
+                    $this->createOrderWithIngredients(
+                        $user,
+                        $timeSlot,
+                        $workingDay,
+                        $status,
+                        $orderIngredients
+                    );
+                }
+            }
 
-        // Ordine attivo 3: Mario - Ready (pronto per ritiro)
-        $this->createOrderWithIngredients(
-            $userMario, 
-            $todaySlots[2], 
-            $todayWorkingDay, 
-            'ready',
-            ['Focaccia', 'Tonno', 'Pomodoro', 'Olive', 'Maionese']
-        );
+            $totalOrders += $ordersCreated;
+            echo "✅ Creati {$ordersCreated} ordini per {$workingDay->day->format('d/m/Y')}\n";
+        }
 
-        // Ordine Luigi: Pending
-        $this->createOrderWithIngredients(
-            $userLuigi, 
-            $todaySlots[3], 
-            $todayWorkingDay, 
-            'pending',
-            ['Ciabatta', 'Bresaola', 'Grana', 'Rucola', 'Olio EVO']
-        );
-
-        echo "✅ Creati 4 ordini attivi per oggi\n";
+        echo "✅ Creati {$totalOrders} ordini totali distribuiti sui 7 giorni\n";
 
         // ============================================
         // 8️⃣  CREA PREFERITI
@@ -265,14 +210,12 @@ class TestDataSeeder extends Seeder
         echo "║                                            ║\n";
         echo "║ 🥪 Ingredienti: " . count($ingredients) . "                        ║\n";
         echo "║                                            ║\n";
-        echo "║ 📅 Working Days: 3                         ║\n";
-        echo "║    - Ieri: " . $yesterday . "                ║\n";
-        echo "║    - Oggi: " . $today . "                   ║\n";
-        echo "║    - Domani: " . $tomorrow . "               ║\n";
+        echo "║ 📅 Working Days: 7                         ║\n";
+        echo "║    - Orari: 08:00-20:00 (48 slots/giorno) ║\n";
         echo "║                                            ║\n";
-        echo "║ 🛒 Ordini: 7                              ║\n";
-        echo "║    - Storici (ieri): 3                     ║\n";
-        echo "║    - Attivi (oggi): 4                      ║\n";
+        echo "║ 🛒 Ordini: {$totalOrders}                              ║\n";
+        echo "║    - Distribuiti su 7 giorni               ║\n";
+        echo "║    - ~50+ ordini per giorno               ║\n";
         echo "║                                            ║\n";
         echo "║ ⭐ Preferiti: 1                            ║\n";
         echo "╚════════════════════════════════════════════╝\n";
@@ -392,5 +335,105 @@ class TestDataSeeder extends Seeder
         }
 
         return $slots;
+    }
+
+    /**
+     * Calcola quanti ordini creare per un determinato slot
+     * Distribuzione non uniforme: più ordini negli orari di punta
+     */
+    private function calculateOrdersForSlot(int $slotIndex, int $totalSlots, int $targetOrders): int
+    {
+        // Distribuzione basata sull'ora del giorno (più ordini negli orari di punta)
+        $hour = 8 + floor($slotIndex / 4); // Ogni 4 slot = 1 ora
+
+        // Orari di punta: pranzo (12-14) e aperitivo (18-20)
+        if ($hour >= 12 && $hour <= 14) {
+            $weight = 1.5; // 50% più ordini
+        } elseif ($hour >= 18 && $hour <= 20) {
+            $weight = 1.3; // 30% più ordini
+        } else {
+            $weight = 0.8; // Meno ordini negli altri orari
+        }
+
+        // Calcola ordini base per slot
+        $baseOrders = ceil($targetOrders / $totalSlots * $weight);
+
+        // Aggiungi variazione casuale (±30%)
+        $variation = rand(-30, 30) / 100;
+        $finalOrders = max(0, round($baseOrders * (1 + $variation)));
+
+        return (int) $finalOrders;
+    }
+
+    /**
+     * Determina lo stato dell'ordine basato sul giorno e posizione
+     */
+    private function getOrderStatusForSlot(bool $isPast, int $slotIndex, int $orderIndex): string
+    {
+        if ($isPast) {
+            // Giorni passati: ordini completati
+            $statuses = ['picked_up', 'picked_up', 'picked_up', 'rejected'];
+            return $statuses[array_rand($statuses)];
+        } else {
+            // Giorni attivi: distribuzione realistica
+            $hour = 8 + floor($slotIndex / 4);
+
+            if ($hour < 12) {
+                // Mattina: principalmente pending
+                $statuses = ['pending', 'pending', 'confirmed'];
+            } elseif ($hour < 16) {
+                // Pomeriggio: mix di stati
+                $statuses = ['confirmed', 'confirmed', 'ready', 'pending'];
+            } else {
+                // Sera: più ready e picked_up
+                $statuses = ['ready', 'ready', 'picked_up', 'confirmed'];
+            }
+
+            return $statuses[array_rand($statuses)];
+        }
+    }
+
+    /**
+     * Restituisce ingredienti casuali per un ordine
+     */
+    private function getRandomIngredients(): array
+    {
+        $ingredients = Ingredient::all();
+
+        // Ingredienti per categoria
+        $breads = $ingredients->where('category', 'bread')->pluck('name')->toArray();
+        $meats = $ingredients->where('category', 'meat')->pluck('name')->toArray();
+        $cheeses = $ingredients->where('category', 'cheese')->pluck('name')->toArray();
+        $vegetables = $ingredients->where('category', 'vegetable')->pluck('name')->toArray();
+        $sauces = $ingredients->where('category', 'sauce')->pluck('name')->toArray();
+
+        $orderIngredients = [];
+
+        // Sempre 1 pane
+        $orderIngredients[] = $breads[array_rand($breads)];
+
+        // 0-1 carne
+        if (rand(0, 1)) {
+            $orderIngredients[] = $meats[array_rand($meats)];
+        }
+
+        // 0-1 formaggio
+        if (rand(0, 1)) {
+            $orderIngredients[] = $cheeses[array_rand($cheeses)];
+        }
+
+        // 1-3 verdure
+        $vegCount = rand(1, 3);
+        shuffle($vegetables);
+        for ($i = 0; $i < $vegCount; $i++) {
+            $orderIngredients[] = $vegetables[$i];
+        }
+
+        // 0-1 salsa
+        if (rand(0, 1)) {
+            $orderIngredients[] = $sauces[array_rand($sauces)];
+        }
+
+        return array_unique($orderIngredients);
     }
 }
