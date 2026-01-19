@@ -83,8 +83,8 @@ export function renderDayConfigCard(container, props, callbacks) {
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl ${badgeColor} border flex flex-col items-center justify-center">
-                        <span class="text-[9px] font-bold uppercase">${dayNameShort}</span>
-                        <span class="text-sm font-bold">${dayNumber}</span>
+                            <span class="text-[9px] font-bold uppercase text-white">${dayNameShort}</span>
+                            <span class="text-sm font-bold text-white">${dayNumber}</span>
                     </div>
                     <div>
                         <span class="text-sm font-bold">${dayName}</span>
@@ -113,11 +113,12 @@ export function renderDayConfigCard(container, props, callbacks) {
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="text-[10px] text-slate-500 font-bold uppercase ml-1">Start Time</label>
+                            <label class="text-[10px] text-slate-400 font-bold uppercase ml-1">Start Time</label>
                         <select 
                             data-start-time="${date}"
                             ${!isEditable ? 'disabled' : ''}
                             class="w-full bg-background-dark border border-border-dark rounded-xl text-sm font-medium 
-                                   focus:ring-primary focus:border-primary px-3 py-2.5
+                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white
                                    disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Start time for ${dayName}"
                         >
@@ -128,11 +129,12 @@ export function renderDayConfigCard(container, props, callbacks) {
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] text-slate-500 font-bold uppercase ml-1">End Time</label>
+                            <label class="text-[10px] text-slate-400 font-bold uppercase ml-1">End Time</label>
                         <select 
                             data-end-time="${date}"
                             ${!isEditable ? 'disabled' : ''}
                             class="w-full bg-background-dark border border-border-dark rounded-xl text-sm font-medium 
-                                   focus:ring-primary focus:border-primary px-3 py-2.5
+                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white
                                    disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="End time for ${dayName}"
                         >

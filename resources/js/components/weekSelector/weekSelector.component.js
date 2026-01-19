@@ -37,26 +37,26 @@ export function renderWeekSelector(container, props, callbacks) {
             <button 
                 type="button"
                 data-action="prev-week"
-                class="p-2 text-slate-400 hover:text-primary ${prevDisabledClass}"
+                class="p-2 text-slate-300 hover:text-white ${prevDisabledClass}"
                 ${!canGoPrev ? 'disabled' : ''}
                 aria-label="Go to previous week"
             >
-                <span class="material-symbols-outlined">chevron_left</span>
+                <span class="material-symbols-outlined text-white">chevron_left</span>
             </button>
             <div class="text-center">
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Current Week</p>
-                <p class="text-sm font-semibold ${isLoading ? 'animate-pulse' : ''}">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Week</p>
+                <p class="text-sm font-semibold text-white ${isLoading ? 'animate-pulse' : ''}">
                     ${isLoading ? 'Loading...' : weekLabel}
                 </p>
             </div>
             <button 
                 type="button"
                 data-action="next-week"
-                class="p-2 text-primary ${nextDisabledClass}"
+                class="p-2 text-slate-300 hover:text-white ${nextDisabledClass}"
                 ${!canGoNext ? 'disabled' : ''}
                 aria-label="Go to next week"
             >
-                <span class="material-symbols-outlined">chevron_right</span>
+                <span class="material-symbols-outlined text-white">chevron_right</span>
             </button>
         </div>
     `;

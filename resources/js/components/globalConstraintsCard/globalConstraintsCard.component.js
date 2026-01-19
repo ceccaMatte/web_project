@@ -72,8 +72,8 @@ export function renderGlobalConstraintsCard(container, props, callbacks) {
                 <!-- Max Orders Per Slot -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium">Sandwiches per Slot</p>
-                        <p class="text-[11px] text-slate-500 italic">Capacity per ${timeSlotDuration}min window</p>
+                        <p class="text-sm font-medium text-white">Sandwiches per Slot</p>
+                        <p class="text-[11px] text-slate-400 italic">Capacity per ${timeSlotDuration}min window</p>
                     </div>
                     <div class="flex items-center bg-background-dark border border-border-dark rounded-lg p-1 ${disabledClass}">
                         <button 
@@ -83,13 +83,13 @@ export function renderGlobalConstraintsCard(container, props, callbacks) {
                             ${buttonDisabledAttr}
                             aria-label="Decrease sandwiches per slot"
                         >
-                            <span class="material-symbols-outlined text-lg">remove</span>
+                            <span class="material-symbols-outlined text-lg text-white">remove</span>
                         </button>
                         <input 
                             type="number" 
                             value="${maxOrdersPerSlot}" 
                             readonly 
-                            class="w-10 bg-transparent border-none text-center text-sm font-bold focus:ring-0 p-0"
+                            class="w-10 bg-transparent border-none text-center text-sm font-bold focus:ring-0 p-0 text-white"
                             aria-label="Sandwiches per slot"
                         >
                         <button 
@@ -99,7 +99,7 @@ export function renderGlobalConstraintsCard(container, props, callbacks) {
                             ${buttonDisabledAttr}
                             aria-label="Increase sandwiches per slot"
                         >
-                            <span class="material-symbols-outlined text-lg">add</span>
+                            <span class="material-symbols-outlined text-lg text-white">add</span>
                         </button>
                     </div>
                 </div>
@@ -109,8 +109,8 @@ export function renderGlobalConstraintsCard(container, props, callbacks) {
                 <!-- Max Pending Time -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium">Order Deadline</p>
-                        <p class="text-[11px] text-slate-500 italic">Mins before slot start</p>
+                        <p class="text-sm font-medium text-white">Order Deadline</p>
+                        <p class="text-[11px] text-slate-400 italic">Mins before slot start</p>
                     </div>
                     <div class="flex items-center bg-background-dark border border-border-dark rounded-lg p-1 ${disabledClass}">
                         <button 
@@ -120,13 +120,13 @@ export function renderGlobalConstraintsCard(container, props, callbacks) {
                             ${buttonDisabledAttr}
                             aria-label="Decrease order deadline"
                         >
-                            <span class="material-symbols-outlined text-lg">remove</span>
+                            <span class="material-symbols-outlined text-lg text-white">remove</span>
                         </button>
                         <input 
                             type="number" 
                             value="${maxPendingTime}" 
                             readonly 
-                            class="w-10 bg-transparent border-none text-center text-sm font-bold focus:ring-0 p-0"
+                            class="w-10 bg-transparent border-none text-center text-sm font-bold focus:ring-0 p-0 text-white"
                             aria-label="Order deadline in minutes"
                         >
                         <button 
@@ -136,7 +136,7 @@ export function renderGlobalConstraintsCard(container, props, callbacks) {
                             ${buttonDisabledAttr}
                             aria-label="Increase order deadline"
                         >
-                            <span class="material-symbols-outlined text-lg">add</span>
+                            <span class="material-symbols-outlined text-lg text-white">add</span>
                         </button>
                     </div>
                 </div>
@@ -146,15 +146,15 @@ export function renderGlobalConstraintsCard(container, props, callbacks) {
                 <!-- Location -->
                 <div class="space-y-2">
                     <div>
-                        <p class="text-sm font-medium">Service Location</p>
-                        <p class="text-[11px] text-slate-500 italic">Where the truck operates</p>
+                        <p class="text-sm font-medium text-white">Service Location</p>
+                        <p class="text-[11px] text-slate-400 italic">Where the truck operates</p>
                     </div>
                     <input 
                         type="text"
                         data-location-input
                         value="${escapeHtml(location)}"
                         ${!isEditable ? 'disabled' : ''}
-                        class="w-full bg-background-dark border border-border-dark rounded-lg px-3 py-2 text-sm 
+                        class="w-full bg-background-dark border border-border-dark rounded-lg px-3 py-2 text-sm text-white
                                focus:ring-1 focus:ring-primary focus:border-primary
                                disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Enter service location"
