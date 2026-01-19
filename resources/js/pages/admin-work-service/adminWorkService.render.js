@@ -70,12 +70,38 @@ export function renderTimeSlotSelector() {
 
     const { selectTimeSlot } = getCallbacks();
 
+    // Preserve scroll position by finding the topmost visible slot
+    const scrollContainer = container.querySelector('.flex.overflow-x-auto');
+    let topVisibleSlotId = null;
+    if (scrollContainer) {
+        const slotElements = scrollContainer.querySelectorAll('[data-slot-id]');
+        let minDistance = Infinity;
+        for (const el of slotElements) {
+            const distance = Math.abs(el.offsetLeft - scrollContainer.scrollLeft);
+            if (distance < minDistance) {
+                minDistance = distance;
+                topVisibleSlotId = el.dataset.slotId;
+            }
+        }
+    }
+
     renderWorkTimeSlotSelector(container, {
         timeSlots: workServiceState.timeSlots,
         selectedSlotId: workServiceState.selectedTimeSlotId,
     }, {
         onSlotSelect: selectTimeSlot,
     });
+
+    // Restore scroll position to the previously visible slot
+    if (topVisibleSlotId) {
+        const newScrollContainer = container.querySelector('.flex.overflow-x-auto');
+        if (newScrollContainer) {
+            const targetEl = newScrollContainer.querySelector(`[data-slot-id="${topVisibleSlotId}"]`);
+            if (targetEl) {
+                targetEl.scrollIntoView({ block: 'nearest', inline: 'start' });
+            }
+        }
+    }
 }
 
 /**
