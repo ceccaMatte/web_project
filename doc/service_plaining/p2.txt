@@ -1,0 +1,124 @@
+ARCHITETTURA FRONTEND (VINCOLANTE)
+
+Il frontend segue un’architettura MPA moderna basata su:
+- Blade per il markup server-rendered
+- Tailwind CSS per lo stile
+- JavaScript vanilla
+- Stato centralizzato per pagina
+- Rendering unidirezionale (UI = funzione dello stato)
+
+NON devono essere utilizzati framework JS (React, Vue, Alpine, ecc.).
+
+ENTRY POINT GENERALE
+
+resources/js/app.js
+- è il bootstrap generale dell’applicazione
+- contiene un pageRegistry con dynamic import delle pagine
+- inizializza la pagina corretta leggendo un attributo data-page dal Blade
+
+Esempio concettuale (non da modificare se già esiste):
+
+- ogni Blade principale espone:
+  - data-page="service-planning"
+- app.js:
+  - risolve la pagina
+  - importa dinamicamente il suo entry point
+  - chiama la funzione di init
+
+STRUTTURA FRONTEND DELLA PAGINA “SERVICE PLANNING”
+
+Deve essere creata una cartella dedicata:
+
+resources/js/pages/service-planning/
+  index.js                      // entry point: initServicePlanningPage()
+  servicePlanning.state.js      // SSOT: solo dati, nessun DOM
+  servicePlanning.view.js       // cache dei riferimenti DOM
+  servicePlanning.api.js        // chiamate backend (fetch)
+  servicePlanning.actions.js    // handler eventi → aggiornano state
+  servicePlanning.render.js     // render UI basato sullo state
+  servicePlanning.hydration.js  // bootstrap stato iniziale da HTML/data-*
+
+RESPONSABILITÀ DEI FILE (REGOLE ASSOLUTE)
+
+- servicePlanning.state.js
+  - contiene esclusivamente lo stato della pagina
+  - nessun accesso al DOM
+  - nessuna logica di rendering
+
+- servicePlanning.view.js
+  - contiene solo querySelector e cache dei nodi DOM
+  - nessuna logica applicativa
+  - nessun dato di stato
+
+- servicePlanning.api.js
+  - contiene solo funzioni di comunicazione con il backend
+  - parsing delle risposte
+  - nessun accesso al DOM
+
+- servicePlanning.actions.js
+  - definisce gli event handler
+  - valida le azioni dell’utente
+  - aggiorna lo state
+  - richiama le funzioni di render
+
+- servicePlanning.render.js
+  - legge lo stato
+  - aggiorna il DOM in modo idempotente
+  - non muta lo stato
+
+- index.js
+  - orchestratone minimo
+  - inizializza view
+  - esegue hydration
+  - effettua il primo fetch
+  - registra gli event handler
+
+BLADE DELLA PAGINA
+
+Deve esistere una vista Blade dedicata, ad esempio:
+
+resources/views/admin/service-planning.blade.php
+
+La Blade deve:
+- includere TopBar e Sidebar admin già esistenti
+- definire i container necessari per il JS (id / data-*)
+- NON contenere fetch
+- NON contenere logica business
+- NON contenere logica JS
+
+NAVIGAZIONE DA SIDEBAR (VINCOLO IMPORTANTE)
+
+La Sidebar admin deve consentire la navigazione verso la pagina “Service Planning”.
+
+Requisiti:
+- aggiungere una voce di menu “Service Planning”
+- la voce deve:
+  - puntare alla rotta Laravel della pagina
+  - essere evidenziata come attiva quando l’utente si trova su questa pagina
+- la Sidebar NON deve contenere:
+  - fetch
+  - logica applicativa
+  - condizioni temporali
+
+La Sidebar rimane un componente presentational:
+- la navigazione avviene tramite normali link
+- il cambio pagina è gestito come MPA
+
+REGOLA D’ORO
+
+Per la pagina “Service Planning” vale sempre:
+
+UI = funzione dello stato
+
+Qualsiasi interazione:
+- aggiorna lo stato
+- provoca un render
+- NON manipola il DOM direttamente fuori dal render
+
+OBIETTIVO DI QUESTO PROMPT
+
+Definire in modo rigoroso:
+- struttura delle cartelle
+- responsabilità dei file
+- meccanismo di inizializzazione
+- integrazione della navigazione dalla Sidebar

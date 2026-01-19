@@ -432,10 +432,10 @@ return [
                     'disabled' => true,
                 ],
                 [
-                    'label' => 'Planning',
+                    'label' => 'Service Planning',
                     'icon' => 'calendar_month',
-                    'route' => null, // Placeholder
-                    'disabled' => true,
+                    'route' => 'admin.service-planning',
+                    'disabled' => false,
                 ],
             ],
         ],
@@ -519,6 +519,115 @@ return [
             'mark_picked_up' => 'Mark order as picked up',
             'close_recap' => 'Close order details',
             'select_time_slot' => 'Select time slot',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Service Planning Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configurazione per la pagina Admin Service Planning.
+    | Consente all'admin di configurare la disponibilità settimanale.
+    |
+    */
+    'admin_service_planning' => [
+        // Header
+        'page_title' => 'Service Planning',
+        'brand_label' => 'Campus Truck Admin',
+        
+        // Sidebar (riusa stessa struttura di work_service)
+        'sidebar' => [
+            'title' => 'Admin',
+            'menu' => [
+                [
+                    'label' => 'Work Service',
+                    'icon' => 'work',
+                    'route' => 'admin.work-service',
+                    'disabled' => false,
+                ],
+                [
+                    'label' => 'Ingredients',
+                    'icon' => 'restaurant_menu',
+                    'route' => null,
+                    'disabled' => true,
+                ],
+                [
+                    'label' => 'Service Planning',
+                    'icon' => 'calendar_month',
+                    'route' => 'admin.service-planning',
+                    'disabled' => false,
+                ],
+            ],
+        ],
+        
+        // Week Selector
+        'week_selector' => [
+            'label' => 'Current Week',
+        ],
+        
+        // Global Constraints
+        'global_constraints' => [
+            'title' => 'Global Constraints',
+            'max_orders_label' => 'Sandwiches per Slot',
+            'max_orders_description' => 'Capacity per time window',
+            'max_pending_time_label' => 'Order Deadline',
+            'max_pending_time_description' => 'Mins before slot start',
+            'location_label' => 'Service Location',
+            'location_description' => 'Where the truck operates',
+        ],
+        
+        // Daily Availability
+        'daily_availability' => [
+            'title' => 'Daily Availability',
+            'start_time_label' => 'Start Time',
+            'end_time_label' => 'End Time',
+            'active_label' => 'Active',
+            'inactive_label' => 'Inactive',
+            'not_modifiable' => 'Past day - Not modifiable',
+        ],
+        
+        // Save Button
+        'save' => [
+            'label' => 'Save Changes',
+            'saving_label' => 'Saving...',
+            'disabled_label' => 'No changes',
+        ],
+        
+        // Day names
+        'day_names' => [
+            'full' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'short' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        ],
+        
+        // Month names
+        'month_names' => [
+            'full' => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            'short' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        ],
+        
+        // Icons
+        'icons' => [
+            'prev_week' => 'chevron_left',
+            'next_week' => 'chevron_right',
+            'add' => 'add',
+            'remove' => 'remove',
+            'save' => 'save',
+            'calendar' => 'calendar_month',
+        ],
+        
+        // Aria labels
+        'aria' => [
+            'prev_week' => 'Go to previous week',
+            'next_week' => 'Go to next week',
+            'week_range' => 'Week from :start to :end',
+            'toggle_day' => 'Toggle :day active status',
+            'start_time' => 'Start time for :day',
+            'end_time' => 'End time for :day',
+            'increase_value' => 'Increase value',
+            'decrease_value' => 'Decrease value',
+            'save_changes' => 'Save all changes',
+            'location_input' => 'Service location',
         ],
     ],
 ];

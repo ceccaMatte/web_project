@@ -44,6 +44,10 @@ const pageRegistry = {
         const { initAdminWorkServicePage } = await import('./pages/admin-work-service/index.js');
         return initAdminWorkServicePage;
     },
+    'service-planning': async () => {
+        const { initServicePlanningPage } = await import('./pages/service-planning/index.js');
+        return initServicePlanningPage;
+    },
     // TODO: Aggiungere altre pagine qui
     // admin: async () => { ... },
 };

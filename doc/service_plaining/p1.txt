@@ -1,0 +1,68 @@
+CONTESTO GENERALE
+
+Stai lavorando a un progetto universitario di Tecnologie Web basato su Laravel (backend) e frontend server-rendered (Blade + Tailwind CSS), con JavaScript vanilla (nessun framework JS).
+
+Questa richiesta riguarda la progettazione e implementazione della pagina ADMIN chiamata “Service Planning”.
+
+SCOPO DELLA PAGINA
+
+La pagina “Service Planning” consente all’amministratore di configurare la pianificazione del servizio di prenotazione panini su base settimanale.
+
+In particolare, la pagina serve per:
+- navigare tra le settimane (passate, corrente, future)
+- configurare la disponibilità del servizio SOLO per periodi futuri
+- definire vincoli globali settimanali
+- definire quali giorni della settimana sono lavorativi
+- impostare gli orari di apertura e chiusura dei giorni lavorativi
+- generare o cancellare automaticamente i time slot in base alla configurazione
+- gestire correttamente gli ordini esistenti in caso di riduzione di capienza o orari
+
+REGOLE TEMPORALI FONDAMENTALI (VINCOLANTI)
+
+Le operazioni di modifica sono consentite SOLO se producono effetti nel futuro.
+
+Applicazione pratica:
+
+- Settimane passate:
+  - sono visibili
+  - NON sono mai modificabili
+  - il pulsante “Save” deve essere disabilitato
+
+- Settimana corrente:
+  - NON è possibile modificare:
+    - giorni passati
+    - il giorno corrente
+  - È possibile modificare SOLO i giorni futuri della settimana
+  - Tutte le modifiche hanno effetto esclusivamente sui time slot futuri
+
+- Settimane future:
+  - sono completamente modificabili
+
+Non esistono eccezioni a queste regole.
+
+REGOLE DI BUSINESS AD ALTO LIVELLO
+
+- Un giorno lavorativo attivo genera automaticamente i relativi time slot
+- Un giorno lavorativo disattivato:
+  - comporta la marcatura come REJECTED di tutti gli ordini associati
+  - comporta la cancellazione dei time slot
+  - comporta la cancellazione del giorno lavorativo
+- La riduzione di:
+  - orari
+  - numero massimo di ordini per slot
+  può causare la marcatura come REJECTED di ordini esistenti
+- In caso di riduzione capienza, vengono marcati come REJECTED gli ordini con numero ordine più alto
+
+COMPORTAMENTO UI / UX
+
+- La pagina è mobile-first
+- L’accessibilità WCAG 2.1 AAA è un requisito non negoziabile
+- Le operazioni riuscite devono avere successo silenzioso (nessun toast obbligatorio)
+
+OBIETTIVO DI QUESTO PROMPT
+
+Questo prompt ha il solo scopo di:
+- contestualizzare la pagina “Service Planning”
+- chiarire il suo ruolo nel sistema
+- fissare regole temporali e di dominio non negoziabili
+

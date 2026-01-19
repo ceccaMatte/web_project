@@ -10,6 +10,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\AdminWorkServiceController;
+use App\Http\Controllers\ServicePlanningController;
 
 // ========================================
 // AUTH ROUTES
@@ -172,5 +173,22 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
     // POST /api/admin/orders/{order}/status - Cambia stato ordine
     Route::post('/api/admin/orders/{order}/status', [AdminWorkServiceController::class, 'changeStatus'])
         ->name('api.admin.orders.changeStatus');
+
+    // ========================================
+    // ADMIN SERVICE PLANNING
+    // ========================================
+    // Pagina configurazione settimanale del servizio
+    
+    // GET /admin/service-planning - Vista pagina Service Planning
+    Route::get('/admin/service-planning', [ServicePlanningController::class, 'index'])
+        ->name('admin.service-planning');
+    
+    // GET /api/admin/service-planning?weekStart=YYYY-MM-DD - Fetch configurazione settimana
+    Route::get('/api/admin/service-planning', [ServicePlanningController::class, 'apiIndex'])
+        ->name('api.admin.service-planning');
+    
+    // POST /api/admin/service-planning - Salva configurazione settimana
+    Route::post('/api/admin/service-planning', [ServicePlanningController::class, 'apiSave'])
+        ->name('api.admin.service-planning.save');
 });
 
