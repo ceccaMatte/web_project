@@ -256,7 +256,7 @@
                         </div>
                         <div 
                             data-status-orders="confirmed"
-                            class="overflow-x-auto"
+                            class="flex flex-row gap-4 overflow-x-auto"
                         >
                             {{-- Ordini confirmed popolati da JS --}}
                         </div>
@@ -279,7 +279,7 @@
                         </div>
                         <div 
                             data-status-orders="ready"
-                            class="overflow-x-auto"
+                            class="flex flex-row gap-4 overflow-x-auto"
                         >
                             {{-- Ordini ready popolati da JS --}}
                         </div>
@@ -302,7 +302,7 @@
                         </div>
                         <div 
                             data-status-orders="picked_up"
-                            class="overflow-x-auto"
+                            class="flex flex-row gap-4 overflow-x-auto"
                         >
                             {{-- Ordini picked_up popolati da JS --}}
                         </div>

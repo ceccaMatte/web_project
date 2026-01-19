@@ -22,7 +22,10 @@
 
 import { buildWorkOrderCardHTML } from '../workOrderCard/workOrderCard.component.js';
 import { renderWorkOrderCard } from '../workOrderCard/workOrderCard.component.js';
-import { listen } from '../../utils/dom.js';
+
+// Registry per tracciare i listener già registrati
+// Previene registrazione multipla di listener sullo stesso container
+const listenerRegistry = new WeakMap();
 
 // Status configuration
 const STATUS_CONFIG = {
@@ -102,40 +105,56 @@ export function renderWorkStatusRow(container, props, callbacks) {
 
     ordersContainer.innerHTML = cardsHTML;
 
-    // Event delegation
-    listen(ordersContainer, 'click', (e) => {
-        const selectBtn = e.target.closest('[data-action="select-order"]');
-        if (selectBtn && onSelectOrder) {
-            e.stopPropagation();
-            const orderId = parseInt(selectBtn.dataset.orderId, 10);
-            onSelectOrder(orderId);
+    // SINGLETON LISTENER PATTERN:
+    // Registra listener SOLO se non già registrato per questo container
+    // Salva i callbacks nel registry così possono essere aggiornati senza riregistrare
+    if (!listenerRegistry.has(ordersContainer)) {
+        // Prima registrazione: crea entry nel registry e registra listeners
+        listenerRegistry.set(ordersContainer, { onSelectOrder, onChangeStatus });
+        
+        // Click handler delegato - legge callbacks dal registry
+        ordersContainer.addEventListener('click', (e) => {
+            const callbacks = listenerRegistry.get(ordersContainer);
+            if (!callbacks) return;
             
-            // No immediate updates - let state management system handle re-rendering
-            return;
-        }
-
-        // Handle status change
-        const changeBtn = e.target.closest('[data-action="change-status"]');
-        if (changeBtn && onChangeStatus) {
-            e.stopPropagation();
-            const orderId = parseInt(changeBtn.dataset.orderId, 10);
-            const newStatus = changeBtn.dataset.newStatus;
-            onChangeStatus(orderId, newStatus);
-            return;
-        }
-    });
-
-    // Handle keyboard navigation
-    listen(ordersContainer, 'keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            const card = e.target.closest('[data-action="select-order"]');
-            if (card && onSelectOrder) {
+            const selectBtn = e.target.closest('[data-action="select-order"]');
+            if (selectBtn && callbacks.onSelectOrder) {
+                e.stopPropagation();
                 e.preventDefault();
-                const orderId = parseInt(card.dataset.orderId, 10);
-                onSelectOrder(orderId);
+                const orderId = parseInt(selectBtn.dataset.orderId, 10);
+                callbacks.onSelectOrder(orderId);
+                return;
             }
-        }
-    });
+
+            const changeBtn = e.target.closest('[data-action="change-status"]');
+            if (changeBtn && callbacks.onChangeStatus) {
+                e.stopPropagation();
+                e.preventDefault();
+                const orderId = parseInt(changeBtn.dataset.orderId, 10);
+                const newStatus = changeBtn.dataset.newStatus;
+                callbacks.onChangeStatus(orderId, newStatus);
+                return;
+            }
+        });
+
+        // Keyboard handler delegato
+        ordersContainer.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const callbacks = listenerRegistry.get(ordersContainer);
+                if (!callbacks) return;
+                
+                const card = e.target.closest('[data-action="select-order"]');
+                if (card && callbacks.onSelectOrder) {
+                    e.preventDefault();
+                    const orderId = parseInt(card.dataset.orderId, 10);
+                    callbacks.onSelectOrder(orderId);
+                }
+            }
+        });
+    } else {
+        // Listener già registrato: aggiorna solo i callbacks nel registry
+        listenerRegistry.set(ordersContainer, { onSelectOrder, onChangeStatus });
+    }
 
     console.log(`[WorkStatusRow] Rendered ${status} (${count} orders)`);
 }

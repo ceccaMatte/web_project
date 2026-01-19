@@ -102,23 +102,24 @@ export function selectTimeSlot(slotId) {
 
 /**
  * Seleziona un ordine per visualizzazione recap
+ * IDEMPOTENTE: se lo stesso ordine è già selezionato, non fare nulla
  * 
  * @param {number} orderId - ID ordine
  */
 export function selectOrder(orderId) {
+    // IDEMPOTENZA: se lo stesso ordine è già selezionato, ignora
+    if (orderId === workServiceState.selectedOrderId) {
+        console.log(`[WorkServiceActions] Order ${orderId} already selected, ignoring`);
+        return;
+    }
+    
     console.log(`[WorkServiceActions] Selecting order: ${orderId}`);
     
-    // Toggle selection if clicking same order
-    if (orderId === workServiceState.selectedOrderId) {
-        mutateSelectedOrder(null);
-        hideMobileRecap();
-    } else {
-        mutateSelectedOrder(orderId);
-        
-        // Show mobile recap on mobile devices
-        if (window.innerWidth < 1024) {
-            showMobileRecap();
-        }
+    mutateSelectedOrder(orderId);
+    
+    // Show mobile recap on mobile devices
+    if (window.innerWidth < 1024) {
+        showMobileRecap();
     }
 
     renderOrdersPipeline();
@@ -145,6 +146,23 @@ function hideMobileRecap() {
         mobileRecap.classList.remove('translate-y-0');
         mobileRecap.classList.add('translate-y-full');
     }
+}
+
+/**
+ * Deseleziona l'ordine corrente
+ * Usato per chiudere esplicitamente la recap card
+ */
+export function deselectOrder() {
+    if (workServiceState.selectedOrderId === null) {
+        console.log('[WorkServiceActions] No order selected, ignoring deselect');
+        return;
+    }
+    
+    console.log('[WorkServiceActions] Deselecting current order');
+    mutateSelectedOrder(null);
+    hideMobileRecap();
+    renderOrdersPipeline();
+    renderRecapCard();
 }
 
 /**
@@ -228,4 +246,4 @@ export function logout() {
     }
 }
 
-export default { selectDay, selectTimeSlot, selectOrder, changeStatus, closeRecapModal, logout };
+export default { selectDay, selectTimeSlot, selectOrder, deselectOrder, changeStatus, closeRecapModal, logout };
