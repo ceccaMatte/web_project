@@ -1,0 +1,176 @@
+CONTESTO
+Pagina Home dell’applicazione “Campus Truck”.
+Stack: Laravel + Blade + Tailwind + JavaScript vanilla.
+Architettura frontend vincolante:
+- home.state.js     → SSOT
+- home.view.js      → riferimenti DOM
+- home.actions.js   → mutazioni state
+- home.render.js    → state → DOM
+- home.api.js       → fetch backend
+- index.js          → initHomePage()
+
+Questo prompt descrive ESCLUSIVAMENTE:
+- come deve funzionare
+- come deve aggiornarsi
+- da dove deve prendere i dati
+la TRUCK CARD (card del camioncino).
+
+------------------------------------------------
+PRINCIPIO FONDAMENTALE (VINCOLANTE)
+------------------------------------------------
+
+La Truck Card:
+- mostra SEMPRE e SOLO i dati di TODAY
+- NON segue il giorno selezionato nello scheduler
+- NON cambia struttura in base allo scheduler
+- viene aggiornata:
+  - al primo caricamento pagina
+  - tramite polling ogni 5 secondi
+
+------------------------------------------------
+DATI MOSTRATI DALLA TRUCK CARD
+------------------------------------------------
+
+La Truck Card visualizza:
+
+1) Stato del servizio di TODAY
+   - attivo / non attivo
+
+2) Location di TODAY
+
+3) Orari di TODAY
+   - start_time
+   - end_time
+
+4) Stato visivo coerente:
+   - badge “Servizio attivo oggi”
+   - oppure messaggio “Servizio non attivo oggi”
+
+------------------------------------------------
+FONTE DEI DATI (UNICA)
+------------------------------------------------
+
+La Truck Card prende i dati SOLO:
+- dal backend
+- tramite:
+  - fetch iniziale
+  - endpoint di polling
+
+Il frontend:
+- NON calcola lo stato
+- NON deduce se oggi è attivo
+- NON usa lo scheduler come fonte
+
+------------------------------------------------
+STRUTTURA DELLO STATE (OBBLIGATORIA)
+------------------------------------------------
+
+In home.state.js devono esistere campi dedicati:
+
+- todayService = {
+    is_active: boolean,
+    location: string | null,
+    start_time: string | null,
+    end_time: string | null,
+    waiting_queue: number | null
+  }
+
+Questo oggetto:
+- è aggiornato dal fetch iniziale
+- è aggiornato dal polling
+- NON viene mai modificato da eventi UI
+
+------------------------------------------------
+COMPORTAMENTO AL CARICAMENTO INIZIALE
+------------------------------------------------
+
+Durante initHomePage():
+
+1) Fetch iniziale Home
+2) Valorizzare todayService nello state
+3) Chiamare renderTruckCard()
+
+La card deve:
+- essere immediatamente coerente con TODAY
+- NON dipendere da azioni utente
+
+------------------------------------------------
+COMPORTAMENTO CON POLLING
+------------------------------------------------
+
+Ad ogni ciclo di polling:
+
+1) Se i dati di todayService cambiano:
+   - aggiornare lo state
+   - chiamare renderTruckCard()
+
+2) Se i dati NON cambiano:
+   - NON fare nulla
+   - evitare re-render inutili
+
+IMPORTANTE:
+- il polling NON deve:
+  - cambiare layout
+  - cambiare altezza card
+  - cambiare focus
+
+------------------------------------------------
+RENDER — REGOLE VINCOLANTI
+------------------------------------------------
+
+renderTruckCard() deve:
+
+CASO A — TODAY ATTIVO
+- mostrare:
+  - location
+  - orari
+  - badge “Servizio attivo oggi”
+- mostrare eventuali sotto-sezioni (es. coda fisica)
+- NON mostrare messaggi di errore
+
+CASO B — TODAY NON ATTIVO
+- mostrare:
+  - messaggio “Servizio non attivo oggi”
+- NASCONDERE:
+  - orari
+  - CTA
+  - informazioni fuorvianti
+
+Il cambio A ↔ B deve:
+- avvenire senza animazioni invasive
+- essere accessibile (testo + icona)
+
+------------------------------------------------
+ACCESSIBILITÀ (OBBLIGATORIA)
+------------------------------------------------
+
+- Stato servizio:
+  - non comunicato solo col colore
+  - testo + icona
+- Orari:
+  - markup semantico (<time>)
+- Nessun aggiornamento deve:
+  - rubare focus
+  - interrompere navigazione tastiera
+
+------------------------------------------------
+ANTI-PATTERN VIETATI
+------------------------------------------------
+
+❌ Usare il giorno selezionato nello scheduler  
+❌ Nascondere la card quando il servizio non è attivo  
+❌ Ricalcolare today lato frontend  
+❌ Mutare lo state da render  
+❌ Triggerare render se i dati non cambiano  
+
+------------------------------------------------
+DELIVERABLE
+------------------------------------------------
+
+1) Stato todayService chiaro e isolato
+2) renderTruckCard deterministico
+3) Aggiornamento silenzioso via polling
+4) Nessuna dipendenza dallo scheduler
+5) Commenti in italiano che spiegano:
+   - perché la card segue solo TODAY
+   - perché non segue lo scheduler
