@@ -158,19 +158,18 @@ class ServicePlanningService
      */
     private function deduceGlobalConstraints(Collection $workingDays): array
     {
-        // Prendi il working day attivo PIÙ RECENTE per avere i constraints più aggiornati
-        // In questo modo, anche se il primo giorno della settimana non è attivo, 
-        // recuperiamo i constraints corretti dai giorni successivi
-        $activeDay = $workingDays
-            ->filter(fn($wd) => $wd->is_active)
+        // Prendi il working day PIÙ RECENTEMENTE AGGIORNATO per avere i constraints più aggiornati
+        // Non importa se è attivo o no - vogliamo sempre i constraints più recenti salvati
+        // In questo modo, anche se disabilitiamo un giorno, i constraints rimangono aggiornati
+        $mostRecentDay = $workingDays
             ->sortByDesc('updated_at')
             ->first();
 
-        if ($activeDay) {
+        if ($mostRecentDay) {
             return [
-                'maxOrdersPerSlot' => $activeDay->max_orders ?? config('service_planning.default_max_orders_per_slot'),
-                'maxPendingTime' => $activeDay->max_time ?? config('service_planning.default_max_pending_time'),
-                'location' => $activeDay->location ?? config('service_planning.default_location'),
+                'maxOrdersPerSlot' => $mostRecentDay->max_orders ?? config('service_planning.default_max_orders_per_slot'),
+                'maxPendingTime' => $mostRecentDay->max_time ?? config('service_planning.default_max_pending_time'),
+                'location' => $mostRecentDay->location ?? config('service_planning.default_location'),
             ];
         }
 
