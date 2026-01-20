@@ -1,0 +1,120 @@
+CONTESTO
+Pagina admin “Service Planning” (/admin/service-planning).
+Stack: Laravel + Blade + Tailwind + JS vanilla.
+Architettura frontend vincolante:
+state / view / actions / render / api / hydration.
+
+PROBLEMA
+Attualmente frontend e backend non sono allineati:
+- il frontend permette interazioni che il backend non dovrebbe accettare
+- il backend applica regole temporali che la UI non riflette
+- dirty-state e Save non funzionano correttamente
+- non è chiaro chi sia la source of truth
+
+OBIETTIVO
+Riallineare frontend e backend su UNA SOLA VERITÀ:
+👉 **il backend è la source of truth**
+👉 il frontend riflette lo stato e impedisce interazioni illegali
+👉 il backend valida SEMPRE e rifiuta richieste non valide
+
+------------------------------------------------
+REGOLE TEMPORALI (VINCOLANTI)
+------------------------------------------------
+
+- Settimane passate:
+  - visibili
+  - NON modificabili
+  - UI completamente DISABLED
+
+- Settimana corrente:
+  - giorni ≤ oggi:
+    - NON modificabili
+    - stato mantenuto (ON/OFF invariato)
+    - switch e orari DISABLED
+  - giorni > oggi:
+    - modificabili
+
+- Settimane future:
+  - tutti i giorni modificabili
+
+------------------------------------------------
+GLOBAL CONSTRAINTS (TUTTI UGUALI)
+------------------------------------------------
+
+Campi:
+- max_orders_per_slot
+- max_pending_time
+- location
+
+Comportamento UNICO per tutti:
+- settimane passate → DISABLED
+- settimana corrente e future → MODIFICABILI
+- modifiche applicate SOLO ai giorni > oggi
+- NESSUNA modifica retroattiva
+
+------------------------------------------------
+FRONTEND — RESPONSABILITÀ
+------------------------------------------------
+
+Il frontend:
+- NON decide cosa è passato o futuro
+- riceve dal backend:
+  - working_days
+  - orari
+  - stato ON/OFF
+- calcola solo:
+  - se un campo è interattivo o disabled
+- NON deve mai:
+  - mutare lo stato di giorni non modificabili
+  - creare stati intermedi illegali
+
+Azioni su campi DISABLED:
+- non devono modificare lo state
+- non devono influenzare il dirty-state
+- devono essere ignorate
+
+------------------------------------------------
+BACKEND — RESPONSABILITÀ
+------------------------------------------------
+
+Il backend:
+- valida TUTTE le richieste POST
+- verifica sempre:
+  - settimana non passata
+  - giorno > oggi
+- se una richiesta tenta di:
+  - modificare settimane passate
+  - modificare giorni ≤ oggi
+  → deve essere RIFIUTATA
+
+Applicazione modifiche:
+- solo a giorni futuri
+- solo a time slot futuri
+
+------------------------------------------------
+DIRTY STATE E SAVE
+------------------------------------------------
+
+- Alla hydration iniziale:
+  - creare snapshot iniziale (deep clone)
+- Ogni modifica valida:
+  - aggiorna draft
+  - ricalcola dirty = (draft !== snapshot)
+- Save:
+  - ENABLED solo se dirty === true
+  - DISABLED altrimenti
+- Dopo Save riuscito:
+  - snapshot = nuovo stato backend
+
+------------------------------------------------
+DELIVERABLE
+------------------------------------------------
+
+1) Allineamento chiaro frontend/backend
+2) Validazioni backend esplicite
+3) Guard frontend su campi non modificabili
+4) Logging backend per:
+   - working_days modificati
+   - time_slots creati/cancellati
+   - ordini marcati rejected
+5) Commenti in italiano sulle scelte architetturali

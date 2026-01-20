@@ -1,0 +1,114 @@
+CONTESTO
+Pagina admin “Service Planning”.
+Frontend: Blade + Tailwind + JS vanilla.
+UI mobile-first, accessibilità WCAG AAA.
+
+OBIETTIVO
+Sistemare tutti i bug grafici e di interazione presenti nella UI,
+senza cambiare la logica di dominio.
+
+------------------------------------------------
+BUG DA FIXARE (OBBLIGATORI)
+------------------------------------------------
+
+A) GLOBAL CONSTRAINTS — DISABILITAZIONE ERRATA
+- In settimane passate i campi risultano editabili
+FIX:
+- rendere tutti i campi globali DISABLED in settimane passate
+- in settimane correnti/future: editabili
+- stato disabled comunicato anche testualmente (non solo colore)
+
+------------------------------------------------
+
+B) PULSANTI + / - NON FUNZIONANTI
+- I bottoni + e - non funzionano correttamente
+FIX:
+- farli funzionare solo quando il campo è editabile
+- se il campo è disabled:
+  - bottone disabled
+  - nessuna azione JS
+
+------------------------------------------------
+
+C) ORARI — VALIDAZIONE ROTTA (CUSTOM DROPDOWN)
+Attualmente è possibile:
+- start > stop
+- stop < start
+- start == stop
+
+FIX OBBLIGATORIO: RIPRISTINARE NORMALIZZAZIONE
+
+slot = S minuti (da config)
+
+Regole:
+1) Arrotondamento al multiplo più vicino di S
+2) start < stop e start ≠ stop
+3) Se start >= stop:
+   → stop = start + S
+4) Se stop <= start:
+   → start = stop - S
+
+Casi limite:
+- stop = 00:00 → start = 00:00, stop = 00:15
+- start = 23:45 → start = 23:30, stop = 23:45
+
+La logica:
+- deve stare in una funzione pura in actions.js
+- il render mostra SOLO lo stato corretto
+
+------------------------------------------------
+
+D) GIORNI DISABLED — DROPDOWN NON DEVE APRIRSI
+- Per giorni non modificabili:
+  - click su start/stop NON deve aprire menu
+FIX:
+- guard esplicita in actions.js:
+  - if (!day.isEditable) return
+- controlli:
+  - disabled
+  - non focusabili
+  - aria-disabled="true"
+
+------------------------------------------------
+
+E) CURRENT WEEK — DATE PICKER NON SI APRE
+FIX:
+- usare input type="date" reale (anche hidden)
+- click sul wrapper → input.showPicker() o focus+click fallback
+- supportare tastiera (Enter/Space)
+- aria-label corretto
+
+------------------------------------------------
+
+F) SIDEBAR — NAVIGAZIONE NON FUNZIONA
+FIX:
+- verificare che il link sia un <a> normale
+- assicurarsi che nessun preventDefault JS blocchi la navigazione
+- verificare che la rotta /admin/service-planning esista e sia accessibile
+
+------------------------------------------------
+
+G) SAVE SEMPRE DISABLED
+FIX:
+- collegare correttamente dirty-state al render
+- Save:
+  - grigio se !dirty
+  - attivo se dirty && settimana modificabile
+
+------------------------------------------------
+ACCESSIBILITÀ
+------------------------------------------------
+
+- contrasto AAA
+- focus visibile
+- controlli disabled comunicati via testo + aria
+- icone decorative aria-hidden
+
+------------------------------------------------
+DELIVERABLE
+------------------------------------------------
+
+1) Lista bug risolti
+2) File frontend modificati
+3) Commenti in italiano sulle scelte UX
+4) Checklist manuale di test UI
