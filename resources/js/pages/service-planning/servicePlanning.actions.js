@@ -350,15 +350,21 @@ export async function saveChanges() {
             globalConstraints: { ...servicePlanningState.globalConstraints },
             days: servicePlanningState.days.map(d => ({
                 date: d.date,
+                dayName: getDayName(d.date),
                 isActive: d.isActive,
-                startTime: d.startTime,
-                endTime: d.endTime,
+                startTime: d.startTime || null,
+                stopTime: d.endTime || null,
+                isEditable: d.isEditable || false,
             })),
         };
         
         debugLog('saveChanges', 'Payload:', payload);
         
-        const result = await saveWeekConfiguration(payload);
+        const result = await saveWeekConfiguration(
+            payload.weekStart,
+            payload.globalConstraints,
+            payload.days
+        );
         
         debugLog('saveChanges', 'Risposta backend:', result);
         

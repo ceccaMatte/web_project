@@ -89,6 +89,7 @@ export const servicePlanningState = {
     globalConstraints: {
         maxOrdersPerSlot: 10,
         maxPendingTime: 30,
+        maxIngredientsPerOrder: 6,
         location: '',
     },
 
@@ -185,6 +186,7 @@ export function createSavableSnapshot(state) {
         globalConstraints: {
             maxOrdersPerSlot: state.globalConstraints.maxOrdersPerSlot,
             maxPendingTime: state.globalConstraints.maxPendingTime,
+            maxIngredientsPerOrder: state.globalConstraints.maxIngredientsPerOrder,
             location: state.globalConstraints.location,
         },
         days: editableDays,
