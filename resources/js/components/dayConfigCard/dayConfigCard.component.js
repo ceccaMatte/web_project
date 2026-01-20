@@ -80,23 +80,10 @@ export function renderDayConfigCard(container, props, callbacks) {
 
     container.innerHTML = `
         <style>
-            [data-start-time] option, [data-end-time] option {
-                background-color: #1e293b;
-                color: white;
-                padding: 8px 12px;
-                border-radius: 6px;
-                transition: background-color 0.2s ease;
-            }
-            [data-start-time] option:hover, [data-end-time] option:hover {
-                background-color: #334155;
-            }
-            [data-start-time], [data-end-time] {
-                appearance: none;
-                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-                background-position: right 0.5rem center;
-                background-repeat: no-repeat;
-                background-size: 1.5em 1.5em;
-                padding-right: 2.5rem;
+            .dropdown-options {
+                max-height: 150px;
+                overflow-y: auto;
+                padding: 0.5rem;
             }
         </style>
         <div class="bg-card-dark border border-border-dark rounded-2xl p-4 transition-all ${cardOpacity}">
@@ -133,35 +120,49 @@ export function renderDayConfigCard(container, props, callbacks) {
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="text-[10px] text-slate-500 font-bold uppercase ml-1">Start Time</label>
-                            <label class="text-[10px] text-slate-400 font-bold uppercase ml-1">Start Time</label>
-                        <select 
-                            data-start-time="${date}"
-                            ${!isEditable ? 'disabled' : ''}
-                            class="w-full bg-background-dark border border-border-dark rounded-xl text-sm font-medium 
-                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white cursor-pointer
-                                   disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
-                            aria-label="Start time for ${dayName}"
-                        >
-                            ${timeOptions.map(time => `
-                                <option value="${time}" ${time === startTime ? 'selected' : ''}>${time}</option>
-                            `).join('')}
-                        </select>
+                        <div class="relative">
+                            <button type="button" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-background-dark border border-border-dark text-sm font-medium text-white hover:bg-background-dark/80 transition-colors" data-start-time-dropdown="${date}" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-base text-slate-400">schedule</span>
+                                    <span>${startTime}</span>
+                                </span>
+                                <span class="material-symbols-outlined text-sm text-slate-400">expand_more</span>
+                            </button>
+                            <div class="absolute top-full left-0 right-0 mt-1 bg-background-dark border border-border-dark rounded-xl shadow-lg z-10 hidden dropdown-options" data-start-time-options="${date}" role="listbox">
+                                ${timeOptions.map(time => `
+                                    <button type="button" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-left ${time === startTime ? 'bg-white/5' : ''}" data-action="select-start-time" data-time="${time}" data-date="${date}" role="option" aria-selected="${time === startTime}">
+                                        <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style="background-color: rgba(59, 130, 246, 0.19);">
+                                            <span class="material-symbols-outlined text-sm" style="color: rgb(59, 130, 246);">schedule</span>
+                                        </div>
+                                        <span class="text-white text-sm font-medium whitespace-nowrap">${time}</span>
+                                        ${time === startTime ? '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>' : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] text-slate-500 font-bold uppercase ml-1">End Time</label>
-                            <label class="text-[10px] text-slate-400 font-bold uppercase ml-1">End Time</label>
-                        <select 
-                            data-end-time="${date}"
-                            ${!isEditable ? 'disabled' : ''}
-                            class="w-full bg-background-dark border border-border-dark rounded-xl text-sm font-medium 
-                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white cursor-pointer
-                                   disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
-                            aria-label="End time for ${dayName}"
-                        >
-                            ${timeOptions.map(time => `
-                                <option value="${time}" ${time === endTime ? 'selected' : ''}>${time}</option>
-                            `).join('')}
-                        </select>
+                        <div class="relative">
+                            <button type="button" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-background-dark border border-border-dark text-sm font-medium text-white hover:bg-background-dark/80 transition-colors" data-end-time-dropdown="${date}" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-base text-slate-400">schedule</span>
+                                    <span>${endTime}</span>
+                                </span>
+                                <span class="material-symbols-outlined text-sm text-slate-400">expand_more</span>
+                            </button>
+                            <div class="absolute top-full left-0 right-0 mt-1 bg-background-dark border border-border-dark rounded-xl shadow-lg z-10 hidden dropdown-options" data-end-time-options="${date}" role="listbox">
+                                ${timeOptions.map(time => `
+                                    <button type="button" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-left ${time === endTime ? 'bg-white/5' : ''}" data-action="select-end-time" data-time="${time}" data-date="${date}" role="option" aria-selected="${time === endTime}">
+                                        <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style="background-color: rgba(59, 130, 246, 0.19);">
+                                            <span class="material-symbols-outlined text-sm" style="color: rgb(59, 130, 246);">schedule</span>
+                                        </div>
+                                        <span class="text-white text-sm font-medium whitespace-nowrap">${time}</span>
+                                        ${time === endTime ? '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>' : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
                     </div>
                 </div>
             ` : ''}
@@ -181,6 +182,91 @@ export function renderDayConfigCard(container, props, callbacks) {
             toggleDot.style.transform = 'translateX(0)';
         }
     }
+
+    // Dropdown functionality
+    const startTimeDropdown = container.querySelector(`[data-start-time-dropdown="${date}"]`);
+    const startTimeOptions = container.querySelector(`[data-start-time-options="${date}"]`);
+    const endTimeDropdown = container.querySelector(`[data-end-time-dropdown="${date}"]`);
+    const endTimeOptions = container.querySelector(`[data-end-time-options="${date}"]`);
+
+    // Toggle dropdown visibility
+    function toggleDropdown(dropdown, options) {
+        const isExpanded = dropdown.getAttribute('aria-expanded') === 'true';
+        dropdown.setAttribute('aria-expanded', !isExpanded);
+        options.classList.toggle('hidden');
+    }
+
+    // Close dropdown when clicking outside
+    function closeDropdown(dropdown, options) {
+        dropdown.setAttribute('aria-expanded', 'false');
+        options.classList.add('hidden');
+    }
+
+    // Event listeners for dropdown toggles
+    if (startTimeDropdown && startTimeOptions) {
+        startTimeDropdown.addEventListener('click', () => toggleDropdown(startTimeDropdown, startTimeOptions));
+    }
+    if (endTimeDropdown && endTimeOptions) {
+        endTimeDropdown.addEventListener('click', () => toggleDropdown(endTimeDropdown, endTimeOptions));
+    }
+
+    // Handle option selection
+    container.addEventListener('click', (e) => {
+        const button = e.target.closest('[data-action]');
+        if (!button) return;
+
+        const action = button.getAttribute('data-action');
+        const time = button.getAttribute('data-time');
+        const dateAttr = button.getAttribute('data-date');
+
+        if (action === 'select-start-time' && dateAttr === date) {
+            // Update start time display
+            const displaySpan = startTimeDropdown.querySelector('span:last-child');
+            if (displaySpan) displaySpan.textContent = time;
+
+            // Update selected state
+            startTimeOptions.querySelectorAll('[data-action="select-start-time"]').forEach(btn => {
+                btn.classList.remove('bg-white/5');
+                btn.querySelector('.ml-auto')?.remove();
+                btn.setAttribute('aria-selected', 'false');
+            });
+            button.classList.add('bg-white/5');
+            button.setAttribute('aria-selected', 'true');
+            if (!button.querySelector('.ml-auto')) {
+                button.insertAdjacentHTML('beforeend', '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>');
+            }
+
+            // Close dropdown
+            closeDropdown(startTimeDropdown, startTimeOptions);
+
+            // Trigger change event
+            const event = new CustomEvent('startTimeChange', { detail: { date, time } });
+            container.dispatchEvent(event);
+        } else if (action === 'select-end-time' && dateAttr === date) {
+            // Update end time display
+            const displaySpan = endTimeDropdown.querySelector('span:last-child');
+            if (displaySpan) displaySpan.textContent = time;
+
+            // Update selected state
+            endTimeOptions.querySelectorAll('[data-action="select-end-time"]').forEach(btn => {
+                btn.classList.remove('bg-white/5');
+                btn.querySelector('.ml-auto')?.remove();
+                btn.setAttribute('aria-selected', 'false');
+            });
+            button.classList.add('bg-white/5');
+            button.setAttribute('aria-selected', 'true');
+            if (!button.querySelector('.ml-auto')) {
+                button.insertAdjacentHTML('beforeend', '<span class="material-symbols-outlined text-xs ml-auto text-slate-400">check</span>');
+            }
+
+            // Close dropdown
+            closeDropdown(endTimeDropdown, endTimeOptions);
+
+            // Trigger change event
+            const event = new CustomEvent('endTimeChange', { detail: { date, time } });
+            container.dispatchEvent(event);
+        }
+    });
 }
 
 /**
