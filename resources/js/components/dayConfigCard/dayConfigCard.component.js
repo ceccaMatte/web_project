@@ -79,6 +79,26 @@ export function renderDayConfigCard(container, props, callbacks) {
     ` : '';
 
     container.innerHTML = `
+        <style>
+            [data-start-time] option, [data-end-time] option {
+                background-color: #1e293b;
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                transition: background-color 0.2s ease;
+            }
+            [data-start-time] option:hover, [data-end-time] option:hover {
+                background-color: #334155;
+            }
+            [data-start-time], [data-end-time] {
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+                background-position: right 0.5rem center;
+                background-repeat: no-repeat;
+                background-size: 1.5em 1.5em;
+                padding-right: 2.5rem;
+            }
+        </style>
         <div class="bg-card-dark border border-border-dark rounded-2xl p-4 transition-all ${cardOpacity}">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
@@ -118,8 +138,8 @@ export function renderDayConfigCard(container, props, callbacks) {
                             data-start-time="${date}"
                             ${!isEditable ? 'disabled' : ''}
                             class="w-full bg-background-dark border border-border-dark rounded-xl text-sm font-medium 
-                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white
-                                   disabled:opacity-50 disabled:cursor-not-allowed"
+                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white cursor-pointer
+                                   disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
                             aria-label="Start time for ${dayName}"
                         >
                             ${timeOptions.map(time => `
@@ -134,8 +154,8 @@ export function renderDayConfigCard(container, props, callbacks) {
                             data-end-time="${date}"
                             ${!isEditable ? 'disabled' : ''}
                             class="w-full bg-background-dark border border-border-dark rounded-xl text-sm font-medium 
-                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white
-                                   disabled:opacity-50 disabled:cursor-not-allowed"
+                                focus:ring-primary focus:border-primary px-3 py-2.5 text-white cursor-pointer
+                                   disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
                             aria-label="End time for ${dayName}"
                         >
                             ${timeOptions.map(time => `
