@@ -87,7 +87,7 @@ export function renderDayConfigCard(container, props, callbacks) {
                             <span class="text-sm font-bold text-white">${dayNumber}</span>
                     </div>
                     <div>
-                        <span class="text-sm font-bold">${dayName}</span>
+                        <span class="text-sm font-bold text-white">${dayName}</span>
                         <div class="flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-${statusColor}-500"></span>
                             <span class="text-[10px] text-${statusColor}-500 font-bold uppercase">${statusLabel}</span>
@@ -100,7 +100,7 @@ export function renderDayConfigCard(container, props, callbacks) {
                         data-day-toggle="${date}"
                         ${isActive ? 'checked' : ''}
                         ${!isEditable ? 'disabled' : ''}
-                        class="sr-only peer"
+                        class="sr-only peer "
                         aria-label="Toggle ${dayName} active status"
                     >
                     <div class="toggle-bg w-11 h-6 bg-slate-700 peer-checked:bg-primary rounded-full transition-colors relative peer-disabled:opacity-50">
