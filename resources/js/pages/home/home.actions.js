@@ -34,7 +34,7 @@ import { renderHome } from './home.render.js';
 import { renderSidebar } from '../../components/sidebar/sidebar.component.js';
 import { renderTopBar } from '../../components/topbar/topbar.component.js';
 import { renderWeekScheduler } from '../../components/weekScheduler/weekScheduler.component.js';
-import { renderTimeSlotsList } from '../../components/timeSlotCard/timeSlotCard.component.js';
+import { renderTimeSlotCard, renderTimeSlotsList } from '../../components/timeSlotCard/timeSlotCard.component.js';
 import { renderTodayServiceCard } from '../../components/todayServiceCard/todayServiceCard.component.js';
 import { homeView } from './home.view.js';
 
@@ -181,8 +181,8 @@ export async function loadTimeSlots(date) {
         // Trasforma i dati dal formato API al formato state
         const timeSlots = (timeSlotsData.slots || []).map(slot => ({
             id: slot.id,
-            time: slot.timeLabel,
-            available: slot.slotsLeft,
+            timeLabel: slot.timeLabel,
+            slotsLeft: slot.slotsLeft,
             isDisabled: slot.isDisabled,
             href: slot.href
         }));
@@ -290,38 +290,11 @@ function renderTimeSlots() {
         return;
     }
 
-    // Render lista time slots (layout verticale, non orizzontale)
-    const slotsHTML = timeSlots.map(slot => {
-        const isDisabled = slot.isDisabled || slot.available <= 0;
-        const availabilityText = slot.available > 0 ? `${slot.available} spots left` : 'Fully booked';
-        
-        return `
-            <div class="bg-slate-800 rounded-lg p-4 ${isDisabled ? 'opacity-50' : ''}">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-white font-medium">${slot.time}</div>
-                        <div class="text-slate-400 text-sm">${availabilityText}</div>
-                    </div>
-                    <button 
-                        class="px-4 py-2 rounded-lg font-medium transition-colors ${
-                            isDisabled 
-                                ? 'bg-slate-600 text-slate-400 cursor-not-allowed' 
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }"
-                        data-action="book-slot"
-                        data-slot-id="${slot.id}"
-                        data-slot-href="${slot.href}"
-                        ${isDisabled ? 'disabled' : ''}
-                    >
-                        ${isDisabled ? 'Full' : 'Book'}
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
+    // Render lista time slots usando il componente renderTimeSlotCard
+    const slotsHTML = timeSlots.map(slot => renderTimeSlotCard(slot, 'home')).join('');
 
-    // Layout VERTICALE per time slots (non più scroll orizzontale)
-    container.innerHTML = `<div class="flex flex-col gap-3">${slotsHTML}</div>`;
+    // Layout ORIZONTALE per time slots
+    container.innerHTML = `<div class="flex gap-3 overflow-x-auto">${slotsHTML}</div>`;
 }
 
 /**
@@ -479,8 +452,8 @@ async function runPolling() {
         // Aggiorna time slots con dati del selectedDate
         const timeSlots = (pollingData.selected_day_slots || []).map(slot => ({
             id: slot.id,
-            time: slot.time,
-            available: slot.available,
+            timeLabel: slot.time,
+            slotsLeft: slot.available,
             isDisabled: slot.available <= 0,
             href: slot.href || `/orders/create?slot=${slot.id}`
         }));
