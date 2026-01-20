@@ -129,25 +129,7 @@
         </section>
 
         {{--
-            SEZIONE 3: Time Slots per Giorno Selezionato
-            - Mostra time slots del giorno selezionato nello scheduler
-            - PRINCIPIO: I time slots DEVONO SEMPRE corrispondere al selectedDate
-            - Container dinamico popolato da home.actions.js
-            - Supporta loading, errore, e lista time slots
-        --}}
-        <section class="px-5" data-time-slots-section>
-            <div class="mb-4">
-                <h3 class="text-text-primary text-lg font-bold">Available Time Slots</h3>
-                <p class="text-text-secondary text-sm">Select a time slot to book your sandwich</p>
-            </div>
-            
-            <div data-time-slots-container class="flex flex-col gap-3">
-                {{-- Il contenuto viene popolato da renderTimeSlots() in home.actions.js --}}
-            </div>
-        </section>
-
-        {{--
-            SEZIONE 4: Order Preview Card (dinamica)
+            SEZIONE 3: Order Preview Card (dinamica)
             - Renderizzata dinamicamente da home.js in base a:
               - Utente loggato/non loggato
               - Numero ordini (0, 1, 2+)
@@ -167,25 +149,28 @@
         </section>
 
         {{--
-            SEZIONE 5: Pre-book Slots Futuri
-            - Container renderizzato dinamicamente da home.js
-            - Mostra slot disponibili per domani/prossimi giorni
-            - Header con data e location + scroll orizzontale di TimeSlotCard
+            SEZIONE 4: Time Slots Giorno Selezionato
+            - Mostra time slots del giorno selezionato nello scheduler  
+            - PRINCIPIO: I time slots DEVONO SEMPRE corrispondere al selectedDate
+            - Header mostra giorno selezionato + location
+            - Container dinamico popolato da home.actions.js
+            - ERRORE PRECEDENTE: Questa sezione mostrava "slot futuri" invece
+              dei time slots del selectedDate. Ora è stata corretta.
         --}}
         <section class="flex flex-col gap-4" data-booking-section>
-            {{-- Header sezione (popolato dinamicamente da JS) --}}
+            {{-- Header sezione: giorno selezionato + location (popolato dinamicamente da JS) --}}
             <div class="px-5" data-booking-header>
-                {{-- Il contenuto (data + location) viene popolato da renderBookingSlots() in home.js --}}
+                {{-- Il contenuto viene popolato da renderBookingHeader() per mostrare selectedDate --}}
             </div>
 
-            {{-- Scroll Orizzontale Slot (popolato da renderBookingSlots) --}}
+            {{-- Time Slots del giorno selezionato (popolato da renderTimeSlots) --}}
             <div 
-                class="flex overflow-x-auto no-scrollbar gap-4 px-5"
+                class="px-5"
                 data-booking-slots-container
                 role="list"
-                aria-label="{{ config('ui.prebook_section.aria_scroll') }}"
+                aria-label="Available time slots for selected day"
             >
-                {{-- Il contenuto viene popolato da renderBookingSlots() in home.js --}}
+                {{-- Il contenuto viene popolato da renderTimeSlots() in home.actions.js --}}
             </div>
         </section>
 

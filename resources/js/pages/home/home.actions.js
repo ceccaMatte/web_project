@@ -194,7 +194,8 @@ export async function loadTimeSlots(date) {
             error: null 
         });
         
-        // Re-render time slots
+        // Re-render time slots e header
+        renderBookingHeader();
         renderTimeSlots();
         
         console.log(`[Actions] Time slots loaded for ${date}:`, timeSlots.length, 'slots');
@@ -208,7 +209,8 @@ export async function loadTimeSlots(date) {
             error: 'Failed to load time slots' 
         });
         
-        // Re-render time slots con errore
+        // Re-render time slots e header con errore
+        renderBookingHeader();
         renderTimeSlots();
     }
 }
@@ -241,6 +243,7 @@ export async function loadInitialTimeSlots() {
             loading: false, 
             error: 'No active days available' 
         });
+        renderBookingHeader();
         renderTimeSlots();
     }
 }
@@ -251,12 +254,17 @@ export async function loadInitialTimeSlots() {
  * RESPONSABILITÀ:
  * - Legge ESCLUSIVAMENTE da homeState.timeSlots e homeState.selectedDate
  * - Mostra loader, errore, o lista time slots
+ * - USA SOLO data-booking-slots-container (ERRORE PRECEDENTE: usava data-time-slots-container)
  * - NON fa fetch, NON modifica state
+ * 
+ * CORREZIONE ARCHITETTURALE:
+ * - Prima esisteva una sezione separata data-time-slots-section (SBAGLIATA)
+ * - Ora usa ESCLUSIVAMENTE data-booking-section esistente
  */
 function renderTimeSlots() {
-    const container = homeView.refs.timeSlotsContainer;
+    const container = homeView.refs.bookingSlotsContainer;  // Usa SOLO data-booking-slots-container
     if (!container) {
-        console.warn('[Actions] renderTimeSlots: container not found');
+        console.warn('[Actions] renderTimeSlots: bookingSlotsContainer not found');
         return;
     }
 
@@ -282,7 +290,7 @@ function renderTimeSlots() {
         return;
     }
 
-    // Render lista time slots
+    // Render lista time slots (layout verticale, non orizzontale)
     const slotsHTML = timeSlots.map(slot => {
         const isDisabled = slot.isDisabled || slot.available <= 0;
         const availabilityText = slot.available > 0 ? `${slot.available} spots left` : 'Fully booked';
@@ -312,7 +320,48 @@ function renderTimeSlots() {
         `;
     }).join('');
 
-    container.innerHTML = slotsHTML;
+    // Layout VERTICALE per time slots (non più scroll orizzontale)
+    container.innerHTML = `<div class="flex flex-col gap-3">${slotsHTML}</div>`;
+}
+
+/**
+ * Render booking header con giorno selezionato
+ * 
+ * RESPONSABILITÀ:
+ * - Mostra il giorno selezionato e la location
+ * - DEVE corrispondere SEMPRE a selectedDate
+ * - Usa data-booking-header esistente
+ */
+function renderBookingHeader() {
+    const headerContainer = homeView.refs.bookingHeader;
+    if (!headerContainer) {
+        console.warn('[Actions] renderBookingHeader: header container not found');
+        return;
+    }
+
+    const { selectedDate } = homeState;
+    
+    if (!selectedDate) {
+        headerContainer.innerHTML = '';
+        return;
+    }
+
+    // Formatta la data per visualizzazione
+    const date = new Date(selectedDate + 'T00:00:00');
+    const dateLabel = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+
+    headerContainer.innerHTML = `
+        <h3 class="text-white text-sm font-bold mb-1">
+            ${dateLabel}
+        </h3>
+        <p class="text-slate-500 text-xs">
+            Engineering Hub - Available Time Slots
+        </p>
+    `;
 }
 
 /**
@@ -451,6 +500,7 @@ async function runPolling() {
             {}
         );
         
+        renderBookingHeader();
         renderTimeSlots();
         
         mutatePolling({ lastUpdate: Date.now() });
