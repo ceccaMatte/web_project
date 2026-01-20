@@ -233,12 +233,26 @@ class ServicePlanningService
                 $date = Carbon::parse($dayData['date']);
                 $dateStr = $date->format('Y-m-d');
                 
-                // VALIDAZIONE: Skip giorni <= oggi
+                // Trova working day esistente (per qualsiasi giorno della settimana)
+                $workingDay = WorkingDay::whereDate('day', $dateStr)->first();
+                
+                // VALIDAZIONE: Skip giorni <= oggi per modifiche orariali
                 if ($date->lte($today)) {
                     Log::info('[ServicePlanningService] Skip giorno non modificabile', [
                         'date' => $dateStr,
                         'reason' => 'date <= today',
                     ]);
+                    
+                    // Tuttavia, aggiorna sempre i global constraints (max_orders, max_time, location)
+                    // anche per i giorni passati per mantenere coerenza
+                    if ($workingDay && $workingDay->is_active) {
+                        $workingDay->update([
+                            'max_orders' => $globalConstraints['maxOrdersPerSlot'],
+                            'max_time' => $globalConstraints['maxPendingTime'] ?? config('service_planning.default_max_pending_time'),
+                            'location' => $globalConstraints['location'] ?? config('service_planning.default_location'),
+                        ]);
+                    }
+                    
                     $report['daysSkipped']++;
                     continue;
                 }

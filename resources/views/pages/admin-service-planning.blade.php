@@ -31,6 +31,8 @@
     <script type="application/json" data-config-defaults>
         {!! json_encode([
             'maxOrdersPerSlot' => config('service_planning.default_max_orders_per_slot'),
+            'minMaxOrdersPerSlot' => config('service_planning.min_max_orders_per_slot'),
+            'maxMaxOrdersPerSlot' => config('service_planning.max_max_orders_per_slot'),
             'maxPendingTime' => config('service_planning.default_max_pending_time'),
             'location' => config('service_planning.default_location'),
             'dayStartTime' => config('service_planning.default_day_start_time'),

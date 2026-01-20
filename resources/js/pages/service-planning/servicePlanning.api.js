@@ -102,6 +102,14 @@ export async function fetchConfig() {
         });
 
         if (!response.ok) {
+            // Log full response body for easier debugging of validation errors
+            try {
+                const bodyText = await response.clone().text();
+                console.error('[ServicePlanningAPI] Response body (non-ok):', bodyText);
+            } catch (e) {
+                console.error('[ServicePlanningAPI] Failed to read response body', e);
+            }
+
             const errorMsg = await parseErrorMessage(response);
             throw new Error(errorMsg);
         }

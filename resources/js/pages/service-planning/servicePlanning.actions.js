@@ -31,6 +31,21 @@ function debugLog(context, ...args) {
     }
 }
 
+/**
+ * Return localized day name for a date string (it-IT, lowercase)
+ * @param {string} dateStr - YYYY-MM-DD
+ * @returns {string}
+ */
+function getDayName(dateStr) {
+    try {
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('it-IT', { weekday: 'long' });
+    } catch (e) {
+        debugLog('getDayName', 'Invalid date', dateStr);
+        return '';
+    }
+}
+
 // ============================================================================
 // WEEK NAVIGATION
 // ============================================================================
@@ -145,7 +160,8 @@ export function incrementMaxOrders() {
     }
     
     const current = servicePlanningState.globalConstraints.maxOrdersPerSlot;
-    const newValue = Math.min(current + 1, 100); // Max 100
+    const serverMax = servicePlanningState.configDefaults.maxMaxOrdersPerSlot || 99;
+    const newValue = Math.min(current + 1, serverMax);
     
     if (mutateGlobalConstraint('maxOrdersPerSlot', newValue)) {
         renderServicePlanningPage();
