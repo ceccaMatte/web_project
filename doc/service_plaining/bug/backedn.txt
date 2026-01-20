@@ -1,0 +1,246 @@
+CONTESTO
+Applicazione Laravel.
+Pagina admin: “Service Planning” (/admin/service-planning).
+
+Il backend deve esporre un set MINIMO ma COERENTE di API
+per permettere al frontend di:
+- caricare i dati settimanali
+- capire se una settimana ha dati persistiti o no
+- salvare le modifiche in modo atomico
+- mantenere frontend e backend sincronizzati
+
+NON creare endpoint superflui.
+NON usare logica implicita lato frontend.
+Il backend è la source of truth.
+
+------------------------------------------------
+PANORAMICA ENDPOINT
+------------------------------------------------
+
+DEVONO esistere ESATTAMENTE questi endpoint:
+
+GET  /admin/service-planning/week
+POST /admin/service-planning/save
+
+(opzionale ma consigliato)
+GET  /admin/service-planning/meta
+
+------------------------------------------------
+GET /admin/service-planning/week
+------------------------------------------------
+
+SCOPO
+Caricare TUTTI i dati necessari a rappresentare una settimana
+nel frontend (baseline di confronto per dirty-state).
+
+QUERY PARAMS
+- start (YYYY-MM-DD) → lunedì della settimana richiesta
+
+Esempio:
+GET /admin/service-planning/week?start=2026-01-19
+
+------------------------------------------------
+RESPONSABILITÀ (CRITICHE)
+------------------------------------------------
+
+Questo endpoint:
+- NON deve assumere nulla dal frontend
+- NON deve dipendere da stato precedente
+- restituisce una rappresentazione COMPLETA e AUTORITATIVA della settimana
+
+------------------------------------------------
+LOGICA INTERNA
+------------------------------------------------
+
+1) Normalizzare la data:
+   - se start non è lunedì → calcolare il lunedì corretto
+2) Verificare:
+   - settimana passata / corrente / futura
+3) Recuperare dal DB:
+   - working_days della settimana
+   - time_slots associati
+   - eventuali dati utili (ordini futuri aggregati)
+4) Se NON esistono working_days:
+   - la settimana è considerata “NON PERSISTITA”
+
+------------------------------------------------
+STRUTTURA RESPONSE (OBBLIGATORIA)
+------------------------------------------------
+
+{
+  "week": {
+    "start": "2026-01-19",
+    "end": "2026-01-25",
+    "status": "past | current | future"
+  },
+
+  "has_persisted_data": true | false,
+
+  "global_constraints": {
+    "max_orders_per_slot": 10,
+    "max_pending_time": 20,
+    "location": "Piazza Centrale"
+  },
+
+  "days": [
+    {
+      "date": "2026-01-20",
+      "is_working": true,
+      "start_time": "11:00",
+      "end_time": "15:00",
+      "is_editable": true | false,
+      "affected_orders_count": 69
+    },
+    {
+      "date": "2026-01-21",
+      "is_working": false,
+      "is_editable": true | false
+    }
+  ]
+}
+
+------------------------------------------------
+NOTE IMPORTANTI
+------------------------------------------------
+
+- has_persisted_data è CRITICO:
+  - serve al frontend per capire se la baseline è “vuota”
+  - influenza dirty-state e Save
+- global_constraints:
+  - se has_persisted_data = false:
+    - DEVONO essere valorizzati con i DEFAULT (da config)
+    - ma NON sono ancora persistiti
+- is_editable:
+  - deciso dal backend
+  - il frontend NON deve ricalcolarlo
+
+------------------------------------------------
+POST /admin/service-planning/save
+------------------------------------------------
+
+SCOPO
+Salvare TUTTE le modifiche della settimana in modo atomico.
+
+Il frontend invia lo STATO FINALE desiderato.
+
+------------------------------------------------
+PAYLOAD (OBBLIGATORIO)
+------------------------------------------------
+
+{
+  "week_start": "2026-01-19",
+
+  "global_constraints": {
+    "max_orders_per_slot": 10,
+    "max_pending_time": 20,
+    "location": "Piazza Centrale"
+  },
+
+  "days": [
+    {
+      "date": "2026-01-21",
+      "is_working": true,
+      "start_time": "11:00",
+      "end_time": "15:00"
+    },
+    {
+      "date": "2026-01-22",
+      "is_working": false
+    }
+  ]
+}
+
+------------------------------------------------
+RESPONSABILITÀ POST
+------------------------------------------------
+
+Il backend deve:
+- validare TUTTO
+- ignorare qualunque giorno <= oggi
+- ignorare settimane passate
+- applicare modifiche SOLO a giorni futuri
+- operare in TRANSAZIONE DB
+
+------------------------------------------------
+VALIDAZIONI OBBLIGATORIE
+------------------------------------------------
+
+1) week_start valido
+2) settimana NON passata
+3) global_constraints validi (range, tipi)
+4) ogni giorno:
+   - date > oggi
+   - start_time < end_time
+   - multipli del time slot
+5) se validazione fallisce:
+   - rollback
+   - response errore
+
+------------------------------------------------
+EFFETTI BACKEND (RIASSUNTO)
+------------------------------------------------
+
+- Creazione working_day
+- Creazione time_slots
+- Cancellazione working_day
+- Cancellazione time_slots
+- Aggiornamento time_slots futuri
+- Marcatura ordini REJECTED (deterministica)
+
+(Tutti questi effetti sono già definiti nei prompt precedenti)
+
+------------------------------------------------
+RESPONSE POST (SUCCESSO)
+------------------------------------------------
+
+Restituire SEMPRE lo stato aggiornato della settimana,
+nello STESSO FORMATO della GET /week:
+
+{
+  "week": {...},
+  "has_persisted_data": true,
+  "global_constraints": {...},
+  "days": [...]
+}
+
+Il frontend deve:
+- sostituire completamente lo state
+- aggiornare la baseline
+- impostare dirty = false
+
+------------------------------------------------
+GET /admin/service-planning/meta (OPZIONALE)
+------------------------------------------------
+
+SCOPO
+Fornire dati STATICI di supporto alla UI.
+
+Esempio:
+{
+  "time_slot_duration": 15,
+  "default_day_start_time": "11:00",
+  "default_day_end_time": "15:00"
+}
+
+NOTA:
+- può anche essere iniettato via Blade
+- NON è obbligatorio se già disponibile via config
+
+------------------------------------------------
+ERRORI DA EVITARE (CRITICI)
+------------------------------------------------
+
+- Endpoint che restituiscono dati parziali
+- Endpoint che cambiano formato response
+- Logica temporale duplicata nel frontend
+- POST incrementali (“aggiungi giorno”, “rimuovi slot”)
+- Response diverse tra GET e POST
+
+------------------------------------------------
+OBIETTIVO DI QUESTO PROMPT
+------------------------------------------------
+
+- Avere un backend PREDICIBILE
+- Un solo punto di ingresso per il save
+- Un solo formato di settimana
+- Un frontend semplice e deterministico

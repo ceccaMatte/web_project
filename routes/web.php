@@ -183,12 +183,16 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
     Route::get('/admin/service-planning', [ServicePlanningController::class, 'index'])
         ->name('admin.service-planning');
     
-    // GET /api/admin/service-planning?weekStart=YYYY-MM-DD - Fetch configurazione settimana
-    Route::get('/api/admin/service-planning', [ServicePlanningController::class, 'apiIndex'])
-        ->name('api.admin.service-planning');
+    // GET /api/admin/service-planning/config - Fetch global config (min/max, defaults)
+    Route::get('/api/admin/service-planning/config', [ServicePlanningController::class, 'getConfig'])
+        ->name('api.admin.service-planning.config');
     
-    // POST /api/admin/service-planning - Salva configurazione settimana
-    Route::post('/api/admin/service-planning', [ServicePlanningController::class, 'apiSave'])
+    // GET /api/admin/service-planning/week/{startDate} - Fetch week configuration
+    Route::get('/api/admin/service-planning/week/{startDate}', [ServicePlanningController::class, 'getWeek'])
+        ->name('api.admin.service-planning.week');
+    
+    // POST /api/admin/service-planning/week/{startDate} - Save week configuration
+    Route::post('/api/admin/service-planning/week/{startDate}', [ServicePlanningController::class, 'saveWeek'])
         ->name('api.admin.service-planning.save');
 });
 

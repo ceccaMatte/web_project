@@ -1,0 +1,182 @@
+CONTESTO
+Pagina admin “Service Planning” (/admin/service-planning).
+Frontend: Blade + Tailwind + JS vanilla.
+Architettura vincolante:
+- state.js = SSOT
+- view.js = DOM refs
+- actions.js = eventi → mutano state
+- render.js = state → DOM
+- hydration.js = bootstrap stato iniziale
+
+PROBLEMA
+Il pulsante “Save” non si abilita correttamente perché:
+- non esiste uno snapshot iniziale affidabile
+- il frontend non distingue tra modifiche valide e interazioni su campi disabilitati
+- lo state viene mutato in modo incoerente
+- il confronto “stato iniziale vs stato corrente” è assente o errato
+
+OBIETTIVO
+Implementare un sistema di dirty-state:
+- deterministico
+- robusto
+- coerente con le regole temporali
+- che abiliti il pulsante Save SOLO quando esistono modifiche reali e salvabili
+
+------------------------------------------------
+PRINCIPIO FONDAMENTALE
+------------------------------------------------
+
+Il dirty-state indica:
+👉 “Lo stato corrente è diverso dallo stato iniziale caricabile/salvabile?”
+
+Non indica:
+- “l’utente ha cliccato qualcosa”
+- “c’è stato un evento UI”
+
+------------------------------------------------
+STRUTTURA DELLO STATE (OBBLIGATORIA)
+------------------------------------------------
+
+In servicePlanning.state.js devono esistere almeno:
+
+- initialSnapshot
+  - rappresenta lo stato iniziale della pagina
+  - NON deve essere mai mutato
+- draft
+  - rappresenta lo stato corrente modificabile
+- dirty
+  - boolean calcolato (true / false)
+
+Lo state NON deve contenere:
+- dati duplicati inutili
+- riferimenti DOM
+
+------------------------------------------------
+CREAZIONE DELLO SNAPSHOT INIZIALE
+------------------------------------------------
+
+Quando:
+- la pagina viene caricata
+- O la settimana cambia
+- O arrivano dati dal backend/config
+
+Allora:
+1) costruire il draft a partire dai dati ricevuti
+2) creare initialSnapshot = deepClone(draft)
+3) impostare dirty = false
+
+La clonazione deve essere:
+- profonda
+- senza riferimenti condivisi
+
+------------------------------------------------
+QUALI CAMPI PARTECIPANO AL DIRTY-STATE
+------------------------------------------------
+
+Il confronto deve includere SOLO i campi realmente salvabili:
+
+GLOBAL CONSTRAINTS:
+- max_orders_per_slot
+- max_pending_time
+- location
+
+DAILY AVAILABILITY:
+- solo i giorni MODIFICABILI (giorni > oggi)
+- per ciascun giorno:
+  - is_working (ON/OFF)
+  - start_time
+  - end_time
+
+ESCLUSI DAL CONFRONTO:
+- giorni ≤ oggi
+- settimane passate
+- flag UI (isEditable, disabled, loading, ecc.)
+- stati derivati o di rendering
+
+------------------------------------------------
+MODIFICHE VALIDE VS NON VALIDE
+------------------------------------------------
+
+Una modifica è VALIDA solo se:
+- riguarda un campo modificabile
+- riguarda una settimana non passata
+- riguarda un giorno > oggi (se daily)
+
+Interazioni su campi DISABLED:
+- NON devono modificare draft
+- NON devono modificare dirty
+- NON devono essere considerate nel confronto
+
+------------------------------------------------
+CALCOLO DIRTY-STATE (OBBLIGATORIO)
+------------------------------------------------
+
+Dopo OGNI modifica valida al draft:
+
+1) confrontare draft con initialSnapshot
+2) se esiste ALMENO UNA differenza:
+   → dirty = true
+3) se NON esistono differenze:
+   → dirty = false
+
+Il confronto deve essere:
+- deterministico
+- profondo
+- limitato ai campi definiti sopra
+
+NON usare:
+- contatori di click
+- flag manuali “isDirty = true”
+- logiche temporali fragili
+
+------------------------------------------------
+ABILITAZIONE PULSANTE SAVE
+------------------------------------------------
+
+Il pulsante Save è:
+- ENABLED solo se:
+  - dirty === true
+  - la settimana NON è passata
+- DISABLED in tutti gli altri casi
+
+Il render deve:
+- riflettere SEMPRE lo stato dirty
+- non contenere logica di confronto
+
+------------------------------------------------
+DOPO UN SAVE RIUSCITO
+------------------------------------------------
+
+Quando il backend risponde con successo:
+
+1) aggiornare draft con i dati ritornati dal backend
+2) ricreare initialSnapshot = deepClone(draft)
+3) impostare dirty = false
+4) aggiornare la UI
+
+------------------------------------------------
+ERRORI DA EVITARE (CRITICI)
+------------------------------------------------
+
+- Non confrontare:
+  - oggetti con riferimento condiviso
+- Non includere nel dirty-state:
+  - giorni non modificabili
+- Non permettere:
+  - mutazioni dello state da render.js
+- Non abilitare Save:
+  - solo perché un evento è avvenuto
+
+------------------------------------------------
+DELIVERABLE
+------------------------------------------------
+
+1) Implementazione completa del dirty-state
+2) Funzione di deep compare o strategia equivalente
+3) Commenti in italiano su:
+   - perché certi campi sono esclusi
+   - perché il dirty-state è calcolato così
+4) Checklist manuale di test:
+   - modifica → Save attivo
+   - rollback → Save disattivo
+   - interazione su campo disabled → Save invariato

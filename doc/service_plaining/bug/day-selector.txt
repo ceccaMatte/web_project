@@ -1,0 +1,245 @@
+CONTESTO
+Pagina admin “Service Planning” (/admin/service-planning).
+Stack: Laravel + Blade + Tailwind + JavaScript vanilla.
+Architettura frontend vincolante:
+- state.js      → SSOT (dati)
+- view.js       → riferimenti DOM
+- actions.js    → eventi + mutazione state
+- render.js     → state → DOM
+- api.js        → POST backend
+- hydration.js  → bootstrap + snapshot
+
+Questo prompt descrive ESCLUSIVAMENTE il comportamento della card di un singolo giorno della settimana.
+
+------------------------------------------------
+STRUTTURA DELLA CARD
+------------------------------------------------
+
+Ogni giorno della settimana è rappresentato da una card con:
+- intestazione (nome giorno, data, stato Active / Inactive)
+- switch ON/OFF (giorno lavorativo)
+- sezione orari (Start Time / End Time)
+- messaggio di warning opzionale (ordini impattati)
+
+------------------------------------------------
+STATO DEL GIORNO (STATE)
+------------------------------------------------
+
+Ogni giorno nello state deve avere almeno:
+
+- date (YYYY-MM-DD)
+- is_working (boolean)
+- start_time (HH:mm | null)
+- end_time (HH:mm | null)
+- isEditable (boolean, derivato)
+- affectedOrdersCount (number | null)
+
+------------------------------------------------
+REGOLE TEMPORALI (VINCOLANTI)
+------------------------------------------------
+
+- Settimane passate:
+  - card visibile
+  - stato leggibile
+  - TUTTI i controlli DISABLED
+
+- Settimana corrente:
+  - giorni <= oggi:
+    - card leggibile
+    - switch DISABLED
+    - orari DISABLED
+    - stato (ON/OFF) mantenuto
+  - giorni > oggi:
+    - card interattiva
+
+- Settimane future:
+  - tutte le card interattive
+
+------------------------------------------------
+COMPORTAMENTO SWITCH (GIORNO LAVORATIVO)
+------------------------------------------------
+
+SWITCH ON (is_working = true):
+- mostrare la sezione Start Time / End Time
+- se il giorno non esiste ancora nel DB:
+  - preparare lo state per la creazione del giorno
+- se esiste:
+  - preparare lo state per aggiornamento
+
+SWITCH OFF (is_working = false):
+- nascondere la sezione Start Time / End Time
+- NON cancellare nulla immediatamente
+- segnare nello state che il giorno sarà cancellato al Save
+
+IMPORTANTISSIMO:
+- se la card NON è isEditable:
+  - lo switch è DISABLED
+  - il click NON deve mutare lo state
+
+------------------------------------------------
+COMPORTAMENTO ORARI (START / END)
+------------------------------------------------
+
+La sezione orari:
+- è visibile SOLO se is_working = true
+- è interattiva SOLO se isEditable = true
+
+Gli orari devono rispettare SEMPRE:
+- start_time < end_time
+- start_time ≠ end_time
+- durata >= durata time slot
+- multipli della durata time slot
+
+La logica di normalizzazione:
+- è implementata in actions.js
+- è una funzione pura
+- il render NON corregge nulla
+
+(vedi prompt dedicato alla normalizzazione orari)
+
+Se isEditable = false:
+- click su Start / End:
+  - NON apre dropdown
+  - NON muta state
+  - evento ignorato
+
+------------------------------------------------
+WARNING “ORDERS WILL BE AFFECTED”
+------------------------------------------------
+
+La riga di warning:
+- è visibile SOLO se:
+  - la modifica corrente (switch OFF o riduzione orari)
+    comporterà la cancellazione di time slot FUTURI
+- mostra:
+  - il numero di ordini FUTURI che diventeranno REJECTED
+
+Nota:
+- il numero è una stima calcolata lato backend
+- il frontend lo mostra ma NON prende decisioni
+
+------------------------------------------------
+FRONTEND — DIRTY STATE
+------------------------------------------------
+
+La card contribuisce al dirty-state SOLO se:
+- isEditable = true
+- e cambia uno di questi valori:
+  - is_working
+  - start_time
+  - end_time
+
+Interazioni su card non editabili:
+- NON modificano lo state
+- NON attivano dirty-state
+
+------------------------------------------------
+SAVE — COSA INVIENE AL BACKEND
+------------------------------------------------
+
+Il frontend NON invia azioni incrementali.
+Invia lo STATO FINALE DESIDERATO.
+
+Per ogni giorno FUTURO modificabile:
+- se is_working = true:
+  {
+    date,
+    is_working: true,
+    start_time,
+    end_time
+  }
+- se is_working = false:
+  {
+    date,
+    is_working: false
+  }
+
+------------------------------------------------
+BACKEND — LOGICA DI PERSISTENZA
+------------------------------------------------
+
+TUTTO in transazione DB.
+
+Per ogni giorno FUTURO nel payload:
+
+--------------------------------
+CASO A — is_working = true e giorno NON esiste
+--------------------------------
+
+1) Creare working_day
+2) Creare time_slots:
+   - da start_time
+   - a end_time (end escluso)
+   - step = durata time slot
+3) Applicare global variables a ogni time slot
+
+--------------------------------
+CASO B — is_working = false e giorno ESISTE
+--------------------------------
+
+1) Recuperare tutti i time slot del giorno
+2) Per ogni time slot:
+   - marcare TUTTI gli ordini come REJECTED
+3) Cancellare i time slot
+4) Cancellare il working_day
+
+--------------------------------
+CASO C — is_working = true e giorno ESISTE
+--------------------------------
+
+Confrontare vecchi orari vs nuovi.
+
+SUBCASO C1 — RIDUZIONE FASCIA ORARIA
+
+Esempio:
+- prima: 10:00–17:00
+- dopo: 10:00–12:00
+
+Azioni:
+1) Individuare time slot fuori dal nuovo range
+2) Per ciascuno:
+   - marcare ordini come REJECTED
+3) Cancellare time slot fuori range
+
+SUBCASO C2 — ESTENSIONE FASCIA ORARIA
+
+Esempio:
+- prima: 10:00–12:00
+- dopo: 10:00–15:00
+
+Azioni:
+1) Creare i nuovi time slot mancanti
+2) Applicare global variables
+3) NON toccare i time slot esistenti
+
+--------------------------------
+INVARIANTI BACKEND
+--------------------------------
+
+- Nessuna modifica su giorni <= oggi
+- Nessuna modifica su settimane passate
+- Ordini REJECTED sono terminali
+- Nessuna modifica parziale (atomicità)
+
+--------------------------------
+ACCESSIBILITÀ (OBBLIGATORIA)
+--------------------------------
+
+- Switch:
+  - aria-label con giorno
+  - stato disabled comunicato
+- Start / End:
+  - aria-haspopup
+  - aria-expanded coerente
+- Warning:
+  - non solo colore
+  - icona + testo
+
+--------------------------------
+DELIVERABLE
+--------------------------------
+
+1) Comportamento completo card giorno
+2) Logica frontend coerente con backend
+3) Nessuno stato invalido possibile
+4) Commenti in italiano sulle scelte

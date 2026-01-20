@@ -5,6 +5,7 @@
  * - Orchestrazione render componenti
  * - Trasforma state in props per componenti
  * - Chiama componenti con props + callbacks
+ * - NON contiene logica di business o confronti dirty-state
  */
 
 import { servicePlanningState, getWeekLabel, canSave } from './servicePlanning.state.js';
@@ -12,6 +13,17 @@ import { servicePlanningView } from './servicePlanning.view.js';
 import { renderWeekSelector } from '../../components/weekSelector/weekSelector.component.js';
 import { renderGlobalConstraintsCard } from '../../components/globalConstraintsCard/globalConstraintsCard.component.js';
 import { renderDayConfigCard } from '../../components/dayConfigCard/dayConfigCard.component.js';
+
+// ============================================================================
+// DEBUG FLAG
+// ============================================================================
+const DEBUG = true;
+
+function debugLog(context, ...args) {
+    if (DEBUG) {
+        console.log(`[ServicePlanningRender:${context}]`, ...args);
+    }
+}
 
 // Cached callbacks reference
 let _callbacks = null;
@@ -21,20 +33,25 @@ let _callbacks = null;
  */
 export function setCallbacks(callbacks) {
     _callbacks = callbacks;
+    debugLog('setCallbacks', 'Callbacks registrati');
 }
 
 /**
  * Render completo della pagina
  */
 export function renderServicePlanningPage() {
-    console.log('[ServicePlanningRender] Rendering page...');
+    debugLog('render', 'Rendering pagina...');
 
     renderWeekSelectorComponent();
     renderGlobalConstraintsComponent();
     renderDailyAvailabilityComponent();
     renderSaveButton();
 
-    console.log('[ServicePlanningRender] Page rendered');
+    debugLog('render', 'Pagina renderizzata', {
+        isDirty: servicePlanningState.isDirty,
+        isWeekEditable: servicePlanningState.isWeekEditable,
+        canSave: canSave()
+    });
 }
 
 /**
@@ -48,12 +65,14 @@ export function renderWeekSelectorComponent() {
 
     renderWeekSelector(container, {
         weekLabel: getWeekLabel(),
+        weekStart: servicePlanningState.weekStart,
         canGoPrev: true,
         canGoNext: true,
         isLoading: servicePlanningState.isLoading,
     }, {
         onPrevWeek: callbacks.goToPrevWeek || (() => {}),
         onNextWeek: callbacks.goToNextWeek || (() => {}),
+        onDateSelect: callbacks.goToDate || (() => {}),
     });
 }
 
@@ -93,6 +112,7 @@ export function renderDailyAvailabilityComponent() {
 
     if (servicePlanningState.isLoading) {
         // Keep skeleton during loading
+        debugLog('renderDays', 'Loading, mostrando skeleton');
         return;
     }
 
@@ -124,10 +144,17 @@ export function renderDailyAvailabilityComponent() {
 
         container.appendChild(dayContainer);
     });
+
+    debugLog('renderDays', `Renderizzati ${servicePlanningState.days.length} giorni`);
 }
 
 /**
  * Render save button
+ * 
+ * REGOLE:
+ * - ENABLED: isDirty=true AND isWeekEditable=true AND !isSaving
+ * - DISABLED: in tutti gli altri casi
+ * - Label dinamica in base allo stato
  */
 export function renderSaveButton() {
     const button = servicePlanningView.saveButton;
@@ -137,15 +164,30 @@ export function renderSaveButton() {
     const state = servicePlanningState;
     const canSaveNow = canSave();
 
+    // Aggiorna stato disabled del pulsante
     button.disabled = !canSaveNow;
 
+    // Aggiorna classi per stile visivo
+    if (canSaveNow) {
+        button.classList.remove('bg-slate-800', 'text-slate-500');
+        button.classList.add('bg-primary', 'text-white');
+    } else {
+        button.classList.remove('bg-primary', 'text-white');
+        button.classList.add('bg-slate-800', 'text-slate-500');
+    }
+
+    // Aggiorna label
     if (state.isSaving) {
         label.textContent = 'Saving...';
     } else if (canSaveNow) {
         label.textContent = 'Save Changes';
+    } else if (!state.isWeekEditable) {
+        label.textContent = 'Week not editable';
     } else {
         label.textContent = 'No changes';
     }
+
+    debugLog('renderSave', `Button: ${canSaveNow ? 'ENABLED' : 'DISABLED'}, Label: ${label.textContent}`);
 }
 
 export default { renderServicePlanningPage, setCallbacks };

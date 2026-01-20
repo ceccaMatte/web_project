@@ -9,22 +9,33 @@
  * 
  * ARCHITETTURA MODULARE:
  * 
- * servicePlanning.state.js    → SSOT, mutation helpers
+ * servicePlanning.state.js    → SSOT, mutation helpers, dirty-state
  * servicePlanning.view.js     → DOM refs
  * servicePlanning.api.js      → fetch API
- * servicePlanning.actions.js  → azioni utente
+ * servicePlanning.actions.js  → azioni utente con guards
  * servicePlanning.render.js   → orchestrazione render componenti
  */
 
 import { servicePlanningView } from './servicePlanning.view.js';
 import { servicePlanningState, mutateUser, mutateConfigDefaults, mutateWeek, 
-         mutateGlobalConstraints, setOriginalGlobalConstraints, mutateDays, setOriginalDays,
-         mutateLoading } from './servicePlanning.state.js';
+         mutateGlobalConstraints, mutateDays, mutateLoading,
+         saveInitialSnapshot } from './servicePlanning.state.js';
 import { renderServicePlanningPage, setCallbacks } from './servicePlanning.render.js';
-import { goToPrevWeek, goToNextWeek, loadWeekData, 
+import { goToPrevWeek, goToNextWeek, goToDate, loadWeekData, 
          incrementMaxOrders, decrementMaxOrders, incrementMaxPendingTime, decrementMaxPendingTime, updateLocation,
-         toggleDay, updateDayStartTime, updateDayEndTime, saveChanges } from './servicePlanning.actions.js';
-import { addClass, removeClass, listen } from '../../utils/dom.js';
+         toggleDay, updateDayStartTime, updateDayEndTime, saveChanges,
+         openDatePicker, onDatePickerChange, isDayEditable } from './servicePlanning.actions.js';
+
+// ============================================================================
+// DEBUG FLAG
+// ============================================================================
+const DEBUG = true;
+
+function debugLog(context, ...args) {
+    if (DEBUG) {
+        console.log(`[ServicePlanningIndex:${context}]`, ...args);
+    }
+}
 
 /**
  * Inizializza pagina Service Planning
@@ -41,7 +52,7 @@ import { addClass, removeClass, listen } from '../../utils/dom.js';
  * Chiamato da app.js quando data-page="service-planning".
  */
 export async function initServicePlanningPage() {
-    console.log('[ServicePlanning] Initializing page...');
+    debugLog('init', 'Inizializzazione pagina...');
 
     // 1. Inizializza riferimenti DOM
     servicePlanningView.init();
@@ -56,6 +67,7 @@ export async function initServicePlanningPage() {
     setCallbacks({
         goToPrevWeek,
         goToNextWeek,
+        goToDate,
         incrementMaxOrders,
         decrementMaxOrders,
         incrementMaxPendingTime,
@@ -71,13 +83,16 @@ export async function initServicePlanningPage() {
     const today = new Date();
     const weekStart = getWeekStart(today);
     
-    console.log(`[ServicePlanning] Loading initial data for week starting: ${weekStart}`);
+    debugLog('init', `Caricamento dati iniziali per settimana: ${weekStart}`);
     await loadWeekData(weekStart);
 
     // 6. Registra event delegation globale
     registerGlobalEventDelegation();
 
-    console.log('[ServicePlanning] Page initialized successfully');
+    debugLog('init', 'Pagina inizializzata con successo');
+    
+    // Esponi utility di debug su window
+    exposeDebugUtilities();
 }
 
 /**
@@ -98,7 +113,7 @@ function hydrateUserFromDOM() {
             nickname: userData.nickname || null,
             role: userData.role || null,
         });
-        console.log('[ServicePlanning] User hydrated from DOM');
+        debugLog('hydrateUser', 'User hydrated:', userData);
     } catch (error) {
         console.error('[ServicePlanning] Failed to parse user state:', error);
     }
@@ -117,7 +132,7 @@ function hydrateConfigDefaultsFromDOM() {
     try {
         const configData = JSON.parse(script.textContent);
         mutateConfigDefaults(configData);
-        console.log('[ServicePlanning] Config defaults hydrated from DOM:', configData);
+        debugLog('hydrateConfig', 'Config defaults hydrated:', configData);
     } catch (error) {
         console.error('[ServicePlanning] Failed to parse config defaults:', error);
     }
@@ -146,6 +161,9 @@ function formatDate(date) {
 
 /**
  * Registra event delegation globale
+ * 
+ * NOTA: Gli eventi click sui link della sidebar NON devono essere intercettati
+ * per permettere la navigazione normale del browser
  */
 function registerGlobalEventDelegation() {
     const page = servicePlanningView.page;
@@ -157,7 +175,13 @@ function registerGlobalEventDelegation() {
         if (!target) return;
 
         const action = target.dataset.action;
-        console.log(`[ServicePlanning] Action clicked: ${action}`);
+        debugLog('click', `Action: ${action}`);
+
+        // IMPORTANTE: Non gestire i click sui link <a> per permettere la navigazione
+        if (target.tagName === 'A' && target.href) {
+            debugLog('click', 'Link click, allowing default navigation');
+            return; // Permetti navigazione normale
+        }
 
         switch (action) {
             case 'open-sidebar':
@@ -187,6 +211,9 @@ function registerGlobalEventDelegation() {
             case 'decrement-max-pending-time':
                 decrementMaxPendingTime();
                 break;
+            case 'open-date-picker':
+                // Gestito dal componente weekSelector
+                break;
         }
     });
 
@@ -197,19 +224,24 @@ function registerGlobalEventDelegation() {
         // Day toggle
         if (target.matches('[data-day-toggle]')) {
             const date = target.dataset.dayToggle;
+            
+            // GUARD: verifica che il giorno sia editabile
+            if (!isDayEditable(date)) {
+                debugLog('change', `Toggle giorno ${date} bloccato - non editabile`);
+                e.preventDefault();
+                return;
+            }
+            
             toggleDay(date);
         }
         
-        // Start time select
-        if (target.matches('[data-start-time]')) {
-            const date = target.dataset.startTime;
-            updateDayStartTime(date, target.value);
-        }
-        
-        // End time select
-        if (target.matches('[data-end-time]')) {
-            const date = target.dataset.endTime;
-            updateDayEndTime(date, target.value);
+        // Date picker change (gestito dal componente weekSelector)
+        if (target.matches('[data-week-date-picker]')) {
+            const selectedDate = target.value;
+            if (selectedDate) {
+                debugLog('change', 'Date picker selezionato:', selectedDate);
+                goToDate(selectedDate);
+            }
         }
     });
 
@@ -220,21 +252,53 @@ function registerGlobalEventDelegation() {
         }
     });
 
-    console.log('[ServicePlanning] Global event delegation registered');
+    // Custom events per time changes (dal componente dayConfigCard)
+    page.addEventListener('startTimeChange', (e) => {
+        const { date, time } = e.detail;
+        updateDayStartTime(date, time);
+    });
+
+    page.addEventListener('endTimeChange', (e) => {
+        const { date, time } = e.detail;
+        updateDayEndTime(date, time);
+    });
+
+    // Keyboard support per date picker e altri elementi
+    page.addEventListener('keydown', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+
+        // Enter o Space attivano l'azione
+        if (e.key === 'Enter' || e.key === ' ') {
+            const action = target.dataset.action;
+            
+            // Non interferire con i link
+            if (target.tagName === 'A') return;
+            
+            if (action === 'open-date-picker') {
+                e.preventDefault();
+                // L'evento è gestito dal componente weekSelector
+            }
+        }
+    });
+
+    debugLog('events', 'Event delegation globale registrata');
 }
 
 /**
  * Apre la sidebar (mobile)
  */
 function openSidebar() {
+    debugLog('sidebar', 'Apertura sidebar');
+    
     const sidebar = servicePlanningView.sidebar;
     const backdrop = servicePlanningView.sidebarBackdrop;
 
     if (sidebar) {
-        removeClass(sidebar, 'translate-x-full');
+        sidebar.classList.remove('translate-x-full');
     }
     if (backdrop) {
-        removeClass(backdrop, 'hidden');
+        backdrop.classList.remove('hidden');
     }
 }
 
@@ -242,14 +306,60 @@ function openSidebar() {
  * Chiude la sidebar (mobile)
  */
 function closeSidebar() {
+    debugLog('sidebar', 'Chiusura sidebar');
+    
     const sidebar = servicePlanningView.sidebar;
     const backdrop = servicePlanningView.sidebarBackdrop;
 
     if (sidebar) {
-        addClass(sidebar, 'translate-x-full');
+        sidebar.classList.add('translate-x-full');
     }
     if (backdrop) {
-        addClass(backdrop, 'hidden');
+        backdrop.classList.add('hidden');
+    }
+}
+
+/**
+ * Esponi utility di debug sulla window per uso in console del browser
+ */
+function exposeDebugUtilities() {
+    if (typeof window !== 'undefined') {
+        window.servicePlanningDebug = {
+            // Stato
+            getState: () => servicePlanningState,
+            printState: () => {
+                console.group('[ServicePlanning] STATO CORRENTE');
+                console.log('weekStart:', servicePlanningState.weekStart);
+                console.log('weekEnd:', servicePlanningState.weekEnd);
+                console.log('isWeekEditable:', servicePlanningState.isWeekEditable);
+                console.log('isDirty:', servicePlanningState.isDirty);
+                console.log('globalConstraints:', { ...servicePlanningState.globalConstraints });
+                console.log('days:', servicePlanningState.days);
+                console.log('initialSnapshot:', servicePlanningState.initialSnapshot);
+                console.groupEnd();
+            },
+            
+            // Azioni
+            goToDate: goToDate,
+            loadWeek: loadWeekData,
+            save: saveChanges,
+            
+            // Test dirty state
+            testDirtyState: () => {
+                console.log('Simulo modifica per testare dirty-state...');
+                const currentMax = servicePlanningState.globalConstraints.maxOrdersPerSlot;
+                incrementMaxOrders();
+                console.log('Dopo incremento:', {
+                    maxOrdersPerSlot: servicePlanningState.globalConstraints.maxOrdersPerSlot,
+                    isDirty: servicePlanningState.isDirty
+                });
+            },
+            
+            // View refs
+            getViewRefs: () => servicePlanningView,
+        };
+        
+        debugLog('debug', 'Debug utilities esposte su window.servicePlanningDebug');
     }
 }
 

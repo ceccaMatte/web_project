@@ -1,0 +1,261 @@
+CONTESTO
+Pagina admin “Service Planning” (/admin/service-planning).
+Stack: Laravel + Blade + Tailwind + JS vanilla.
+Architettura frontend vincolante:
+- servicePlanning.state.js (SSOT)
+- servicePlanning.view.js (DOM refs)
+- servicePlanning.actions.js (eventi -> mutate state)
+- servicePlanning.render.js (state -> DOM)
+- servicePlanning.api.js (fetch/POST)
+- servicePlanning.hydration.js (bootstrap + snapshot)
+
+Questo prompt riguarda SOLO le GLOBAL VARIABLES (“global constraints”) della settimana e la loro persistenza/applicazione nel backend.
+
+GLOBAL VARIABLES (VINCOLANTI)
+La UI contiene questi campi settimanali:
+- max_orders_per_slot (intero)
+- max_pending_time (intero, minuti)
+- location (string)
+
+TUTTI e tre hanno lo stesso comportamento:
+- stessi vincoli temporali
+- stesso dirty-state
+- stesso salvataggio
+- nessuna eccezione per location
+
+------------------------------------------------
+REGOLE TEMPORALI (VINCOLANTI)
+------------------------------------------------
+
+- Settimane passate:
+  - global variables VISIBILI
+  - ma FISICAMENTE NON EDITABILI (disabled)
+  - Save disabilitato
+
+- Settimana corrente:
+  - global variables EDITABILI
+  - le modifiche si applicano SOLO ai giorni > oggi
+  - NON si applicano a giorni <= oggi
+  - NON retroattive
+
+- Settimane future:
+  - global variables EDITABILI
+  - applicazione su tutta la settimana (tutti giorni sono futuri)
+
+Nota cruciale:
+- “oggi” (giorno corrente) è trattato come NON modificabile lato effetti: solo giorni strettamente > oggi sono target.
+
+------------------------------------------------
+FONTE DATI PER I VALORI VISUALIZZATI
+------------------------------------------------
+
+Non esiste tabella weekly_constraints.
+
+Regola per calcolare i valori mostrati:
+- Se nella settimana esistono working_days nel DB:
+  - dedurre i global variables dai working_days / time_slots già persistiti (valori correnti effettivi)
+- Se NON esistono working_days:
+  - usare i default da config della pagina (config/service_planning.php), che contiene:
+    - default_max_orders_per_slot
+    - default_max_pending_time
+    - default_location
+    - default_day_start_time
+    - default_day_end_time
+    - time_slot_duration
+
+IMPORTANTE:
+- Il frontend NON deve inventare valori:
+  - riceve dal backend i valori da mostrare
+  - in caso “settimana vuota”, backend restituisce i default da config
+
+------------------------------------------------
+FRONTEND — COMPORTAMENTO UI
+------------------------------------------------
+
+- In settimane passate:
+  - input disabled
+  - bottoni +/- disabled
+  - location input disabled
+  - nessuna interazione deve modificare lo state
+  - nessuna azione deve “sporcare” il dirty-state
+
+- In settimane correnti/future:
+  - input attivi
+  - +/- funzionanti
+  - location editabile
+  - ogni modifica aggiorna draft + dirty-state
+
+------------------------------------------------
+DIRTY-STATE (SOLO GLOBAL VARIABLES)
+------------------------------------------------
+
+Dirty-state deve includere max_orders_per_slot, max_pending_time, location.
+
+- Alla prima hydration (o al cambio settimana):
+  - creare snapshot iniziale (initialSnapshot) con i global variables
+  - dirty = false
+- Ogni modifica valida:
+  - ricalcolare dirty confrontando globalVariablesDraft vs globalVariablesSnapshot
+
+Non usare flag manuali: deve essere un confronto reale.
+
+------------------------------------------------
+SAVE (UNICO TASTO GLOBALE)
+------------------------------------------------
+
+Il Save è unico per tutta la pagina.
+Qui interessa solo come interagisce con le global variables:
+
+- Save abilitato solo se:
+  - settimana non passata
+  - dirty === true (almeno una differenza rispetto a snapshot)
+- Save disabilitato:
+  - settimana passata
+  - dirty === false
+
+Dopo Save riuscito:
+- aggiornare draft con i valori tornati dal backend
+- ricreare snapshot
+- dirty = false
+
+------------------------------------------------
+BACKEND — ENDPOINT E PAYLOAD
+------------------------------------------------
+
+POST /admin/service-planning/save
+
+Payload minimo richiesto per global variables:
+
+{
+  "week_start": "YYYY-MM-DD",
+  "global_constraints": {
+    "max_orders_per_slot": 10,
+    "max_pending_time": 20,
+    "location": "Piazza Centrale"
+  },
+  "days": [...] // altri dati pagina (non focus di questo prompt)
+}
+
+NOTA:
+- Anche se days contiene solo giorni futuri, il backend NON si fida e ricalcola.
+
+------------------------------------------------
+BACKEND — VALIDAZIONI OBBLIGATORIE
+------------------------------------------------
+
+1) week_start deve essere una settimana valida (lunedì) o normalizzabile internamente
+2) settimana NON passata (altrimenti 403/422)
+3) max_orders_per_slot:
+   - intero positivo
+   - range ragionevole (es. 1..999) per evitare input ridicoli
+4) max_pending_time:
+   - intero positivo
+   - range ragionevole (es. 1..1440)
+5) location:
+   - string trimmed
+   - max length (es. 120)
+6) transazione DB obbligatoria
+
+------------------------------------------------
+BACKEND — APPLICAZIONE “SOLO FUTURO” (CUORE DELLA LOGICA)
+------------------------------------------------
+
+Quando global variables cambiano, il backend deve aggiornare SOLO entità future:
+
+Definizione di “target futuro”:
+- tutti i time_slots appartenenti a giorni strettamente > oggi
+- che cadono nella settimana selezionata
+
+NON toccare:
+- time slot di giorni passati
+- time slot del giorno corrente
+- ordini passati / storici
+
+Questa regola vale anche se la settimana è corrente:
+- applicare solo da domani in poi
+
+------------------------------------------------
+BACKEND — COME PERSISTERE I GLOBAL VARIABLES
+------------------------------------------------
+
+Non esiste tabella settimanale.
+La persistenza avviene aggiornando i record futuri esistenti:
+
+A) Working Days (location)
+- La location deve essere salvata nel campo `working_days.location`.
+- Se il campo non esiste, aggiungere migration.
+- Aggiornare la location SOLO per working_days futuri (> oggi) nella settimana.
+
+B) Time Slots (max_orders_per_slot, max_pending_time)
+- I time slot futuri devono avere:
+  - max_orders = max_orders_per_slot
+  - max_pending_time = max_pending_time
+- Aggiornare SOLO i time slot futuri (> oggi) della settimana.
+
+C) Settimane senza working_days
+- Se non esistono working_days futuri, la modifica delle global variables:
+  - aggiorna solo lo “stato di default” mostrato al frontend? NO (non c’è tabella).
+  - quindi: la modifica non può essere persa.
+Soluzione obbligatoria:
+- Se l’admin salva global variables ma non esiste ancora alcun working_day futuro nella settimana,
+  il backend deve comunque poter “materializzare” la settimana futura quando verranno creati working_days.
+Scelta implementativa vincolante (senza tabella dedicata):
+- Salvare i global values come default applicativo nel config? NO (non mutabile runtime).
+Quindi l’unico modo coerente è:
+- Persistenza tramite entità future.
+Pertanto:
+- il backend deve applicare i global values ai working_days/time_slots che vengono creati in futuro (quando verranno creati).
+Ma per mantenere la modifica in assenza di record, è necessario che:
+- il frontend non consenta Save di global variables se la settimana non ha alcun giorno futuro “creabile”? OPPURE
+- il backend crei un “week placeholder” persistente.
+ATTENZIONE: non introdurre nuova tabella. Quindi applicare questa regola pratica:
+- la modifica delle global variables è significativa solo se nella settimana esistono o verranno creati working_days/time_slots.
+Implementare come segue:
+- il backend accetta e memorizza i global variables SOLO se esiste almeno un working_day futuro nella settimana O se nel payload days è presente almeno un giorno futuro is_working=true (che quindi verrà creato).
+In questo modo la modifica viene persistita su record reali creati/aggiornati nella stessa transazione.
+
+(Questo punto è essenziale per non “perdere” modifiche senza tabella weekly_constraints.)
+
+------------------------------------------------
+GESTIONE RIDUZIONE CAPIENZA (ORDINI REJECTED)
+------------------------------------------------
+
+Se max_orders_per_slot diminuisce e su un time slot futuro ci sono più ordini della nuova capienza:
+
+- Ordinare gli ordini per numero ordine crescente (order_number)
+- Mantenere i primi N = nuova capienza
+- Tutti gli altri ordini diventano REJECTED
+
+Esempio:
+- ordini: [1..10]
+- capienza: 10 -> 4
+- REJECTED: [5..10]
+
+Vincoli:
+- REJECTED è terminale, nessuna uscita.
+- Operazione transazionale.
+- Loggare conteggio ordini rejected.
+
+------------------------------------------------
+RISPOSTA BACKEND
+------------------------------------------------
+
+In caso di successo:
+- ritornare lo stato aggiornato della settimana:
+  - global constraints effettivi (quelli che ora valgono per il futuro)
+  - working_days attuali
+  - dati necessari al frontend
+Il frontend deve:
+- sostituire lo state
+- ricreare snapshot
+- dirty = false
+
+------------------------------------------------
+DELIVERABLE
+------------------------------------------------
+
+1) Implementazione corretta della logica global variables
+2) Applicazione SOLO a giorni > oggi
+3) Gestione capienza con rejected deterministici
+4) Transazione + logging
+5) Commenti in italiano sulla logica “solo futuro”

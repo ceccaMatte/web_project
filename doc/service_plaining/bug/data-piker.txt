@@ -1,0 +1,198 @@
+CONTESTO
+Pagina admin “Service Planning” (/admin/service-planning).
+Frontend: Blade + Tailwind + JavaScript vanilla (NO framework).
+Architettura vincolante:
+- state.js      → SSOT
+- view.js       → riferimenti DOM
+- actions.js    → gestione eventi
+- render.js     → state → DOM
+- api.js        → fetch backend
+- hydration.js  → bootstrap iniziale
+
+Questo prompt riguarda ESCLUSIVAMENTE il funzionamento del Date Picker
+associato al componente “Current Week”.
+
+NON modificare altre parti della pagina.
+NON introdurre librerie esterne.
+NON trasformare la pagina in SPA.
+
+------------------------------------------------
+COMPONENTE COINVOLTO
+------------------------------------------------
+
+Il Date Picker deve aprirsi quando l’utente clicca sul blocco centrale:
+
+<div class="text-center">
+  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+    Current Week
+  </p>
+  <p class="text-sm font-semibold text-white">
+    Jan 19 - 25, 2026
+  </p>
+</div>
+
+che si trova all’interno del wrapper:
+
+<div class="flex items-center justify-between bg-card-dark border border-border-dark p-2 rounded-2xl">
+  [prev-week] [current-week] [next-week]
+</div>
+
+------------------------------------------------
+OBIETTIVO FUNZIONALE
+------------------------------------------------
+
+- Cliccando sul blocco “Current Week”:
+  → deve aprirsi un Date Picker
+- Selezionando un giorno qualsiasi:
+  → la pagina deve mostrare i dati della SETTIMANA che contiene quel giorno
+- I dati della settimana selezionata:
+  → DEVONO essere caricati dal BACKEND
+  → NON devono essere dedotti o calcolati localmente
+
+------------------------------------------------
+SCELTA TECNICA DEL DATE PICKER
+------------------------------------------------
+
+Usare un input nativo:
+
+<input type="date">
+
+Requisiti:
+- l’input può essere:
+  - hidden / visually-hidden
+  - fuori layout
+- NON deve essere visibile come campo standard
+- serve SOLO come trigger del date picker di sistema
+
+------------------------------------------------
+STRUTTURA CONSIGLIATA (VINCOLANTE)
+------------------------------------------------
+
+Nel Blade del componente:
+
+- aggiungere un input type="date"
+- con id o data-ref chiaro (es: data-ref="week-date-picker")
+- associato semanticamente al blocco “Current Week”
+
+Il blocco “Current Week”:
+- deve essere cliccabile
+- deve essere accessibile:
+  - role="button"
+  - tabindex="0"
+  - aria-label="Select week by date"
+
+------------------------------------------------
+GESTIONE EVENTI (OBBLIGATORIA)
+------------------------------------------------
+
+view.js
+- cache:
+  - riferimento al blocco “Current Week”
+  - riferimento all’input type="date"
+
+actions.js
+- al click sul blocco “Current Week”:
+  - aprire il date picker usando:
+    - input.showPicker() se supportato
+    - fallback: focus + click sull’input
+- supportare anche:
+  - Enter
+  - Space
+
+------------------------------------------------
+SELEZIONE DELLA DATA
+------------------------------------------------
+
+Quando l’utente seleziona una data dal date picker:
+
+1) intercettare l’evento change dell’input
+2) ottenere la data selezionata (YYYY-MM-DD)
+3) calcolare:
+   - weekStart (lunedì della settimana)
+   - weekEnd (domenica della settimana)
+
+NOTA IMPORTANTE:
+- il calcolo serve SOLO per sapere QUALE settimana caricare
+- NON per costruire i dati della settimana
+
+------------------------------------------------
+CARICAMENTO DATI SETTIMANA (VINCOLO CRITICO)
+------------------------------------------------
+
+Dopo aver determinato weekStart / weekEnd:
+
+- chiamare api.js
+- effettuare una richiesta al backend, ad esempio:
+
+GET /admin/service-planning/week?start=YYYY-MM-DD
+
+Il backend deve restituire:
+- global constraints della settimana
+- working_days della settimana
+- time slot / orari / stati
+
+Il frontend:
+- NON deve inventare dati
+- NON deve riutilizzare dati della settimana precedente
+- deve sostituire completamente lo state corrente
+
+------------------------------------------------
+AGGIORNAMENTO DELLO STATE
+------------------------------------------------
+
+Alla risposta del backend:
+
+1) aggiornare lo state con i dati della nuova settimana
+2) aggiornare:
+   - weekStart
+   - weekEnd
+3) ricreare initialSnapshot
+4) impostare dirty = false
+5) chiamare render
+
+------------------------------------------------
+RENDER
+------------------------------------------------
+
+Il render deve:
+- aggiornare il testo visibile:
+  - “Jan 19 - 25, 2026”
+- aggiornare tutte le sezioni della pagina:
+  - global constraints
+  - giorni
+  - orari
+- NON mantenere residui della settimana precedente
+
+------------------------------------------------
+ACCESSIBILITÀ (OBBLIGATORIA)
+------------------------------------------------
+
+- Il blocco “Current Week” deve essere:
+  - navigabile da tastiera
+  - attivabile con Enter / Space
+- aria-label chiara
+- focus visibile
+- l’input type="date":
+  - può essere hidden
+  - ma deve restare accessibile ai lettori di schermo
+
+------------------------------------------------
+ERRORI DA EVITARE
+------------------------------------------------
+
+- NON aprire il date picker cliccando sulle frecce prev/next
+- NON cambiare settimana senza passare dal backend
+- NON modificare lo state senza reset dello snapshot
+- NON calcolare i dati della settimana solo lato frontend
+
+------------------------------------------------
+DELIVERABLE
+------------------------------------------------
+
+1) Implementazione completa apertura date picker
+2) Selezione data funzionante
+3) Caricamento dati settimana dal backend
+4) Aggiornamento corretto dello state
+5) Commenti in italiano su:
+   - accessibilità
+   - motivo dell’uso del date picker nativo

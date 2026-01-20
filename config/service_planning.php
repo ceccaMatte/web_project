@@ -24,6 +24,39 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Min/Max for Max Orders Per Slot (UI constraints)
+    |--------------------------------------------------------------------------
+    |
+    | Limiti per il campo maxOrdersPerSlot nella UI.
+    |
+    */
+    'min_max_orders_per_slot' => 1,
+    'max_max_orders_per_slot' => 99,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Max Ingredients Per Order
+    |--------------------------------------------------------------------------
+    |
+    | Numero massimo di ingredienti per ordine.
+    | Questo è il valore di default.
+    |
+    */
+    'default_max_ingredients' => 6,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Min/Max for Max Ingredients (UI constraints)
+    |--------------------------------------------------------------------------
+    |
+    | Limiti per il campo maxIngredientsPerOrder nella UI.
+    |
+    */
+    'min_max_ingredients' => 1,
+    'max_max_ingredients' => 20,
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Max Pending Time
     |--------------------------------------------------------------------------
     |

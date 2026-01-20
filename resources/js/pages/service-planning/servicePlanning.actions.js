@@ -3,16 +3,33 @@
  * 
  * RESPONSABILITÀ:
  * - Gestisce azioni utente
- * - Muta state
+ * - Muta state (con guard per campi non editabili)
  * - Trigger render
  * - Comunicazione API per side effects
+ * 
+ * GUARD PATTERN:
+ * - Ogni azione che modifica lo stato verifica prima se l'operazione è permessa
+ * - Azioni su campi disabled NON devono modificare lo stato
+ * - Azioni su campi disabled NON devono influenzare il dirty-state
  */
 
 import { servicePlanningState, mutateWeek, mutateGlobalConstraint, mutateGlobalConstraints, 
          toggleDayActive, mutateDayTime, mutateLoading, mutateSaving, mutateError,
-         setOriginalGlobalConstraints, setOriginalDays, mutateDays, resetDirtyState } from './servicePlanning.state.js';
+         mutateDays, resetDirtyState, saveInitialSnapshot, updateDirtyState,
+         normalizeTimes, getTodayString } from './servicePlanning.state.js';
 import { fetchWeekData, saveWeekConfiguration } from './servicePlanning.api.js';
 import { renderServicePlanningPage } from './servicePlanning.render.js';
+
+// ============================================================================
+// DEBUG FLAG
+// ============================================================================
+const DEBUG = true;
+
+function debugLog(context, ...args) {
+    if (DEBUG) {
+        console.log(`[ServicePlanningActions:${context}]`, ...args);
+    }
+}
 
 // ============================================================================
 // WEEK NAVIGATION
@@ -22,7 +39,7 @@ import { renderServicePlanningPage } from './servicePlanning.render.js';
  * Naviga alla settimana precedente
  */
 export async function goToPrevWeek() {
-    console.log('[ServicePlanningActions] Going to previous week');
+    debugLog('goToPrevWeek', 'Navigazione settimana precedente');
     
     const currentStart = new Date(servicePlanningState.weekStart);
     currentStart.setDate(currentStart.getDate() - 7);
@@ -35,7 +52,7 @@ export async function goToPrevWeek() {
  * Naviga alla settimana successiva
  */
 export async function goToNextWeek() {
-    console.log('[ServicePlanningActions] Going to next week');
+    debugLog('goToNextWeek', 'Navigazione settimana successiva');
     
     const currentStart = new Date(servicePlanningState.weekStart);
     currentStart.setDate(currentStart.getDate() + 7);
@@ -45,10 +62,10 @@ export async function goToNextWeek() {
 }
 
 /**
- * Naviga a una data specifica (calcola la settimana)
+ * Naviga a una data specifica (calcola la settimana che contiene quella data)
  */
 export async function goToDate(dateString) {
-    console.log(`[ServicePlanningActions] Going to date: ${dateString}`);
+    debugLog('goToDate', 'Navigazione a data:', dateString);
     
     const date = new Date(dateString);
     const weekStart = getWeekStart(date);
@@ -58,9 +75,16 @@ export async function goToDate(dateString) {
 
 /**
  * Carica dati per una settimana
+ * 
+ * WORKFLOW:
+ * 1. Mostra loader
+ * 2. Fetch dati da API
+ * 3. Aggiorna stato con dati ricevuti
+ * 4. Crea snapshot iniziale
+ * 5. Render UI
  */
 export async function loadWeekData(weekStart) {
-    console.log(`[ServicePlanningActions] Loading week data for ${weekStart}`);
+    debugLog('loadWeekData', 'Caricamento dati per settimana:', weekStart);
     
     try {
         mutateLoading(true);
@@ -68,14 +92,32 @@ export async function loadWeekData(weekStart) {
         
         const data = await fetchWeekData(weekStart);
         
+        debugLog('loadWeekData', 'Dati ricevuti dal backend:', data);
+        
         // Update state with fetched data
-        mutateWeek(data.weekStart, data.weekEnd, data.isEditable);
+        // Il backend restituisce isWeekEditable basato sulla data
+        mutateWeek(
+            data.weekStart, 
+            data.weekEnd, 
+            data.isWeekEditable ?? data.isEditable, // Compatibilità naming
+            data.hasPersistedData ?? true
+        );
+        
         mutateGlobalConstraints(data.globalConstraints);
-        setOriginalGlobalConstraints(data.globalConstraints);
         mutateDays(data.days);
-        setOriginalDays(data.days);
+        
+        // IMPORTANTE: Crea snapshot DOPO aver caricato tutti i dati
+        saveInitialSnapshot();
         
         mutateError(null);
+        
+        debugLog('loadWeekData', 'Stato dopo caricamento:', {
+            weekStart: servicePlanningState.weekStart,
+            weekEnd: servicePlanningState.weekEnd,
+            isWeekEditable: servicePlanningState.isWeekEditable,
+            isDirty: servicePlanningState.isDirty
+        });
+        
     } catch (error) {
         console.error('[ServicePlanningActions] Failed to load week data:', error);
         mutateError(error.message);
@@ -91,60 +133,104 @@ export async function loadWeekData(weekStart) {
 
 /**
  * Incrementa max orders per slot
+ * 
+ * GUARD: blocca se settimana non editabile
  */
 export function incrementMaxOrders() {
-    if (!servicePlanningState.isWeekEditable) return;
+    debugLog('incrementMaxOrders', 'Tentativo incremento');
+    
+    if (!servicePlanningState.isWeekEditable) {
+        debugLog('incrementMaxOrders', 'BLOCKED - settimana non editabile');
+        return;
+    }
     
     const current = servicePlanningState.globalConstraints.maxOrdersPerSlot;
-    mutateGlobalConstraint('maxOrdersPerSlot', current + 1);
-    renderServicePlanningPage();
+    const newValue = Math.min(current + 1, 100); // Max 100
+    
+    if (mutateGlobalConstraint('maxOrdersPerSlot', newValue)) {
+        renderServicePlanningPage();
+    }
 }
 
 /**
  * Decrementa max orders per slot
+ * 
+ * GUARD: blocca se settimana non editabile o valore già al minimo
  */
 export function decrementMaxOrders() {
-    if (!servicePlanningState.isWeekEditable) return;
+    debugLog('decrementMaxOrders', 'Tentativo decremento');
+    
+    if (!servicePlanningState.isWeekEditable) {
+        debugLog('decrementMaxOrders', 'BLOCKED - settimana non editabile');
+        return;
+    }
     
     const current = servicePlanningState.globalConstraints.maxOrdersPerSlot;
     if (current > 1) {
-        mutateGlobalConstraint('maxOrdersPerSlot', current - 1);
-        renderServicePlanningPage();
+        if (mutateGlobalConstraint('maxOrdersPerSlot', current - 1)) {
+            renderServicePlanningPage();
+        }
     }
 }
 
 /**
  * Incrementa max pending time
+ * 
+ * GUARD: blocca se settimana non editabile
  */
 export function incrementMaxPendingTime() {
-    if (!servicePlanningState.isWeekEditable) return;
+    debugLog('incrementMaxPendingTime', 'Tentativo incremento');
+    
+    if (!servicePlanningState.isWeekEditable) {
+        debugLog('incrementMaxPendingTime', 'BLOCKED - settimana non editabile');
+        return;
+    }
     
     const current = servicePlanningState.globalConstraints.maxPendingTime;
-    mutateGlobalConstraint('maxPendingTime', current + 5);
-    renderServicePlanningPage();
-}
-
-/**
- * Decrementa max pending time
- */
-export function decrementMaxPendingTime() {
-    if (!servicePlanningState.isWeekEditable) return;
+    const newValue = Math.min(current + 5, 120); // Max 120 minuti
     
-    const current = servicePlanningState.globalConstraints.maxPendingTime;
-    if (current > 5) {
-        mutateGlobalConstraint('maxPendingTime', current - 5);
+    if (mutateGlobalConstraint('maxPendingTime', newValue)) {
         renderServicePlanningPage();
     }
 }
 
 /**
+ * Decrementa max pending time
+ * 
+ * GUARD: blocca se settimana non editabile o valore già al minimo
+ */
+export function decrementMaxPendingTime() {
+    debugLog('decrementMaxPendingTime', 'Tentativo decremento');
+    
+    if (!servicePlanningState.isWeekEditable) {
+        debugLog('decrementMaxPendingTime', 'BLOCKED - settimana non editabile');
+        return;
+    }
+    
+    const current = servicePlanningState.globalConstraints.maxPendingTime;
+    if (current > 5) {
+        if (mutateGlobalConstraint('maxPendingTime', current - 5)) {
+            renderServicePlanningPage();
+        }
+    }
+}
+
+/**
  * Aggiorna location
+ * 
+ * GUARD: blocca se settimana non editabile
  */
 export function updateLocation(value) {
-    if (!servicePlanningState.isWeekEditable) return;
+    debugLog('updateLocation', 'Tentativo aggiornamento location:', value);
     
-    mutateGlobalConstraint('location', value);
-    renderServicePlanningPage();
+    if (!servicePlanningState.isWeekEditable) {
+        debugLog('updateLocation', 'BLOCKED - settimana non editabile');
+        return;
+    }
+    
+    if (mutateGlobalConstraint('location', value)) {
+        renderServicePlanningPage();
+    }
 }
 
 // ============================================================================
@@ -152,33 +238,70 @@ export function updateLocation(value) {
 // ============================================================================
 
 /**
+ * Verifica se un giorno è modificabile
+ * 
+ * @param {string} date - Data del giorno (YYYY-MM-DD)
+ * @returns {boolean}
+ */
+export function isDayEditable(date) {
+    const day = servicePlanningState.days.find(d => d.date === date);
+    return day ? day.isEditable : false;
+}
+
+/**
  * Toggle giorno attivo/inattivo
+ * 
+ * GUARD: blocca se giorno non editabile
  */
 export function toggleDay(date) {
-    console.log(`[ServicePlanningActions] Toggling day: ${date}`);
+    debugLog('toggleDay', 'Tentativo toggle giorno:', date);
     
-    toggleDayActive(date);
-    renderServicePlanningPage();
+    if (!isDayEditable(date)) {
+        debugLog('toggleDay', 'BLOCKED - giorno non editabile:', date);
+        return;
+    }
+    
+    if (toggleDayActive(date)) {
+        renderServicePlanningPage();
+    }
 }
 
 /**
  * Aggiorna orario inizio giorno
+ * 
+ * GUARD: blocca se giorno non editabile
+ * Normalizza automaticamente gli orari
  */
 export function updateDayStartTime(date, time) {
-    console.log(`[ServicePlanningActions] Updating start time for ${date}: ${time}`);
+    debugLog('updateDayStartTime', 'Tentativo aggiornamento start time:', { date, time });
     
-    mutateDayTime(date, 'startTime', time);
-    renderServicePlanningPage();
+    if (!isDayEditable(date)) {
+        debugLog('updateDayStartTime', 'BLOCKED - giorno non editabile:', date);
+        return;
+    }
+    
+    if (mutateDayTime(date, 'startTime', time)) {
+        renderServicePlanningPage();
+    }
 }
 
 /**
  * Aggiorna orario fine giorno
+ * 
+ * GUARD: blocca se giorno non editabile
+ * Normalizza automaticamente gli orari
  */
 export function updateDayEndTime(date, time) {
-    console.log(`[ServicePlanningActions] Updating end time for ${date}: ${time}`);
+    debugLog('updateDayEndTime', 'Tentativo aggiornamento end time:', { date, time });
     
-    mutateDayTime(date, 'endTime', time);
-    renderServicePlanningPage();
+    if (!isDayEditable(date)) {
+        debugLog('updateDayEndTime', 'BLOCKED - giorno non editabile:', date);
+        return;
+    }
+    
+    if (mutateDayTime(date, 'endTime', time)) {
+        renderServicePlanningPage();
+    }
 }
 
 // ============================================================================
@@ -187,46 +310,123 @@ export function updateDayEndTime(date, time) {
 
 /**
  * Salva tutte le modifiche
+ * 
+ * WORKFLOW:
+ * 1. Verifica che ci siano modifiche da salvare
+ * 2. Costruisce payload con solo giorni futuri
+ * 3. Invia al backend
+ * 4. In caso di successo, aggiorna snapshot
  */
 export async function saveChanges() {
-    if (!servicePlanningState.isDirty || !servicePlanningState.isWeekEditable) {
-        console.log('[ServicePlanningActions] Nothing to save or not editable');
+    debugLog('saveChanges', 'Tentativo salvataggio');
+    
+    if (!servicePlanningState.isDirty) {
+        debugLog('saveChanges', 'BLOCKED - nessuna modifica da salvare');
         return;
     }
     
-    console.log('[ServicePlanningActions] Saving changes...');
+    if (!servicePlanningState.isWeekEditable) {
+        debugLog('saveChanges', 'BLOCKED - settimana non editabile');
+        return;
+    }
+    
+    if (servicePlanningState.isSaving) {
+        debugLog('saveChanges', 'BLOCKED - salvataggio già in corso');
+        return;
+    }
+    
+    debugLog('saveChanges', 'Salvataggio modifiche in corso...');
+    
+    const today = getTodayString();
     
     try {
         mutateSaving(true);
         renderServicePlanningPage();
         
+        // Costruisci payload con SOLO giorni editabili (> oggi)
         const payload = {
             weekStart: servicePlanningState.weekStart,
             weekEnd: servicePlanningState.weekEnd,
             globalConstraints: { ...servicePlanningState.globalConstraints },
-            days: servicePlanningState.days
-                .filter(d => d.isEditable)
-                .map(d => ({
-                    date: d.date,
-                    isActive: d.isActive,
-                    startTime: d.startTime,
-                    endTime: d.endTime,
-                })),
+            days: servicePlanningState.days.map(d => ({
+                date: d.date,
+                isActive: d.isActive,
+                startTime: d.startTime,
+                endTime: d.endTime,
+            })),
         };
         
-        await saveWeekConfiguration(payload);
+        debugLog('saveChanges', 'Payload:', payload);
         
-        // Reset dirty state after successful save
+        const result = await saveWeekConfiguration(payload);
+        
+        debugLog('saveChanges', 'Risposta backend:', result);
+        
+        // Reset dirty state dopo successo
         resetDirtyState();
         mutateError(null);
         
-        console.log('[ServicePlanningActions] Changes saved successfully');
+        debugLog('saveChanges', 'Salvataggio completato con successo');
+        
     } catch (error) {
         console.error('[ServicePlanningActions] Failed to save changes:', error);
         mutateError(error.message);
     } finally {
         mutateSaving(false);
         renderServicePlanningPage();
+    }
+}
+
+// ============================================================================
+// DATE PICKER ACTION
+// ============================================================================
+
+/**
+ * Apre il date picker nativo
+ * Questa funzione viene chiamata quando l'utente clicca sul blocco "Current Week"
+ */
+export function openDatePicker() {
+    debugLog('openDatePicker', 'Apertura date picker');
+    
+    // Cerca l'input date hidden
+    const dateInput = document.querySelector('[data-week-date-picker]');
+    
+    if (dateInput) {
+        // Imposta il valore corrente all'inizio della settimana
+        if (servicePlanningState.weekStart) {
+            dateInput.value = servicePlanningState.weekStart;
+        }
+        
+        // Prova showPicker() (browser moderni)
+        if (typeof dateInput.showPicker === 'function') {
+            try {
+                dateInput.showPicker();
+                debugLog('openDatePicker', 'showPicker() chiamato con successo');
+            } catch (e) {
+                // Fallback: focus + click
+                dateInput.focus();
+                dateInput.click();
+                debugLog('openDatePicker', 'Fallback focus+click');
+            }
+        } else {
+            // Fallback per browser che non supportano showPicker
+            dateInput.focus();
+            dateInput.click();
+            debugLog('openDatePicker', 'showPicker non supportato, usando focus+click');
+        }
+    } else {
+        console.warn('[ServicePlanningActions] Date picker input non trovato');
+    }
+}
+
+/**
+ * Handler per cambio data dal date picker
+ */
+export function onDatePickerChange(dateString) {
+    debugLog('onDatePickerChange', 'Data selezionata:', dateString);
+    
+    if (dateString) {
+        goToDate(dateString);
     }
 }
 
@@ -255,9 +455,50 @@ function getWeekStart(date) {
     return formatDate(d);
 }
 
+// ============================================================================
+// DEBUG UTILITIES
+// ============================================================================
+
+/**
+ * Debug: forza ricalcolo dirty state
+ */
+export function debugForceRecalculateDirty() {
+    updateDirtyState();
+    renderServicePlanningPage();
+    return servicePlanningState.isDirty;
+}
+
+/**
+ * Debug: simula modifica per testing
+ */
+export function debugSimulateChange() {
+    debugLog('debugSimulateChange', 'Simulazione modifica per test');
+    
+    const current = servicePlanningState.globalConstraints.maxOrdersPerSlot;
+    mutateGlobalConstraint('maxOrdersPerSlot', current + 1);
+    renderServicePlanningPage();
+    
+    return {
+        newValue: servicePlanningState.globalConstraints.maxOrdersPerSlot,
+        isDirty: servicePlanningState.isDirty
+    };
+}
+
+// Esporta utility di debug su window per uso in console
+if (typeof window !== 'undefined') {
+    window.debugServicePlanningActions = {
+        forceRecalculateDirty: debugForceRecalculateDirty,
+        simulateChange: debugSimulateChange,
+        loadWeek: loadWeekData,
+        goToDate: goToDate,
+    };
+}
+
 export default { 
     goToPrevWeek, goToNextWeek, goToDate, loadWeekData,
     incrementMaxOrders, decrementMaxOrders, incrementMaxPendingTime, decrementMaxPendingTime, updateLocation,
     toggleDay, updateDayStartTime, updateDayEndTime,
-    saveChanges 
+    saveChanges,
+    openDatePicker, onDatePickerChange,
+    isDayEditable
 };
