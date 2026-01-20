@@ -33,7 +33,9 @@ class ServicePlanningController extends Controller
      */
     public function index()
     {
-        return view('admin.service-planning');
+        return view('pages.admin-service-planning', [
+            'user' => auth()->user(),
+        ]);
     }
 
     /**
