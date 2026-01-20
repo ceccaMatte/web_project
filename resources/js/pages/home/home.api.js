@@ -244,6 +244,67 @@ export async function fetchTimeSlots(date) {
 }
 
 /**
+ * Fetch polling per aggiornamenti automatici ogni 5 secondi
+ * 
+ * ENDPOINT: GET /api/home/polling?date=YYYY-MM-DD
+ * 
+ * Questo endpoint serve ESCLUSIVAMENTE per il polling automatico.
+ * Ritorna SOLO i dati necessari per aggiornare:
+ * - Truck Card (SEMPRE today)
+ * - Ordini utente (SOLO today) 
+ * - Time slots (del giorno selezionato)
+ * 
+ * RESPONSE: {
+ *   today: {
+ *     is_active: boolean,
+ *     location: string,
+ *     start_time: string,
+ *     end_time: string
+ *   },
+ *   user_orders_today: [
+ *     { id: number, status: string }
+ *   ],
+ *   selected_day_slots: [
+ *     { time: string, available: number, id: number, href: string }
+ *   ]
+ * }
+ * 
+ * @param {string} selectedDate - Data selezionata per i time slots (YYYY-MM-DD)
+ * @returns {Promise<Object>} - Polling payload leggero
+ * @throws {Error} - Se fetch fallisce o response non ok
+ */
+export async function fetchPolling(selectedDate) {
+    if (!selectedDate) {
+        throw new Error('[HomeAPI] fetchPolling: selectedDate is required');
+    }
+
+    console.log(`[HomeAPI] Polling: fetching /api/home/polling?date=${selectedDate}...`);
+
+    try {
+        const response = await fetch(`/api/home/polling?date=${selectedDate}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Cookie di sessione
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`[HomeAPI] Polling successful for date ${selectedDate}`);
+        
+        return data;
+    } catch (error) {
+        console.error(`[HomeAPI] Polling failed for date ${selectedDate}:`, error);
+        throw error; // Re-throw per gestione chiamante
+    }
+}
+
+/**
  * Export default per import aggregato
  */
 export default {
@@ -251,4 +312,5 @@ export default {
     fetchBookingForDay,
     logoutUser,
     fetchTimeSlots,
+    fetchPolling,
 };

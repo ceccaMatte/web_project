@@ -114,6 +114,7 @@ export function hydrateHomeState(data) {
     // Scheduler state
     if (data.scheduler) {
         homeState.selectedDayId = data.scheduler.selectedDayId || null;
+        homeState.selectedDate = data.scheduler.selectedDayId || null;  // Sincronizzazione
         homeState.monthLabel = data.scheduler.monthLabel || null;
         homeState.weekDays = Array.isArray(data.scheduler.weekDays) 
             ? data.scheduler.weekDays 

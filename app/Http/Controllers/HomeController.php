@@ -319,5 +319,98 @@ class HomeController extends Controller
             'slots' => $timeSlots,
         ]);
     }
+
+    /**
+     * API endpoint per polling automatico every 5 secondi.
+     * 
+     * RESPONSABILITÀ:
+     * - Aggiorna dati truck card (SEMPRE today)
+     * - Aggiorna ordini utente (SOLO today)
+     * - Aggiorna time slots (del giorno selezionato)
+     * 
+     * CARATTERISTICHE:
+     * - Endpoint leggero e veloce
+     * - Ottimizzato per chiamate frequenti
+     * - Idempotente
+     * 
+     * RESPONSE: {
+     *   today: {
+     *     is_active: boolean,
+     *     location: string,
+     *     start_time: string,
+     *     end_time: string
+     *   },
+     *   user_orders_today: [
+     *     { id: number, status: string }
+     *   ],
+     *   selected_day_slots: [
+     *     { time: string, available: number, id: number, href: string }
+     *   ]
+     * }
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function polling(Request $request)
+    {
+        // 1. Valida parametro date per i time slots
+        $validated = $request->validate([
+            'date' => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $selectedDate = $validated['date'];
+        $today = today()->format('Y-m-d');
+
+        // 2. Dati TODAY per truck card (SEMPRE today, mai selectedDate)
+        $todayWorkingDay = \App\Models\WorkingDay::where('day', $today)->first();
+        $todayData = [
+            'is_active' => (bool) $todayWorkingDay,
+            'location' => $todayWorkingDay->location ?? null,
+            'start_time' => $todayWorkingDay ? substr($todayWorkingDay->start_time, 0, 5) : null,
+            'end_time' => $todayWorkingDay ? substr($todayWorkingDay->end_time, 0, 5) : null,
+        ];
+
+        // 3. Ordini utente per TODAY (SOLO today, mai selectedDate)
+        $userOrdersToday = [];
+        if (auth()->check()) {
+            $userOrdersToday = \App\Models\Order::where('user_id', auth()->id())
+                ->whereHas('timeSlot.workingDay', function ($query) use ($today) {
+                    $query->where('day', $today);
+                })
+                ->get(['id', 'status'])
+                ->toArray();
+        }
+
+        // 4. Time slots per selectedDate (può essere diverso da today)
+        $selectedDaySlots = [];
+        $workingDay = \App\Models\WorkingDay::where('day', $selectedDate)
+            ->with(['timeSlots' => function ($query) {
+                $query->orderBy('start_time', 'asc');
+            }])
+            ->first();
+
+        if ($workingDay) {
+            $selectedDaySlots = $workingDay->timeSlots->map(function ($slot) use ($workingDay) {
+                $ordersCount = \App\Models\Order::where('time_slot_id', $slot->id)
+                    ->whereIn('status', ['pending', 'confirmed'])
+                    ->count();
+
+                $available = max(0, $workingDay->max_orders - $ordersCount);
+
+                return [
+                    'id' => $slot->id,
+                    'time' => substr($slot->start_time, 0, 5),
+                    'available' => $available,
+                    'href' => "/orders/create?slot={$slot->id}",
+                ];
+            });
+        }
+
+        return response()->json([
+            'today' => $todayData,
+            'user_orders_today' => $userOrdersToday,
+            'selected_day_slots' => $selectedDaySlots,
+        ]);
+    }
 }
 

@@ -129,7 +129,25 @@
         </section>
 
         {{--
-            SEZIONE 3: Order Preview Card (dinamica)
+            SEZIONE 3: Time Slots per Giorno Selezionato
+            - Mostra time slots del giorno selezionato nello scheduler
+            - PRINCIPIO: I time slots DEVONO SEMPRE corrispondere al selectedDate
+            - Container dinamico popolato da home.actions.js
+            - Supporta loading, errore, e lista time slots
+        --}}
+        <section class="px-5" data-time-slots-section>
+            <div class="mb-4">
+                <h3 class="text-text-primary text-lg font-bold">Available Time Slots</h3>
+                <p class="text-text-secondary text-sm">Select a time slot to book your sandwich</p>
+            </div>
+            
+            <div data-time-slots-container class="flex flex-col gap-3">
+                {{-- Il contenuto viene popolato da renderTimeSlots() in home.actions.js --}}
+            </div>
+        </section>
+
+        {{--
+            SEZIONE 4: Order Preview Card (dinamica)
             - Renderizzata dinamicamente da home.js in base a:
               - Utente loggato/non loggato
               - Numero ordini (0, 1, 2+)
@@ -149,7 +167,7 @@
         </section>
 
         {{--
-            SEZIONE 4: Pre-book Slots Futuri
+            SEZIONE 5: Pre-book Slots Futuri
             - Container renderizzato dinamicamente da home.js
             - Mostra slot disponibili per domani/prossimi giorni
             - Header con data e location + scroll orizzontale di TimeSlotCard

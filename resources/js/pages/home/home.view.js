@@ -57,6 +57,10 @@ export const homeView = {
         bookingHeader: null,
         bookingSubtitle: null,
         bookingSlotsContainer: null,
+
+        // Time Slots
+        timeSlotsSection: null,
+        timeSlotsContainer: null,
     },
 
     /**
@@ -95,6 +99,10 @@ export const homeView = {
         this.refs.bookingSubtitle = qs('[data-booking-subtitle]');
         this.refs.bookingSlotsContainer = qs('[data-booking-slots-container]');
 
+        // Time Slots
+        this.refs.timeSlotsSection = qs('[data-time-slots-section]');
+        this.refs.timeSlotsContainer = qs('[data-time-slots-container]');
+
         // Validazione elementi critici
         this._validateRefs();
 
@@ -118,6 +126,7 @@ export const homeView = {
             'schedulerSection',
             'orderPreviewContainer',
             'bookingSlotsContainer',
+            'timeSlotsContainer',
         ];
 
         criticalRefs.forEach(refName => {

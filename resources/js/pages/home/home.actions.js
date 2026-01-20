@@ -5,6 +5,8 @@
  * - Gestisce azioni utente sulla pagina Home
  * - Modifica homeState in risposta ad eventi
  * - Trigger render mirati o completi
+ * - Gestisce polling automatico ogni 5 secondi
+ * - Gestisce fetch e render dei time slots
  * 
  * ARCHITETTURA:
  * - Ogni action è una funzione che modifica state + rende
@@ -12,38 +14,29 @@
  * - Può chiamare API per fetch dati aggiuntivi
  * 
  * UTILIZZO:
- * import { openSidebar, closeSidebar, selectDay } from './home.actions.js';
- * 
- * // Da component callback:
- * onToggleSidebar: (isOpen) => isOpen ? openSidebar() : closeSidebar()
+ * import { openSidebar, closeSidebar, selectDay, startPolling, stopPolling } from './home.actions.js';
  */
 
-import { homeState, mutateSidebar, mutateSelectedDay, mutateUser, mutateBooking, mutateOrdersPreview } from './home.state.js';
-import { fetchBookingForDay, logoutUser, fetchTimeSlots } from './home.api.js';
+import { 
+    homeState, 
+    mutateSidebar, 
+    mutateSelectedDay, 
+    mutateUser, 
+    mutateBooking, 
+    mutateOrdersPreview,
+    mutateTimeSlots,
+    mutateTodayService,
+    mutatePolling,
+    initializeSelectedDate
+} from './home.state.js';
+import { fetchBookingForDay, logoutUser, fetchTimeSlots, fetchPolling } from './home.api.js';
 import { renderHome } from './home.render.js';
 import { renderSidebar } from '../../components/sidebar/sidebar.component.js';
 import { renderTopBar } from '../../components/topbar/topbar.component.js';
 import { renderWeekScheduler } from '../../components/weekScheduler/weekScheduler.component.js';
 import { renderTimeSlotsList } from '../../components/timeSlotCard/timeSlotCard.component.js';
+import { renderTodayServiceCard } from '../../components/todayServiceCard/todayServiceCard.component.js';
 import { homeView } from './home.view.js';
-
-/**
- * Aggiorna isSelected nei weekDays in base al selectedDayId corrente
- * 
- * @param {Array} weekDays - Array weekDays
- * @param {string} selectedDayId - ID del giorno selezionato
- * @returns {Array} - weekDays aggiornato
- */
-function updateSchedulerSelection(weekDays, selectedDayId) {
-    if (!selectedDayId || !weekDays || weekDays.length === 0) {
-        return weekDays;
-    }
-    
-    return weekDays.map(day => ({
-        ...day,
-        isSelected: day.id === selectedDayId,
-    }));
-}
 
 /**
  * Apri sidebar
@@ -102,102 +95,237 @@ export function closeSidebar() {
 }
 
 /**
- * Seleziona giorno nello scheduler
+ * Seleziona giorno nello scheduler E fetch time slots
+ * 
+ * PRINCIPIO FONDAMENTALE:
+ * I time slots mostrati DEVONO SEMPRE corrispondere
+ * al giorno selezionato nello scheduler.
  * 
  * WORKFLOW:
- * 1. Aggiorna homeState.selectedDayId
- * 2. Aggiorna weekDays.isSelected
- * 3. Fetch time slots per quel giorno da API
- * 4. Aggiorna homeState.booking con nuovi slots
- * 5. Re-render scheduler + booking slots
+ * 1. Valida che il giorno sia selezionabile
+ * 2. Aggiorna selectedDayId E selectedDate (sincronizzazione)
+ * 3. Re-render scheduler immediato per feedback visivo
+ * 4. Fetch time slots per il giorno selezionato
+ * 5. Re-render time slots con i nuovi dati
  * 
- * @param {string} dayId - ID giorno (YYYY-MM-DD)
+ * @param {string} dayId - ID giorno nel formato YYYY-MM-DD
  */
 export async function selectDay(dayId) {
-    console.log(`[Actions] Selecting day: ${dayId}`);
+    console.log(`[Actions] selectDay: ${dayId}`);
     
     if (!dayId) {
         console.warn('[Actions] selectDay: dayId is required');
         return;
     }
 
-    // 1. Aggiorna state
-    mutateSelectedDay(dayId);
-    console.log('[Actions] State updated, weekDays:', homeState.weekDays.map(d => ({id: d.id, isSelected: d.isSelected})));
+    // 1. Verifica che il giorno sia selezionabile
+    const dayData = homeState.weekDays.find(day => day.id === dayId);
+    if (!dayData) {
+        console.warn(`[Actions] selectDay: day ${dayId} not found in weekDays`);
+        return;
+    }
 
-    // 2. Re-render scheduler (immediato per feedback visivo)
-    // IMPORTANTE: Aggiorna isSelected con il nuovo selectedDayId
-    const updatedWeekDays = updateSchedulerSelection(
-        homeState.weekDays,
-        homeState.selectedDayId
-    );
+    if (dayData.isDisabled || !dayData.isActive) {
+        console.warn(`[Actions] selectDay: day ${dayId} is not selectable`);
+        return;
+    }
+
+    // 2. Se già selezionato, non fare nulla (idempotenza)
+    if (homeState.selectedDayId === dayId) {
+        console.log(`[Actions] selectDay: day ${dayId} already selected, skipping`);
+        return;
+    }
+
+    // 3. Aggiorna selectedDayId E selectedDate (sincronizzazione scheduler ↔ time slots)
+    mutateSelectedDay(dayId);
     
+    // 4. Re-render scheduler immediato per feedback visivo
     renderWeekScheduler(
         homeView.refs.schedulerSection,
-        { monthLabel: homeState.monthLabel, weekDays: updatedWeekDays },
+        { monthLabel: homeState.monthLabel, weekDays: homeState.weekDays },
         { onDaySelected: selectDay }
     );
 
-    // 3. Fetch time slots per il giorno selezionato
+    // 5. Fetch time slots per il giorno selezionato
+    await loadTimeSlots(dayId);
+}
+
+/**
+ * Carica time slots per una data specifica
+ * 
+ * RESPONSABILITÀ:
+ * - Fetch dei time slots dal backend
+ * - Aggiorna homeState.timeSlots
+ * - Re-render della sezione time slots
+ * - Gestione errori
+ * 
+ * IMPORTANTE: Questa funzione è usata sia da selectDay che da loadInitialTimeSlots
+ * 
+ * @param {string} date - Data in formato YYYY-MM-DD
+ */
+export async function loadTimeSlots(date) {
+    if (!date) {
+        console.error('[Actions] loadTimeSlots: date is required');
+        return;
+    }
+
+    console.log(`[Actions] Loading time slots for ${date}...`);
+    
     try {
-        console.debug(`[Actions] Fetching time slots for ${dayId}...`);
-        const timeSlotsData = await fetchTimeSlots(dayId);
+        // Indica loading
+        mutateTimeSlots({ loading: true, error: null });
         
-        console.debug('[Actions] TimeSlots received:', {
-            dateLabel: timeSlotsData.dateLabel,
-            locationLabel: timeSlotsData.locationLabel,
-            slotsCount: timeSlotsData.slots?.length || 0,
+        // Fetch time slots
+        const timeSlotsData = await fetchTimeSlots(date);
+        
+        // Trasforma i dati dal formato API al formato state
+        const timeSlots = (timeSlotsData.slots || []).map(slot => ({
+            id: slot.id,
+            time: slot.timeLabel,
+            available: slot.slotsLeft,
+            isDisabled: slot.isDisabled,
+            href: slot.href
+        }));
+        
+        // Aggiorna state
+        mutateTimeSlots({ 
+            timeSlots: timeSlots,
+            loading: false,
+            error: null 
         });
         
-        // 4. Aggiorna booking state con nuovi slots
-        mutateBooking(timeSlotsData);
+        // Re-render time slots
+        renderTimeSlots();
         
-        console.debug('[Actions] State AFTER mutateBooking:', {
-            dateLabel: homeState.booking.dateLabel,
-            locationLabel: homeState.booking.locationLabel,
-            slotsCount: homeState.booking.slots?.length || 0,
-            slots: homeState.booking.slots,
-        });
-        
-        // 5. Re-render booking slots con nuovi dati
-        renderTimeSlotsList(
-            homeView.refs.bookingSlotsContainer,
-            homeState.booking,
-            {} // No callbacks (usano href)
-        );
-        
-        // 6. Re-render booking header con nuova data
-        const bookingHeader = homeView.refs.bookingHeader;
-        if (bookingHeader) {
-            bookingHeader.innerHTML = `
-                <h3 class="text-white text-sm font-bold mb-1">
-                    ${timeSlotsData.dateLabel || ''}
-                </h3>
-                <p class="text-slate-500 text-xs">
-                    ${timeSlotsData.locationLabel || ''}
-                </p>
-            `;
-        }
-        
-        console.log(`[Actions] Day selected and time slots loaded: ${dayId}`);
+        console.log(`[Actions] Time slots loaded for ${date}:`, timeSlots.length, 'slots');
         
     } catch (error) {
-        console.error(`[Actions] Failed to fetch time slots for ${dayId}:`, error);
-        // TODO: Mostrare errore all'utente
+        console.error(`[Actions] Failed to load time slots for ${date}:`, error);
+        
+        mutateTimeSlots({ 
+            timeSlots: [],
+            loading: false,
+            error: 'Failed to load time slots' 
+        });
+        
+        // Re-render time slots con errore
+        renderTimeSlots();
     }
 }
 
 /**
- * Gestisce click su bottone "Prenota" slot
+ * Carica time slots iniziali basati su selectedDate
+ * 
+ * Chiamata durante l'inizializzazione della home.
+ * Determina automaticamente quale giorno caricare secondo le regole:
+ * 1. Se selectedDate è già impostato → carica quello
+ * 2. Altrimenti inizializza selectedDate e carica i time slots
+ */
+export async function loadInitialTimeSlots() {
+    console.log('[Actions] Loading initial time slots...');
+    
+    let targetDate = homeState.selectedDate;
+    
+    if (!targetDate) {
+        // Inizializza selectedDate secondo le regole (oggi o primo giorno attivo)
+        targetDate = initializeSelectedDate();
+        console.log(`[Actions] Initialized selectedDate: ${targetDate}`);
+    }
+    
+    if (targetDate) {
+        await loadTimeSlots(targetDate);
+    } else {
+        console.warn('[Actions] No active days found, skipping time slots loading');
+        mutateTimeSlots({ 
+            timeSlots: [], 
+            loading: false, 
+            error: 'No active days available' 
+        });
+        renderTimeSlots();
+    }
+}
+
+/**
+ * Render time slots nella UI
+ * 
+ * RESPONSABILITÀ:
+ * - Legge ESCLUSIVAMENTE da homeState.timeSlots e homeState.selectedDate
+ * - Mostra loader, errore, o lista time slots
+ * - NON fa fetch, NON modifica state
+ */
+function renderTimeSlots() {
+    const container = homeView.refs.timeSlotsContainer;
+    if (!container) {
+        console.warn('[Actions] renderTimeSlots: container not found');
+        return;
+    }
+
+    const { timeSlots, timeSlotsLoading, timeSlotsError, selectedDate } = homeState;
+
+    if (timeSlotsLoading) {
+        container.innerHTML = '<div class="text-slate-500 text-center py-4">Loading time slots...</div>';
+        return;
+    }
+
+    if (timeSlotsError) {
+        container.innerHTML = `<div class="text-red-500 text-center py-4">${timeSlotsError}</div>`;
+        return;
+    }
+
+    if (!selectedDate) {
+        container.innerHTML = '<div class="text-slate-500 text-center py-4">Select a day to view time slots</div>';
+        return;
+    }
+
+    if (!timeSlots || timeSlots.length === 0) {
+        container.innerHTML = '<div class="text-slate-500 text-center py-4">No time slots available for this day</div>';
+        return;
+    }
+
+    // Render lista time slots
+    const slotsHTML = timeSlots.map(slot => {
+        const isDisabled = slot.isDisabled || slot.available <= 0;
+        const availabilityText = slot.available > 0 ? `${slot.available} spots left` : 'Fully booked';
+        
+        return `
+            <div class="bg-slate-800 rounded-lg p-4 ${isDisabled ? 'opacity-50' : ''}">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-white font-medium">${slot.time}</div>
+                        <div class="text-slate-400 text-sm">${availabilityText}</div>
+                    </div>
+                    <button 
+                        class="px-4 py-2 rounded-lg font-medium transition-colors ${
+                            isDisabled 
+                                ? 'bg-slate-600 text-slate-400 cursor-not-allowed' 
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }"
+                        data-action="book-slot"
+                        data-slot-id="${slot.id}"
+                        data-slot-href="${slot.href}"
+                        ${isDisabled ? 'disabled' : ''}
+                    >
+                        ${isDisabled ? 'Full' : 'Book'}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = slotsHTML;
+}
+
+/**
+ * Gestisce click su bottone "Book" di un time slot
  * 
  * WORKFLOW:
  * - Se utente NON autenticato → redirect a /login
- * - Se utente autenticato → redirect a /orders/create?slot={slotId}
+ * - Se utente autenticato → usa href del slot per navigazione
  * 
- * @param {string} slotId - ID dello slot da prenotare
+ * @param {HTMLElement} button - Bottone cliccato
  */
-export function bookSlot(slotId) {
-    console.log(`[Actions] Book slot clicked: ${slotId}`);
+export function bookSlot(button) {
+    console.log('[Actions] Book slot clicked');
     
     if (!homeState.user.authenticated) {
         console.log('[Actions] User not authenticated, redirecting to login');
@@ -205,9 +333,134 @@ export function bookSlot(slotId) {
         return;
     }
     
-    // Utente autenticato: vai alla pagina di creazione ordine
-    console.log('[Actions] User authenticated, redirecting to order creation');
-    window.location.href = `/orders/create?slot=${slotId}`;
+    // Utente autenticato: usa href dal slot
+    const href = button.dataset.slotHref;
+    if (href) {
+        console.log(`[Actions] Redirecting to: ${href}`);
+        window.location.href = href;
+    }
+}
+
+/**
+ * Avvia polling automatico ogni 5 secondi
+ * 
+ * RESPONSABILITÀ:
+ * - Configura timer setInterval
+ * - Chiama endpoint /api/home/polling
+ * - Aggiorna truck card (sempre today)
+ * - Aggiorna ordini utente (solo today) 
+ * - Aggiorna time slots (del giorno selezionato)
+ * 
+ * IMPORTANTE:
+ * - Il polling NON cambia selectedDate
+ * - Il polling è SILENZIOSO (no reload UI)
+ * - Gestisce errori senza interrompere il polling
+ */
+export function startPolling() {
+    // Se già attivo, non avviare un secondo timer
+    if (homeState.pollingEnabled) {
+        console.warn('[Actions] Polling already active');
+        return;
+    }
+
+    console.log('[Actions] Starting polling every 5 seconds...');
+    
+    const pollingTimer = setInterval(async () => {
+        await runPolling();
+    }, 5000); // 5 secondi
+
+    mutatePolling({
+        enabled: true,
+        timer: pollingTimer,
+        lastUpdate: null
+    });
+
+    console.log('[Actions] Polling started');
+}
+
+/**
+ * Ferma polling automatico
+ */
+export function stopPolling() {
+    if (!homeState.pollingEnabled || !homeState.pollingTimer) {
+        console.warn('[Actions] No active polling to stop');
+        return;
+    }
+
+    console.log('[Actions] Stopping polling...');
+    
+    clearInterval(homeState.pollingTimer);
+    
+    mutatePolling({
+        enabled: false,
+        timer: null,
+        lastUpdate: null
+    });
+
+    console.log('[Actions] Polling stopped');
+}
+
+/**
+ * Esegue una singola richiesta di polling
+ * 
+ * CHIAMATA:
+ * - Ogni 5 secondi dal timer
+ * - Una volta manuale durante l'inizializzazione
+ */
+async function runPolling() {
+    if (!homeState.selectedDate) {
+        console.warn('[Actions] runPolling: no selectedDate, skipping');
+        return;
+    }
+
+    try {
+        console.debug(`[Actions] Polling: fetching updates for selectedDate=${homeState.selectedDate}`);
+        
+        const pollingData = await fetchPolling(homeState.selectedDate);
+        
+        // Aggiorna truck card con dati TODAY (non selectedDate)
+        const todayStatus = pollingData.today.is_active ? 'active' : 'inactive';
+        mutateTodayService({
+            status: todayStatus,
+            location: pollingData.today.location,
+            startTime: pollingData.today.start_time,
+            endTime: pollingData.today.end_time,
+        });
+
+        // Aggiorna time slots con dati del selectedDate
+        const timeSlots = (pollingData.selected_day_slots || []).map(slot => ({
+            id: slot.id,
+            time: slot.time,
+            available: slot.available,
+            isDisabled: slot.available <= 0,
+            href: slot.href || `/orders/create?slot=${slot.id}`
+        }));
+        
+        mutateTimeSlots({ 
+            timeSlots: timeSlots,
+            loading: false,
+            error: null 
+        });
+
+        // TODO: Aggiorna ordini utente quando saranno implementati
+        
+        // Re-render silent components
+        renderTodayServiceCard(
+            homeView.refs.todayServiceSection,
+            homeState.todayService,
+            {}
+        );
+        
+        renderTimeSlots();
+        
+        mutatePolling({ lastUpdate: Date.now() });
+        
+        console.debug('[Actions] Polling update completed');
+        
+    } catch (error) {
+        console.error('[Actions] Polling failed:', error);
+        // NON interrompere il polling per errori temporanei
+    }
 }
 
 /**
@@ -215,42 +468,24 @@ export function bookSlot(slotId) {
  * 
  * WORKFLOW:
  * 1. Chiama API POST /logout
- * 2. Aggiorna homeState.user.authenticated = false
- * 3. Re-render completo Home in modalità guest
- * 4. NON fa redirect (resta sulla Home)
- * 
- * VINCOLI:
- * - Nessun window.location
- * - Nessun redirect backend
- * - Aggiorna solo stato e UI
+ * 2. Refresh completo della pagina
  */
 export async function logout() {
     console.log('[Actions] Logout clicked');
-    console.debug('[Actions] State BEFORE logout:', structuredClone({
-        user: homeState.user,
-        ordersPreview: homeState.ordersPreview,
-    }));
     
     try {
-        // 1. Chiama API logout
         const result = await logoutUser();
         
         if (!result.success) {
             console.error('[Actions] Logout failed:', result.message || result.error);
             
-            // Se errore CSRF 419, suggerisci refresh
             if (result.error === 'csrf_mismatch') {
                 alert('Session expired. Please refresh the page.');
             }
             return;
         }
         
-        console.log('[Actions] Logout successful, refreshing page to get new CSRF token');
-        
-        // Refresh completo della pagina per:
-        // 1. Ottenere nuovo CSRF token dal backend
-        // 2. Caricare dati aggiornati da /api/home
-        // 3. Evitare 419 su successive richieste
+        console.log('[Actions] Logout successful, refreshing page');
         window.location.reload();
         
     } catch (error) {
@@ -266,6 +501,10 @@ export default {
     openSidebar,
     closeSidebar,
     selectDay,
+    loadTimeSlots,
+    loadInitialTimeSlots,
     bookSlot,
+    startPolling,
+    stopPolling,
     logout,
 };

@@ -47,6 +47,11 @@ Route::get('/api/home', [HomeController::class, 'apiIndex'])
 Route::get('/api/time-slots', [HomeController::class, 'getTimeSlots'])
     ->name('api.time-slots');
 
+// API endpoint per polling automatico (ogni 5 secondi)
+// GET /api/home/polling?date=YYYY-MM-DD
+Route::get('/api/home/polling', [HomeController::class, 'polling'])
+    ->name('api.home.polling');
+
 // ========================================
 // PLACEHOLDER: Welcome originale (da rimuovere)
 // ========================================
