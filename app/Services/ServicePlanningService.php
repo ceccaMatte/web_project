@@ -158,7 +158,13 @@ class ServicePlanningService
      */
     private function deduceGlobalConstraints(Collection $workingDays): array
     {
-        $activeDay = $workingDays->first(fn($wd) => $wd->is_active);
+        // Prendi il working day attivo PIÙ RECENTE per avere i constraints più aggiornati
+        // In questo modo, anche se il primo giorno della settimana non è attivo, 
+        // recuperiamo i constraints corretti dai giorni successivi
+        $activeDay = $workingDays
+            ->filter(fn($wd) => $wd->is_active)
+            ->sortByDesc('updated_at')
+            ->first();
 
         if ($activeDay) {
             return [
