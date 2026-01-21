@@ -10,12 +10,8 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // Chiama il seeder specifico per i requisiti dell'utente
         $this->call([
             UserRequirementsSeeder::class,
         ]);

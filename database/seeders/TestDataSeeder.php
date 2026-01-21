@@ -13,35 +13,14 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-/**
- * SEEDER PER DATI DI TEST
- *
- * Popola il database con dati realistici per sviluppo locale.
- *
- * ✅ Crea:
- * - 3 utenti (1 loggabile principale, 2 aggiuntivi)
- * - Ingredienti per categoria (bread, meat, cheese, vegetable, sauce)
- * - 7 WorkingDay (da oggi a domenica con orari 12:00-20:00)
- * - Time slots: 32 slot/giorno (15 minuti ciascuno)
- * - Ordini distribuiti: ~50 ordini per oggi, ~20 per giorno futuro
- * - Stati ordini realistici (pending, confirmed, ready, picked_up, rejected)
- * - Preferiti per testare il toggle
- *
- * 🔐 CREDENZIALI DI TEST:
- * - Email: mario@test.it
- * - Password: password
- * 
- * 📝 ESECUZIONE:
- * php artisan db:seed --class=TestDataSeeder
- */
 class TestDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Disabilita foreign key constraints per truncate
+        // Disabilita FK per truncate
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        // Svuota le tabelle (ordine inverso delle dipendenze)
+        // Truncate tabelle
         DB::table('favorite_sandwich_ingredients')->truncate();
         FavoriteSandwich::truncate();
         OrderIngredient::truncate();
@@ -51,18 +30,14 @@ class TestDataSeeder extends Seeder
         Ingredient::truncate();
         User::truncate();
 
-        // Riabilita foreign key constraints
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        // ============================================
-        // 1️⃣  CREA UTENTI
-        // ============================================
-        
+        // Seed utenti
         $userMario = User::create([
             'name' => 'Mario Rossi',
             'nickname' => 'Mario',
             'email' => 'mario@test.it',
-            'password' => 'password', // Hash automatico tramite cast 'hashed'
+            'password' => 'password', // Password hashed via model cast
             'role' => 'user',
             'enabled' => true,
         ]);
@@ -85,19 +60,7 @@ class TestDataSeeder extends Seeder
             'enabled' => true,
         ]);
 
-        echo "✅ Creati 3 utenti\n";
-
-        // ============================================
-        // 2️⃣  CREA INGREDIENTI
-        // ============================================
-        
         $ingredients = $this->createIngredients();
-        echo "✅ Creati " . count($ingredients) . " ingredienti\n";
-
-        // ============================================
-        // 3️⃣  CREA WORKING DAYS (da oggi a domenica, orari 12:00-20:00)
-        // ============================================
-
         $workingDays = [];
         $users = [$userMario, $userLuigi, $userAdmin];
 
@@ -120,17 +83,10 @@ class TestDataSeeder extends Seeder
 
             $workingDays[] = $workingDay;
 
-            // Genera time slots per ogni giorno (12:00-20:00 = 32 slots)
-            $slots = $this->createTimeSlots($workingDay, '12:00', '19:45', 15);
-            echo "✅ Creato WorkingDay {$date->format('d/m/Y')}: 12:00-20:00 ({$workingDay->timeSlots()->count()} slots)\n";
+            $this->createTimeSlots($workingDay, '12:00', '19:45', 15);
         }
 
-        echo "✅ Creati 7 giorni lavorativi (oggi-domenica) con orari 12:00-20:00\n";
-
-        // ============================================
-        // 6️⃣  CREA ORDINI DISTRIBUITI (~50 ordini per oggi, meno per gli altri giorni)
-        // ============================================
-
+        // Created working days and slots
         $totalOrders = 0;
 
         // Per ogni giorno lavorativo
@@ -170,16 +126,9 @@ class TestDataSeeder extends Seeder
             }
 
             $totalOrders += $ordersCreated;
-            echo "✅ Creati {$ordersCreated} ordini per {$workingDay->day->format('d/m/Y')}" . ($isToday ? ' (OGGI)' : '') . "\n";
         }
 
-        echo "✅ Creati {$totalOrders} ordini totali distribuiti sui 7 giorni\n";
-
-        // ============================================
-        // 8️⃣  CREA PREFERITI
-        // ============================================
-        
-        // Mario ha salvato il "Panino Classico" come preferito
+        // Create favorites
         $classicConfig = FavoriteSandwich::generateConfigurationId(
             ['Ciabatta', 'Prosciutto Cotto', 'Mozzarella', 'Lattuga', 'Maionese']
         );
@@ -195,37 +144,9 @@ class TestDataSeeder extends Seeder
         ])->pluck('id')->toArray();
         $favorite->ingredients()->attach($favoriteIngredientIds);
 
-        echo "✅ Creato 1 preferito per Mario\n";
-
-        // ============================================
-        // RIEPILOGO
-        // ============================================
-        
-        echo "\n";
-        echo "╔════════════════════════════════════════════╗\n";
-        echo "║   📊 SEED COMPLETATO                       ║\n";
-        echo "╠════════════════════════════════════════════╣\n";
-        echo "║ 👤 Utenti: 3                              ║\n";
-        echo "║    - mario@test.it (password)             ║\n";
-        echo "║    - luigi@test.it (password)             ║\n";
-        echo "║    - admin@test.it (password, admin)      ║\n";
-        echo "║                                            ║\n";
-        echo "║ 🥪 Ingredienti: " . count($ingredients) . "                        ║\n";
-        echo "║                                            ║\n";
-        echo "║ 📅 Working Days: 7 (oggi-domenica)         ║\n";
-        echo "║    - Orari: 12:00-20:00 (32 slots/giorno) ║\n";
-        echo "║                                            ║\n";
-        echo "║ 🛒 Ordini: {$totalOrders}                              ║\n";
-        echo "║    - ~50 ordini per oggi                  ║\n";
-        echo "║    - ~20 ordini per giorno futuro         ║\n";
-        echo "║                                            ║\n";
-        echo "║ ⭐ Preferiti: 1                            ║\n";
-        echo "╚════════════════════════════════════════════╝\n";
+        // end run
     }
 
-    /**
-     * Crea ingredienti per categoria
-     */
     private function createIngredients(): array
     {
         $ingredientsData = [
@@ -276,9 +197,6 @@ class TestDataSeeder extends Seeder
         return $ingredients;
     }
 
-    /**
-     * Crea un ordine con ingredienti snapshot
-     */
     private function createOrderWithIngredients(
         User $user, 
         TimeSlot $slot, 
@@ -298,7 +216,7 @@ class TestDataSeeder extends Seeder
         $order->status = $status;
         $order->save();
 
-        // Crea snapshot ingredienti
+        // Snapshot ingredienti
         foreach ($ingredientNames as $name) {
             $ingredient = Ingredient::where('name', $name)->first();
             $category = $ingredient ? $ingredient->category : 'other';
@@ -313,9 +231,6 @@ class TestDataSeeder extends Seeder
         return $order;
     }
 
-    /**
-     * Helper: crea time slots per un working day
-     */
     private function createTimeSlots(WorkingDay $workingDay, string $startTime, string $endTime, int $intervalMinutes): array
     {
         $slots = [];
@@ -339,10 +254,7 @@ class TestDataSeeder extends Seeder
         return $slots;
     }
 
-    /**
-     * Calcola quanti ordini creare per un determinato slot
-     * Distribuzione non uniforme: più ordini negli orari di punta (12:00-20:00)
-     */
+    // Distribuzione non uniforme: peso per orari di punta
     private function calculateOrdersForSlot(int $slotIndex, int $totalSlots, int $targetOrders): int
     {
         // Distribuzione basata sull'ora del giorno (più ordini negli orari di punta)
@@ -367,9 +279,6 @@ class TestDataSeeder extends Seeder
         return (int) $finalOrders;
     }
 
-    /**
-     * Determina lo stato dell'ordine basato sul giorno e posizione
-     */
     private function getOrderStatusForSlot(bool $isToday, int $slotIndex, int $orderIndex): string
     {
         $hour = 12 + floor($slotIndex / 4);
@@ -394,9 +303,6 @@ class TestDataSeeder extends Seeder
         return $statuses[array_rand($statuses)];
     }
 
-    /**
-     * Restituisce ingredienti casuali per un ordine
-     */
     private function getRandomIngredients(): array
     {
         $ingredients = Ingredient::all();

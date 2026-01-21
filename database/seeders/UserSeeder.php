@@ -11,12 +11,9 @@ class UserSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Crea utenti di test con stati diversi
+        // Test users
         User::create([
             'name' => 'Mario Rossi',
             'nickname' => 'Mario',
@@ -41,9 +38,7 @@ class UserSeeder extends Seeder
             'enabled' => false, // Utente disabilitato
         ]);
 
-        // Utente guest (non autenticato) - non serve creare, è lo stato di default
-
-        // Crea utente admin
+        // Admin
         User::create([
             'name' => 'Admin User',
             'nickname' => 'Admin',

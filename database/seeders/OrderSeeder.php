@@ -33,7 +33,7 @@ class OrderSeeder extends Seeder
             return;
         }
 
-        // Mario ha un ordine pending
+        // Ordini di esempio
         $mario = $users->where('email', 'mario@example.com')->first();
         if ($mario) {
             Order::create([
@@ -44,8 +44,7 @@ class OrderSeeder extends Seeder
                 'daily_number' => 1,
             ]);
         }
-
-        // Giulia ha un ordine ready (pronto per il ritiro)
+        // altro ordine di esempio
         $giulia = $users->where('email', 'giulia@example.com')->first();
         if ($giulia) {
             Order::create([
@@ -56,8 +55,7 @@ class OrderSeeder extends Seeder
                 'daily_number' => 2,
             ]);
         }
-
-        // Mario ha anche un ordine confirmed (in preparazione)
+        // ordine confermato
         if ($mario) {
             Order::create([
                 'user_id' => $mario->id,
@@ -67,8 +65,6 @@ class OrderSeeder extends Seeder
                 'daily_number' => 3,
             ]);
         }
-
-        // Aggiungi ingredienti agli ordini (se necessario)
-        // Per ora saltiamo, possiamo aggiungere dopo se serve
+        // Ingredienti non aggiunti (intenzionale)
     }
 }

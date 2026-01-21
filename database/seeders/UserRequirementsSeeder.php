@@ -13,31 +13,14 @@ use Illuminate\Support\Facades\DB;
 use App\Services\TimeSlotGeneratorService;
 use Carbon\Carbon;
 
-/**
- * SEEDER PER I REQUISITI SPECIFICI DELL'UTENTE
- *
- * ✅ Crea:
- * - 1 utente admin: admin@test.it (password)
- * - 3 utenti normali: user1@test.it, user2@test.it, user3@test.it (password)
- * - Ingredienti per ogni categoria (almeno 4-6 per categoria)
- * - Giorni lavorativi: lunedì 19/01/2026 (11:00-15:00, Uni stazione), mercoledì 21/01/2026 (8:00-19:00, Uni Biblio), venerdì 23/01/2026 (11:00-16:00, Uni Biblio)
- * - 50 ordini per giorno distribuiti tra ready, confirmed, pending
- * - Ordini assegnati ai 3 utenti normali
- *
- * 🔐 CREDENZIALI:
- * - Admin: admin@test.it / password
- * - User1: user1@test.it / password
- * - User2: user2@test.it / password
- * - User3: user3@test.it / password
- */
 class UserRequirementsSeeder extends Seeder
 {
     public function run(): void
     {
-        // Disabilita foreign key constraints per truncate
+        // Disabilita FK per truncate
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        // Svuota le tabelle (ordine inverso delle dipendenze)
+        // Truncate (ordine inverso delle dipendenze)
         DB::table('favorite_sandwich_ingredients')->truncate();
         DB::table('favorite_sandwiches')->truncate();
         OrderIngredient::truncate();
@@ -47,15 +30,9 @@ class UserRequirementsSeeder extends Seeder
         Ingredient::truncate();
         User::truncate();
 
-        // Riabilita foreign key constraints
+        // Riabilita FK
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
-
-        echo "🧹 Database pulito completamente\n";
-
-        // ============================================
-        // 1️⃣  CREA UTENTI
-        // ============================================
-
+        // Seed utenti
         $adminUser = User::create([
             'name' => 'Admin User',
             'nickname' => 'Admin',
@@ -94,19 +71,9 @@ class UserRequirementsSeeder extends Seeder
 
         $normalUsers = [$user1, $user2, $user3];
 
-        echo "✅ Creati 4 utenti (1 admin + 3 normali)\n";
-
-        // ============================================
-        // 2️⃣  CREA INGREDIENTI (almeno 4-6 per categoria)
-        // ============================================
-
+        // Seed ingredienti
         $ingredients = $this->createIngredients();
-        echo "✅ Creati " . count($ingredients) . " ingredienti\n";
-
-        // ============================================
-        // 3️⃣  CREA WORKING DAYS
-        // ============================================
-
+        // Working days
         $workingDays = [
             [
                 'day' => '2026-01-19', // Lunedì
@@ -142,15 +109,10 @@ class UserRequirementsSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            $slotsCreated = $timeSlotGenerator->generate($workingDay);
+            $timeSlotGenerator->generate($workingDay);
             $createdWorkingDays[] = $workingDay;
-            echo "✅ Creato WorkingDay {$workingDay->day}: {$wdData['start_time']}-{$wdData['end_time']} ({$slotsCreated} slots)\n";
         }
-
-        // ============================================
-        // 4️⃣  CREA ORDINI (50 per giorno distribuiti)
-        // ============================================
-
+        // Crea ordini di test
         $totalOrders = 0;
         $statuses = ['pending', 'confirmed', 'ready'];
 
@@ -188,35 +150,9 @@ class UserRequirementsSeeder extends Seeder
                 $slotIndex++;
             }
 
-            echo "✅ Creati {$dayOrders} ordini per il giorno {$workingDay->day}\n";
+            // day summary omitted
         }
-
-        echo "✅ Creati {$totalOrders} ordini totali distribuiti sui 3 utenti normali\n";
-
-        // ============================================
-        // RIEPILOGO
-        // ============================================
-
-        echo "\n";
-        echo "╔════════════════════════════════════════════╗\n";
-        echo "║   📊 SEED COMPLETATO (REQUISITI UTENTE)   ║\n";
-        echo "╠════════════════════════════════════════════╣\n";
-        echo "║ 👤 Utenti:                                ║\n";
-        echo "║    - admin@test.it (password, admin)      ║\n";
-        echo "║    - user1@test.it (password)             ║\n";
-        echo "║    - user2@test.it (password)             ║\n";
-        echo "║    - user3@test.it (password)             ║\n";
-        echo "║                                            ║\n";
-        echo "║ 🥪 Ingredienti: " . count($ingredients) . " per categoria       ║\n";
-        echo "║                                            ║\n";
-        echo "║ 📅 Working Days: 3                         ║\n";
-        echo "║    - Lun 19/01/2026: 11:00-15:00 (Uni stazione) ║\n";
-        echo "║    - Mer 21/01/2026: 08:00-19:00 (Uni Biblio) ║\n";
-        echo "║    - Ven 23/01/2026: 11:00-16:00 (Uni Biblio) ║\n";
-        echo "║                                            ║\n";
-        echo "║ 🛒 Ordini: {$totalOrders} (50 per giorno, ready/confirmed/pending) ║\n";
-        echo "║    - Distribuiti sui 3 utenti normali     ║\n";
-        echo "╚════════════════════════════════════════════╝\n";
+        // end run
     }
 
     /**

@@ -12,16 +12,10 @@ class TestWorkingDaySeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Run the database seeds.
-     * Crea un giorno lavorativo per oggi (18/01/2026) con orari 14:00-18:00
-     * per permettere i test anche di domenica.
-     */
     public function run(): void
     {
-        $today = Carbon::create(2026, 1, 18); // Oggi: 18/01/2026
-
-        // Crea il working day per oggi con orari 14:00-18:00
+        // Test day fixed for reproducible slots
+        $today = Carbon::create(2026, 1, 18);
         $workingDay = WorkingDay::create([
             'day' => $today,
             'location' => 'Engineering Hub - Test Day',
@@ -35,6 +29,6 @@ class TestWorkingDaySeeder extends Seeder
         $generator = new TimeSlotGeneratorService();
         $slotsCreated = $generator->generate($workingDay);
 
-        $this->command->info("Created working day for {$today->format('d/m/Y')} with {$slotsCreated} time slots (14:00-18:00)");
+        // finished
     }
 }

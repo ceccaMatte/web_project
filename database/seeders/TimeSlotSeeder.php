@@ -11,19 +11,13 @@ class TimeSlotSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $generator = new TimeSlotGeneratorService();
-
-        // Genera slot per tutti i working days
         $workingDays = WorkingDay::all();
 
         foreach ($workingDays as $workingDay) {
-            $slotsCreated = $generator->generate($workingDay);
-            $this->command->info("Generated {$slotsCreated} time slots for working day {$workingDay->day->format('Y-m-d')}");
+            $generator->generate($workingDay);
         }
     }
 }
