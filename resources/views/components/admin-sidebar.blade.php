@@ -51,7 +51,7 @@
                             <span class="ml-auto text-[9px] uppercase tracking-wider bg-slate-800 px-2 py-0.5 rounded">Soon</span>
                         </div>
                     @else
-                        <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors {{ $isCurrent ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300' }}" data-action="close-sidebar">
+                        <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors {{ $isCurrent ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300' }}">
                             <span class="material-symbols-outlined text-xl" @if($isCurrent) style="font-variation-settings: 'FILL' 1" @endif>{{ $item['icon'] }}</span>
                             <span class="font-medium text-sm">{{ $item['label'] }}</span>
                         </a>
