@@ -20,8 +20,8 @@ use Carbon\Carbon;
  * - 1 utente admin: admin@test.it (password)
  * - 3 utenti normali: user1@test.it, user2@test.it, user3@test.it (password)
  * - Ingredienti per ogni categoria (almeno 4-6 per categoria)
- * - Solo oggi (20 gennaio 2026) con orari 11:00-15:00
- * - 30 ordini distribuiti tra confirmed, ready, pending
+ * - Giorni lavorativi: lunedì 19/01/2026 (11:00-15:00, Uni stazione), mercoledì 21/01/2026 (8:00-19:00, Uni Biblio), venerdì 23/01/2026 (11:00-16:00, Uni Biblio)
+ * - 50 ordini per giorno distribuiti tra ready, confirmed, pending
  * - Ordini assegnati ai 3 utenti normali
  *
  * 🔐 CREDENZIALI:
@@ -104,73 +104,94 @@ class UserRequirementsSeeder extends Seeder
         echo "✅ Creati " . count($ingredients) . " ingredienti\n";
 
         // ============================================
-        // 3️⃣  CREA WORKING DAY (solo oggi 20 gennaio 2026, 11:00-15:00)
+        // 3️⃣  CREA WORKING DAYS
         // ============================================
 
-        $today = Carbon::createFromFormat('Y-m-d', '2026-01-20'); // Oggi è 20 gennaio 2026
+        $workingDays = [
+            [
+                'day' => '2026-01-19', // Lunedì
+                'location' => 'Uni stazione',
+                'start_time' => '11:00',
+                'end_time' => '15:00',
+            ],
+            [
+                'day' => '2026-01-21', // Mercoledì
+                'location' => 'Uni Biblio',
+                'start_time' => '08:00',
+                'end_time' => '19:00',
+            ],
+            [
+                'day' => '2026-01-23', // Venerdì
+                'location' => 'Uni Biblio',
+                'start_time' => '11:00',
+                'end_time' => '16:00',
+            ],
+        ];
 
-        $workingDay = WorkingDay::create([
-            'day' => $today->toDateString(),
-            'location' => 'Engineering Hub',
-            'max_orders' => 100,
-            'max_time' => 30,
-            'start_time' => '11:00',
-            'end_time' => '15:00',
-            'is_active' => true,
-        ]);
-
-        // Genera time slots usando il service dedicato
+        $createdWorkingDays = [];
         $timeSlotGenerator = new TimeSlotGeneratorService();
-        $slotsCreated = $timeSlotGenerator->generate($workingDay);
-        echo "✅ Creato WorkingDay {$today->format('d/m/Y')}: 11:00-15:00 ({$slotsCreated} slots)\n";
+
+        foreach ($workingDays as $wdData) {
+            $workingDay = WorkingDay::create([
+                'day' => $wdData['day'],
+                'location' => $wdData['location'],
+                'max_orders' => 100,
+                'max_time' => 30,
+                'start_time' => $wdData['start_time'],
+                'end_time' => $wdData['end_time'],
+                'is_active' => true,
+            ]);
+
+            $slotsCreated = $timeSlotGenerator->generate($workingDay);
+            $createdWorkingDays[] = $workingDay;
+            echo "✅ Creato WorkingDay {$workingDay->day}: {$wdData['start_time']}-{$wdData['end_time']} ({$slotsCreated} slots)\n";
+        }
 
         // ============================================
-        // 4️⃣  CREA 30 ORDINI DISTRIBUITI
+        // 4️⃣  CREA ORDINI (50 per giorno distribuiti)
         // ============================================
 
-        $daySlots = $workingDay->timeSlots;
         $totalOrders = 0;
         $statuses = ['pending', 'confirmed', 'ready'];
 
-        // Distribuisci 30 ordini sui time slots
-        $ordersPerSlot = 30 / count($daySlots); // ~1.875 ordini per slot
-        $slotIndex = 0;
+        foreach ($createdWorkingDays as $workingDay) {
+            $daySlots = $workingDay->timeSlots;
+            $ordersPerSlot = 50 / count($daySlots); // Distribuzione uniforme
+            $slotIndex = 0;
+            $dayOrders = 0;
 
-        foreach ($daySlots as $timeSlot) {
-            // Calcola quanti ordini per questo slot (distribuzione uniforme)
-            $slotOrders = floor($ordersPerSlot);
-            if ($totalOrders + $slotOrders < 30 && $slotIndex < (30 % count($daySlots))) {
-                $slotOrders++;
+            foreach ($daySlots as $timeSlot) {
+                $slotOrders = floor($ordersPerSlot);
+                if ($dayOrders + $slotOrders < 50 && $slotIndex < (50 % count($daySlots))) {
+                    $slotOrders++;
+                }
+
+                for ($i = 0; $i < $slotOrders; $i++) {
+                    $status = $statuses[$dayOrders % count($statuses)];
+                    $user = $normalUsers[$dayOrders % count($normalUsers)];
+                    $orderIngredients = $this->getRandomIngredients();
+
+                    $this->createOrderWithIngredients(
+                        $user,
+                        $timeSlot,
+                        $workingDay,
+                        $status,
+                        $orderIngredients
+                    );
+
+                    $dayOrders++;
+                    $totalOrders++;
+                    if ($dayOrders >= 50) break;
+                }
+
+                if ($dayOrders >= 50) break;
+                $slotIndex++;
             }
 
-            // Crea ordini per questo slot
-            for ($i = 0; $i < $slotOrders; $i++) {
-                // Stato ordine distribuito
-                $status = $statuses[$totalOrders % count($statuses)];
-
-                // Utente normale (ciclico)
-                $user = $normalUsers[$totalOrders % count($normalUsers)];
-
-                // Ingredienti casuali
-                $orderIngredients = $this->getRandomIngredients();
-
-                $this->createOrderWithIngredients(
-                    $user,
-                    $timeSlot,
-                    $workingDay,
-                    $status,
-                    $orderIngredients
-                );
-
-                $totalOrders++;
-                if ($totalOrders >= 30) break;
-            }
-
-            if ($totalOrders >= 30) break;
-            $slotIndex++;
+            echo "✅ Creati {$dayOrders} ordini per il giorno {$workingDay->day}\n";
         }
 
-        echo "✅ Creati {$totalOrders} ordini distribuiti sui 3 utenti normali\n";
+        echo "✅ Creati {$totalOrders} ordini totali distribuiti sui 3 utenti normali\n";
 
         // ============================================
         // RIEPILOGO
@@ -188,10 +209,12 @@ class UserRequirementsSeeder extends Seeder
         echo "║                                            ║\n";
         echo "║ 🥪 Ingredienti: " . count($ingredients) . " per categoria       ║\n";
         echo "║                                            ║\n";
-        echo "║ 📅 Working Day: 1 (oggi 20/01/2026)       ║\n";
-        echo "║    - Orari: 11:00-15:00 (16 slots)        ║\n";
+        echo "║ 📅 Working Days: 3                         ║\n";
+        echo "║    - Lun 19/01/2026: 11:00-15:00 (Uni stazione) ║\n";
+        echo "║    - Mer 21/01/2026: 08:00-19:00 (Uni Biblio) ║\n";
+        echo "║    - Ven 23/01/2026: 11:00-16:00 (Uni Biblio) ║\n";
         echo "║                                            ║\n";
-        echo "║ 🛒 Ordini: {$totalOrders} (confirmed/ready/pending) ║\n";
+        echo "║ 🛒 Ordini: {$totalOrders} (50 per giorno, ready/confirmed/pending) ║\n";
         echo "║    - Distribuiti sui 3 utenti normali     ║\n";
         echo "╚════════════════════════════════════════════╝\n";
     }
