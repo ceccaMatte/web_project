@@ -37,7 +37,7 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
     // Colori in base a disponibilità
     let slotsBadgeColor = 'text-emerald-500';
     let cardOpacity = '';
-    let ctaClasses = 'w-full py-2 bg-primary text-white text-xs font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20';
+    let ctaClasses = 'w-full py-2 bg-primary text-white text-xs flex items-center justify-center font-bold rounded-lg active:scale-95 transition-transform shadow-lg shadow-primary/20';
     
     if (isFullyBooked) {
         slotsBadgeColor = 'text-rose-500';
