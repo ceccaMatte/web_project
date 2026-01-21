@@ -89,15 +89,23 @@ class OrdersPageService
                 'dayNumber' => $currentDay->format('j'),
                 'isToday' => $currentDay->isToday(),
                 'isActive' => $workingDay !== null,
-                'isDisabled' => $workingDay === null,
+                'isDisabled' => $workingDay === null || ($currentDay->isPast() && !$currentDay->isToday()),
                 'isSelected' => $currentDay->isToday(),
             ];
 
             $currentDay->addDay();
         }
 
+        // Trova il primo giorno attivo (non disabled) per la selezione di default
+        // Preferisci oggi se attivo, altrimenti il primo futuro attivo
+        $todayActive = collect($weekDays)->firstWhere(function ($day) {
+            return $day['isToday'] && $day['isActive'];
+        });
+        $firstActiveDay = $todayActive ?: collect($weekDays)->firstWhere('isActive');
+        $selectedDayId = $firstActiveDay ? $firstActiveDay['id'] : $today->toDateString();
+
         return [
-            'selectedDayId' => $today->toDateString(),
+            'selectedDayId' => $selectedDayId,
             'monthLabel' => $today->format('F Y'),
             'weekDays' => $weekDays,
         ];

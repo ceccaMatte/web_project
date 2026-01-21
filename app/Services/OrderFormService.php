@@ -263,7 +263,7 @@ class OrderFormService
                 'dayNumber' => $currentDay->format('j'),
                 'isToday' => $currentDay->isToday(),
                 'isActive' => $workingDay !== null,
-                'isDisabled' => $workingDay === null,
+                'isDisabled' => $workingDay === null || ($currentDay->isPast() && !$currentDay->isToday()),
                 'isSelected' => $dateString === $selectedDate,
             ];
 
