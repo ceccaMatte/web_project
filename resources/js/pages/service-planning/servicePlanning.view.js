@@ -1,11 +1,4 @@
-/**
- * SERVICE PLANNING VIEW - DOM References
- * 
- * RESPONSABILITÀ:
- * - Centralizza riferimenti DOM per la pagina
- * - Inizializzazione pigra (chiamata da index.js)
- * - NO logica, solo getters
- */
+// DOM references for service planning
 
 export const servicePlanningView = {
     // Inizializzato?
@@ -49,12 +42,8 @@ export const servicePlanningView = {
         };
 
         this._initialized = true;
-        console.log('[ServicePlanningView] DOM refs initialized');
     },
 
-    /**
-     * Getters for DOM refs
-     */
     get page() { return this._refs.page; },
     get userStateScript() { return this._refs.userStateScript; },
     get configDefaultsScript() { return this._refs.configDefaultsScript; },

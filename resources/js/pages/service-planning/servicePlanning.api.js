@@ -1,19 +1,6 @@
-/**
- * SERVICE PLANNING API LAYER
- * 
- * RESPONSABILITÀ:
- * - Gestisce comunicazione HTTP con backend
- * - Centralizza endpoint API per Service Planning
- * - Fornisce error handling consistente
- * - Logging per debug
- * 
- * ENDPOINTS:
- * - GET  /api/admin/service-planning/config            → fetchConfig (global config)
- * - GET  /api/admin/service-planning/week/{startDate}  → fetchWeekData
- * - POST /api/admin/service-planning/week/{startDate}  → saveWeekConfiguration
- */
+// Service planning API layer
 
-const DEBUG = true;
+const DEBUG = false;
 
 function log(...args) {
     if (DEBUG) {

@@ -1,23 +1,6 @@
 import './bootstrap';
 
-console.log('[App] Script loaded - checking if JS is working');
-
-/**
- * PAGE INITIALIZATION SYSTEM
- * 
- * Pattern per inizializzare JS specifico per pagina.
- * Ogni pagina deve avere data-page="nome-pagina" sul container principale.
- * 
- * FLOW:
- * 1. DOM ready
- * 2. Cerca [data-page]
- * 3. Import dinamico del modulo corrispondente
- * 4. Chiama funzione init specifica
- * 
- * ESEMPIO:
- * - Blade: <div data-page="home">
- * - JS: import { initHomePage } from './pages/home.js'
- */
+// Page initialization
 
 /**
  * Registry delle pagine.
@@ -59,13 +42,9 @@ async function initCurrentPage() {
     // Trova elemento con data-page
     const pageElement = document.querySelector('[data-page]');
     
-    if (!pageElement) {
-        console.log('[App] No data-page found, skipping page initialization');
-        return;
-    }
+    if (!pageElement) return;
 
     const pageName = pageElement.dataset.page;
-    console.log(`[App] Detected page: ${pageName}`);
 
     // Cerca inizializzatore nel registry
     const pageLoader = pageRegistry[pageName];
@@ -79,10 +58,7 @@ async function initCurrentPage() {
         // Import dinamico del modulo pagina
         const initFn = await pageLoader();
         
-        // Esegui inizializzazione
         initFn();
-        
-        console.log(`[App] Page "${pageName}" initialized successfully`);
     } catch (error) {
         console.error(`[App] Failed to initialize page "${pageName}":`, error);
     }
@@ -92,7 +68,4 @@ async function initCurrentPage() {
  * Entry point applicazione.
  * Eseguito quando DOM è pronto.
  */
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('[App] DOM ready');
-    initCurrentPage();
-});
+document.addEventListener('DOMContentLoaded', initCurrentPage);

@@ -1,17 +1,4 @@
-/**
- * SERVICE PLANNING ACTIONS
- * 
- * RESPONSABILITÀ:
- * - Gestisce azioni utente
- * - Muta state (con guard per campi non editabili)
- * - Trigger render
- * - Comunicazione API per side effects
- * 
- * GUARD PATTERN:
- * - Ogni azione che modifica lo stato verifica prima se l'operazione è permessa
- * - Azioni su campi disabled NON devono modificare lo stato
- * - Azioni su campi disabled NON devono influenzare il dirty-state
- */
+// Actions for service planning page
 
 import { servicePlanningState, mutateWeek, mutateGlobalConstraint, mutateGlobalConstraints, 
          toggleDayActive, mutateDayTime, mutateLoading, mutateSaving, mutateError,
@@ -20,16 +7,9 @@ import { servicePlanningState, mutateWeek, mutateGlobalConstraint, mutateGlobalC
 import { fetchWeekData, saveWeekConfiguration } from './servicePlanning.api.js';
 import { renderServicePlanningPage } from './servicePlanning.render.js';
 
-// ============================================================================
-// DEBUG FLAG
-// ============================================================================
-const DEBUG = true;
+const DEBUG = false;
 
-function debugLog(context, ...args) {
-    if (DEBUG) {
-        console.log(`[ServicePlanningActions:${context}]`, ...args);
-    }
-}
+function debugLog() {}
 
 /**
  * Return localized day name for a date string (it-IT, lowercase)

@@ -1,16 +1,4 @@
-/**
- * DOM UTILITIES
- * 
- * RESPONSABILITÀ:
- * - Helper per query selectors type-safe
- * - Manipolazione DOM sicura e testabile
- * - Evita ripetizioni di codice DOM
- * 
- * ARCHITETTURA:
- * - Funzioni pure e riusabili
- * - Gestione errori graceful
- * - Type-safe dove possibile
- */
+// DOM utilities
 
 /**
  * Query selector singolo con validazione

@@ -1,20 +1,4 @@
-/**
- * SERVICE PLANNING PAGE - Orchestratore
- * 
- * RESPONSABILITÀ:
- * - Entry point della pagina Service Planning
- * - Inizializzazione view refs
- * - Trigger hydration iniziale
- * - Event delegation globale
- * 
- * ARCHITETTURA MODULARE:
- * 
- * servicePlanning.state.js    → SSOT, mutation helpers, dirty-state
- * servicePlanning.view.js     → DOM refs
- * servicePlanning.api.js      → fetch API
- * servicePlanning.actions.js  → azioni utente con guards
- * servicePlanning.render.js   → orchestrazione render componenti
- */
+// Service planning page entrypoint
 
 import { servicePlanningView } from './servicePlanning.view.js';
 import { servicePlanningState, mutateUser, mutateConfigDefaults, mutateWeek, 
@@ -26,16 +10,9 @@ import { goToPrevWeek, goToNextWeek, goToDate, loadWeekData,
          toggleDay, updateDayStartTime, updateDayEndTime, saveChanges,
          openDatePicker, onDatePickerChange, isDayEditable } from './servicePlanning.actions.js';
 
-// ============================================================================
-// DEBUG FLAG
-// ============================================================================
-const DEBUG = true;
+const DEBUG = false;
 
-function debugLog(context, ...args) {
-    if (DEBUG) {
-        console.log(`[ServicePlanningIndex:${context}]`, ...args);
-    }
-}
+function debugLog() {}
 
 /**
  * Inizializza pagina Service Planning
@@ -90,8 +67,6 @@ export async function initServicePlanningPage() {
     registerGlobalEventDelegation();
 
     debugLog('init', 'Pagina inizializzata con successo');
-    
-    // Esponi utility di debug su window
     exposeDebugUtilities();
 }
 
@@ -325,41 +300,21 @@ function closeSidebar() {
 function exposeDebugUtilities() {
     if (typeof window !== 'undefined') {
         window.servicePlanningDebug = {
-            // Stato
             getState: () => servicePlanningState,
-            printState: () => {
-                console.group('[ServicePlanning] STATO CORRENTE');
-                console.log('weekStart:', servicePlanningState.weekStart);
-                console.log('weekEnd:', servicePlanningState.weekEnd);
-                console.log('isWeekEditable:', servicePlanningState.isWeekEditable);
-                console.log('isDirty:', servicePlanningState.isDirty);
-                console.log('globalConstraints:', { ...servicePlanningState.globalConstraints });
-                console.log('days:', servicePlanningState.days);
-                console.log('initialSnapshot:', servicePlanningState.initialSnapshot);
-                console.groupEnd();
-            },
-            
-            // Azioni
+            printState: () => console.log(servicePlanningState),
             goToDate: goToDate,
             loadWeek: loadWeekData,
             save: saveChanges,
-            
-            // Test dirty state
             testDirtyState: () => {
-                console.log('Simulo modifica per testare dirty-state...');
                 const currentMax = servicePlanningState.globalConstraints.maxOrdersPerSlot;
                 incrementMaxOrders();
-                console.log('Dopo incremento:', {
+                return {
                     maxOrdersPerSlot: servicePlanningState.globalConstraints.maxOrdersPerSlot,
                     isDirty: servicePlanningState.isDirty
-                });
+                };
             },
-            
-            // View refs
             getViewRefs: () => servicePlanningView,
         };
-        
-        debugLog('debug', 'Debug utilities esposte su window.servicePlanningDebug');
     }
 }
 

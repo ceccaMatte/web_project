@@ -1,20 +1,4 @@
-/**
- * ACCESSIBILITY UTILITIES
- * 
- * RESPONSABILITÀ:
- * - Focus management (trap, restore)
- * - Keyboard navigation helpers
- * - ARIA attributes management
- * - Screen reader announcements
- * 
- * ARCHITETTURA:
- * - Helper WCAG AAA compliant
- * - Riutilizzabili in tutti i componenti
- * - Focus trap per modali/sidebar
- * 
- * UTILIZZO:
- * import { createFocusTrap, announceToScreenReader } from '@/utils/a11y.js';
- */
+// Accessibility utilities
 
 /**
  * FOCUSABLE ELEMENTS SELECTOR
@@ -112,11 +96,8 @@ export function createFocusTrap(container) {
             focusableElements[0].focus();
         }
 
-        // Aggiungi listener tastiera
         document.addEventListener('keydown', handleKeyDown);
         isActive = true;
-
-        console.log('[a11y] Focus trap activated');
     }
 
     /**
@@ -129,12 +110,9 @@ export function createFocusTrap(container) {
         document.removeEventListener('keydown', handleKeyDown);
         isActive = false;
 
-        // Ripristina focus precedente
         if (previousActiveElement && previousActiveElement.focus) {
             previousActiveElement.focus();
         }
-
-        console.log('[a11y] Focus trap deactivated');
     }
 
     return { activate, deactivate };

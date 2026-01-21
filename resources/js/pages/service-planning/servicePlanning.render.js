@@ -1,12 +1,4 @@
-/**
- * SERVICE PLANNING RENDER
- * 
- * RESPONSABILITÀ:
- * - Orchestrazione render componenti
- * - Trasforma state in props per componenti
- * - Chiama componenti con props + callbacks
- * - NON contiene logica di business o confronti dirty-state
- */
+// Render helpers for service planning
 
 import { servicePlanningState, getWeekLabel, canSave } from './servicePlanning.state.js';
 import { servicePlanningView } from './servicePlanning.view.js';
@@ -14,16 +6,9 @@ import { renderWeekSelector } from '../../components/weekSelector/weekSelector.c
 import { renderGlobalConstraintsCard } from '../../components/globalConstraintsCard/globalConstraintsCard.component.js';
 import { renderDayConfigCard } from '../../components/dayConfigCard/dayConfigCard.component.js';
 
-// ============================================================================
-// DEBUG FLAG
-// ============================================================================
-const DEBUG = true;
+const DEBUG = false;
 
-function debugLog(context, ...args) {
-    if (DEBUG) {
-        console.log(`[ServicePlanningRender:${context}]`, ...args);
-    }
-}
+function debugLog() {}
 
 // Cached callbacks reference
 let _callbacks = null;

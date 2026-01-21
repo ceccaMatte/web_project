@@ -1,32 +1,8 @@
-/**
- * SERVICE PLANNING STATE - Single Source of Truth
- * 
- * RESPONSABILITÀ:
- * - Definisce struttura servicePlanningState (SOLO dati, MAI riferimenti DOM)
- * - Fornisce helper per mutation sicure dello stato
- * - Gestisce dirty-state confrontando draft vs initialSnapshot
- * 
- * ARCHITETTURA:
- * - Centralizza lo stato della pagina Service Planning
- * - Esportato e importato da index.js, hydration.js, actions.js
- * - I componenti NON importano questo modulo (ricevono props)
- * 
- * DIRTY-STATE:
- * - initialSnapshot: stato salvabile al momento del caricamento (deep clone, immutabile)
- * - draft: stato corrente modificabile
- * - dirty: true se draft !== initialSnapshot (solo campi salvabili)
- */
+// Centralized state for service planning
 
-// ============================================================================
-// DEBUG FLAG - Attivare per logging verbose
-// ============================================================================
-const DEBUG = true;
+const DEBUG = false;
 
-function debugLog(context, ...args) {
-    if (DEBUG) {
-        console.log(`[ServicePlanningState:${context}]`, ...args);
-    }
-}
+function debugLog() {}
 
 /**
  * STATO GLOBALE PAGINA SERVICE PLANNING (SSOT)
@@ -648,41 +624,17 @@ export function canSave() {
  * Debug: stampa lo stato completo
  */
 export function debugPrintState() {
-    console.group('[ServicePlanningState] DEBUG STATE');
-    console.log('weekStart:', servicePlanningState.weekStart);
-    console.log('weekEnd:', servicePlanningState.weekEnd);
-    console.log('isWeekEditable:', servicePlanningState.isWeekEditable);
-    console.log('hasPersistedData:', servicePlanningState.hasPersistedData);
-    console.log('isDirty:', servicePlanningState.isDirty);
-    console.log('isLoading:', servicePlanningState.isLoading);
-    console.log('isSaving:', servicePlanningState.isSaving);
-    console.log('globalConstraints:', { ...servicePlanningState.globalConstraints });
-    console.log('days:', servicePlanningState.days.map(d => ({
-        date: d.date,
-        isActive: d.isActive,
-        isEditable: d.isEditable,
-        startTime: d.startTime,
-        endTime: d.endTime
-    })));
-    console.log('initialSnapshot:', servicePlanningState.initialSnapshot);
-    console.groupEnd();
+    console.log(servicePlanningState);
 }
 
 /**
  * Debug: confronta stato corrente con snapshot
  */
 export function debugCompareDraft() {
-    console.group('[ServicePlanningState] COMPARE DRAFT vs SNAPSHOT');
-    
     const current = createSavableSnapshot(servicePlanningState);
     const initial = servicePlanningState.initialSnapshot;
-    
-    console.log('Current draft (savable):', current);
-    console.log('Initial snapshot:', initial);
-    console.log('Are equal:', JSON.stringify(current) === JSON.stringify(initial));
-    console.log('isDirty:', servicePlanningState.isDirty);
-    
-    console.groupEnd();
+
+    console.log({ current, initial, isDirty: servicePlanningState.isDirty });
 }
 
 // Esporta le utility di debug globalmente per uso in console
