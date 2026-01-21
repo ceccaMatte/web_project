@@ -17,7 +17,8 @@
 import { safeInnerHTML, listen } from '../../utils/dom.js';
 
 // Traccia listener per evitare duplicati
-let cleanupListener = null;
+// IMPORTANTE: Usa Map perché abbiamo DUE container (mobile + desktop)
+const cleanupListeners = new Map();
 
 /**
  * Mappa categoria → label UI (DEVE matchare config backend)
@@ -42,7 +43,25 @@ function getCategoryLabel(category) {
  * @param {Object} callbacks - { onRemove }
  */
 export function renderSelectedIngredientsSummary(container, props, callbacks) {
-    if (!container) return;
+    console.log('[SelectedIngredientsSummary] ========== RENDER START ==========');
+    console.log('[SelectedIngredientsSummary] Container:', container);
+    console.log('[SelectedIngredientsSummary] Container exists:', !!container);
+    console.log('[SelectedIngredientsSummary] Props:', props);
+    console.log('[SelectedIngredientsSummary] Callbacks:', callbacks);
+    console.log('[SelectedIngredientsSummary] onRemove type:', typeof callbacks?.onRemove);
+    
+    if (!container) {
+        console.error('[SelectedIngredientsSummary] ❌ Container is null/undefined - ABORTING');
+        return;
+    }
+
+    console.log('[SelectedIngredientsSummary] render called', {
+        container,
+        selectedCount: props?.selectedIngredients?.length || 0,
+        callbacksPresent: {
+            onRemove: typeof callbacks?.onRemove === 'function'
+        }
+    });
 
     const { selectedIngredients } = props;
     const { onRemove } = callbacks;
@@ -119,24 +138,86 @@ export function renderSelectedIngredientsSummary(container, props, callbacks) {
     html += '</div></div>';
     
     safeInnerHTML(container, html);
+    console.log('[SelectedIngredientsSummary] ✅ safeInnerHTML applied, HTML length:', html.length);
+    
+    // Verifica che i pulsanti siano stati creati
+    const buttons = container.querySelectorAll('[data-action="remove-ingredient"]');
+    console.log('[SelectedIngredientsSummary] Remove buttons found:', buttons.length);
+    buttons.forEach((btn, idx) => {
+        console.log(`  Button ${idx}:`, {
+            id: btn.dataset.ingredientId,
+            visible: btn.offsetParent !== null
+        });
+    });
 
-    // Cleanup listener precedente
-    if (cleanupListener) {
-        cleanupListener();
+    // Cleanup listener precedente PER QUESTO CONTAINER
+    const prevCleanup = cleanupListeners.get(container);
+    if (prevCleanup) {
+        console.log('[SelectedIngredientsSummary] Cleaning up previous listener for this container');
+        prevCleanup();
     }
 
     // Event delegation per rimozione
+    // PRINCIPIO SSOT: Il componente NON modifica lo stato direttamente
+    // Delega la logica alla callback onRemove (che è deselectIngredient in actions.js)
+    console.log('[SelectedIngredientsSummary] onRemove check:', {
+        exists: !!onRemove,
+        type: typeof onRemove,
+        isFunction: typeof onRemove === 'function'
+    });
+    
     if (onRemove) {
-        cleanupListener = listen(container, 'click', (e) => {
+        console.log('[SelectedIngredientsSummary] ✅ Attaching remove listener to container');
+        console.log('[SelectedIngredientsSummary] Container element:', container.tagName, container.className);
+        
+        const cleanup = listen(container, 'click', (e) => {
+            console.log('[SelectedIngredientsSummary] 🖱️ CLICK EVENT DETECTED on container!');
+            console.log('[SelectedIngredientsSummary] Event target:', e.target);
+            console.log('[SelectedIngredientsSummary] Event target classes:', e.target.className);
+            
             const button = e.target.closest('[data-action="remove-ingredient"]');
+            console.log('[SelectedIngredientsSummary] Closest button found:', !!button);
+            
             if (button) {
-                const ingredientId = parseInt(button.dataset.ingredientId, 10);
-                onRemove(ingredientId);
+                console.log('[SelectedIngredientsSummary] ✅ Remove button clicked!', {
+                    dataset: button.dataset,
+                    text: button.textContent?.trim(),
+                });
+
+                const rawId = button.dataset.ingredientId;
+                const ingredientId = rawId ? parseInt(rawId, 10) : null;
+
+                // Log semplice richiesto: verifica click sul meno
+                console.log('[SelectedIngredientsSummary] elemento cancella elemento', { ingredientId });
+
+                if (!ingredientId && ingredientId !== 0) {
+                    console.error('[SelectedIngredientsSummary] Invalid ingredientId on button', rawId);
+                    return;
+                }
+
+                console.log('[SelectedIngredientsSummary] Calling onRemove with id', ingredientId, 'onRemove present?', typeof onRemove === 'function');
+
+                // Chiama la callback che gestirà:
+                // 1. Aggiornamento stato
+                // 2. Re-render completo
+                // 3. Sincronizzazione automatica con "Add Ingredients"
+                try {
+                    onRemove(ingredientId);
+                } catch (err) {
+                    console.error('[SelectedIngredientsSummary] onRemove threw error', err);
+                }
             }
         });
+        
+        // Salva cleanup nella Map associata a questo container
+        cleanupListeners.set(container, cleanup);
+        
+        console.log('[SelectedIngredientsSummary] ✅ Event listener ATTACHED successfully');
+    } else {
+        console.error('[SelectedIngredientsSummary] ❌ onRemove callback is MISSING - event listener NOT attached!');
     }
 
-    console.log(`[SelectedIngredientsSummary] Rendered (${selectedIngredients.length} ingredients)`);
+    console.log(`[SelectedIngredientsSummary] ========== RENDER COMPLETE (${selectedIngredients.length} ingredients) ==========`);
 }
 
 export default { renderSelectedIngredientsSummary };

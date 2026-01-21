@@ -231,15 +231,48 @@ export function selectIngredient(ingredient) {
 }
 
 /**
- * Rimuove ingrediente dalla selezione (dal summary).
+ * Rimuove ingrediente dalla selezione (chiamato dal pulsante "−" in "Your Selection").
  * 
- * @param {number} ingredientId - ID ingrediente
+ * FLUSSO COMPLETO:
+ * 1. Utente clicca "−" in "Your Selection"
+ * 2. Event delegation in selectedIngredientsSummary.component.js intercetta click
+ * 3. Chiama onRemove(ingredientId) → questa funzione
+ * 4. removeIngredient() aggiorna lo STATE (SSOT)
+ * 5. renderOrderFormPage() re-renderizza TUTTA la UI
+ * 6. "Your Selection" si aggiorna (ingrediente sparisce)
+ * 7. "Add Ingredients" si sincronizza (checkbox diventa unchecked)
+ * 
+ * PRINCIPIO FONDAMENTALE:
+ * - NON modifichiamo MAI il DOM direttamente
+ * - Modifichiamo SOLO lo stato
+ * - La UI si aggiorna automaticamente perché legge dallo stato
+ * 
+ * @param {number} ingredientId - ID ingrediente da rimuovere
  */
 export function deselectIngredient(ingredientId) {
-    console.log(`[Actions] Deselecting ingredient: ${ingredientId}`);
-    
-    removeIngredient(ingredientId);
-    renderOrderFormPage();
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('[Actions] 🗑️ DESELECT INGREDIENT CALLED');
+    console.log('[Actions] ingredientId:', ingredientId);
+    console.log('[Actions] ingredientId type:', typeof ingredientId);
+    console.log('═══════════════════════════════════════════════════════');
+
+    try {
+        // Step 1: Aggiorna lo STATE (unica fonte di verità)
+        console.log('[Actions] Calling removeIngredient with', ingredientId);
+        removeIngredient(ingredientId);
+        console.log('[Actions] removeIngredient completed. Remaining:', orderFormState.order.selectedIngredients.length);
+
+        // Step 2: Re-renderizza TUTTO basandosi sul nuovo stato
+        // Questo sincronizza automaticamente:
+        // - La lista "Your Selection" (ingrediente rimosso sparisce)
+        // - I dropdown "Add Ingredients" (checkbox diventa unchecked)
+        console.log('[Actions] Calling renderOrderFormPage()');
+        renderOrderFormPage();
+        console.log('[Actions] renderOrderFormPage() returned');
+    } catch (err) {
+        console.error('[Actions] Error during deselectIngredient:', err);
+        // Rilancia o gestisci a seconda dei casi
+    }
 }
 
 // =============================================================================

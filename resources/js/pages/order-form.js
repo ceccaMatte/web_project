@@ -89,7 +89,9 @@ const orderFormView = {
         this.refs.selectedSlotInput = document.querySelector('[data-selected-slot-input]');
 
         if (!this.refs.slotsContainer) {
-            console.error('[OrderForm] Pickup slots container not found');
+            // Non è un errore bloccante: la UI può funzionare anche senza la sezione pickup
+            // Mostriamo un warning invece di un errore per evitare falsi positivi nei log.
+            console.warn('[OrderForm] Pickup slots container not found (pickup time section will be skipped)');
         }
     },
 
@@ -313,10 +315,14 @@ function initPickupTimeSection(slotsData) {
     orderFormState.slots = slotsData?.slots || [];
     orderFormState.selectedSlotId = slotsData?.selectedSlotId || null;
 
-    // Render
-    orderFormView.renderPickupSlots();
+        // Render only if container present
+        if (orderFormView.refs.slotsContainer) {
+            orderFormView.renderPickupSlots();
+        } else {
+            console.warn('[OrderForm] Skipping renderPickupSlots: container not found');
+        }
 
-    console.log('[OrderForm] Pickup time section initialized:', orderFormState.slots.length, 'slots');
+        console.log('[OrderForm] Pickup time section initialized:', orderFormState.slots.length, 'slots');
 }
 
 /**

@@ -33,16 +33,25 @@ const cleanupListeners = new Map();
 /**
  * Renderizza singola sezione ingredienti (accordion).
  * 
+ * PRINCIPIO SSOT:
+ * - Riceve selectedIds dallo stato (via render.js)
+ * - Determina se un ingrediente è selected SOLO confrontando con selectedIds
+ * - NON legge mai lo stato checked dei checkbox esistenti nel DOM
+ * - La UI risultante riflette SEMPRE e SOLO lo stato centralizzato
+ * 
  * @param {Object} section - { category, label, icon, items }
  * @param {boolean} isOpen - Se la sezione è aperta
- * @param {Set<number>} selectedIds - IDs ingredienti selezionati
+ * @param {Set<number>} selectedIds - IDs ingredienti selezionati (dallo STATO)
  * @returns {string} HTML
  */
 export function renderIngredientSectionHTML(section, isOpen, selectedIds) {
     const { category, label, icon, items } = section;
 
     // Genera HTML per ogni ingrediente
+    // SSOT: Lo stato checked/unchecked viene determinato QUI,
+    // confrontando l'ID con gli IDs nello stato centralizzato
     const itemsHTML = items.map(item => {
+        // Determina se selezionato SOLO dallo stato, mai dalla UI esistente
         const selected = selectedIds.has(item.id);
         return renderIngredientItem({ ...item, selected });
     }).join('');
@@ -119,13 +128,26 @@ export function renderIngredientSections(container, props, callbacks) {
         // Toggle ingrediente
         const ingredientEl = e.target.closest('[data-action="toggle-ingredient"]');
         if (ingredientEl && onIngredientSelect) {
-            const ingredient = {
-                id: parseInt(ingredientEl.dataset.ingredientId, 10),
+            const raw = {
+                id: ingredientEl.dataset.ingredientId,
                 name: ingredientEl.dataset.ingredientName,
                 category: ingredientEl.dataset.ingredientCategory,
-                available: ingredientEl.dataset.ingredientAvailable === 'true',
+                available: ingredientEl.dataset.ingredientAvailable,
             };
-            onIngredientSelect(ingredient);
+            const ingredient = {
+                id: raw.id ? parseInt(raw.id, 10) : null,
+                name: raw.name,
+                category: raw.category,
+                available: String(raw.available) === 'true',
+            };
+
+            console.log('[IngredientSections] toggle-ingredient clicked', { raw, ingredient });
+
+            try {
+                onIngredientSelect(ingredient);
+            } catch (err) {
+                console.error('[IngredientSections] onIngredientSelect threw', err);
+            }
         }
     });
 

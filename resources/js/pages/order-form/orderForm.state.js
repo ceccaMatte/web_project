@@ -202,7 +202,10 @@ export function mutateSelectedTimeSlot(slotId) {
  * Aggiunge ingrediente alla selezione
  */
 export function addIngredient(ingredient) {
-    const { id, name, category } = ingredient;
+    // Normalizziamo l'ID su Number per evitare mismatch string/number
+    const id = Number(ingredient.id);
+    const name = ingredient.name;
+    const category = ingredient.category;
     
     // Se categoria bread, rimuovi eventuale pane precedente
     if (category === 'bread') {
@@ -212,7 +215,7 @@ export function addIngredient(ingredient) {
     }
     
     // Aggiungi se non già presente
-    const exists = orderFormState.order.selectedIngredients.some(i => i.id === id);
+    const exists = orderFormState.order.selectedIngredients.some(i => Number(i.id) === id);
     if (!exists) {
         orderFormState.order.selectedIngredients.push({ id, name, category });
     }
@@ -220,23 +223,41 @@ export function addIngredient(ingredient) {
 
 /**
  * Rimuove ingrediente dalla selezione
+ * 
+ * PRINCIPIO SSOT (Single Source of Truth):
+ * - Lo STATE è l'UNICA fonte di verità
+ * - La UI NON decide mai se un ingrediente è selezionato
+ * - La UI riflette SEMPRE e SOLO lo stato
+ * 
+ * Quando un ingrediente viene rimosso:
+ * 1. Viene eliminato dall'array selectedIngredients
+ * 2. La UI viene aggiornata tramite render (NON manipolazione diretta DOM)
+ * 3. Sia "Your Selection" che "Add Ingredients" si sincronizzano automaticamente
+ *    perché leggono dallo stesso stato
+ * 
+ * @param {number} ingredientId - ID ingrediente da rimuovere
  */
 export function removeIngredient(ingredientId) {
+    // SSOT: Rimuovi dall'unica struttura dati che rappresenta la selezione
+    const idToRemove = Number(ingredientId);
     orderFormState.order.selectedIngredients = orderFormState.order.selectedIngredients.filter(
-        i => i.id !== ingredientId
+        i => Number(i.id) !== idToRemove
     );
+
+    console.log(`[State] Ingredient ${idToRemove} removed. Remaining: ${orderFormState.order.selectedIngredients.length}`);
 }
 
 /**
  * Toggle ingrediente (add/remove)
  */
 export function toggleIngredient(ingredient) {
-    const exists = orderFormState.order.selectedIngredients.some(i => i.id === ingredient.id);
-    
+    const id = Number(ingredient.id);
+    const exists = orderFormState.order.selectedIngredients.some(i => Number(i.id) === id);
+
     if (exists) {
-        removeIngredient(ingredient.id);
+        removeIngredient(id);
     } else {
-        addIngredient(ingredient);
+        addIngredient({ id, name: ingredient.name, category: ingredient.category });
     }
 }
 
@@ -244,7 +265,7 @@ export function toggleIngredient(ingredient) {
  * Verifica se un ingrediente è selezionato
  */
 export function isIngredientSelected(ingredientId) {
-    return orderFormState.order.selectedIngredients.some(i => i.id === ingredientId);
+    return orderFormState.order.selectedIngredients.some(i => Number(i.id) === Number(ingredientId));
 }
 
 /**
@@ -318,15 +339,17 @@ export function resetAndApplySelection(ingredients) {
             console.warn('[State] Skipping invalid ingredient:', ing);
             continue;
         }
-        
-        if (seenIds.has(ing.id)) {
-            console.warn('[State] Skipping duplicate ingredient ID:', ing.id, ing.name);
+
+        const numericId = Number(ing.id);
+
+        if (seenIds.has(numericId)) {
+            console.warn('[State] Skipping duplicate ingredient ID:', numericId, ing.name);
             continue;
         }
-        
-        seenIds.add(ing.id);
+
+        seenIds.add(numericId);
         deduplicatedIngredients.push({
-            id: ing.id,
+            id: numericId,
             name: ing.name,
             category: ing.category,
         });
@@ -377,7 +400,7 @@ function validateSelectionInvariants() {
  * @returns {number[]} Array di IDs ingredienti selezionati
  */
 export function deriveSelectedIds() {
-    return orderFormState.order.selectedIngredients.map(i => i.id);
+    return orderFormState.order.selectedIngredients.map(i => Number(i.id));
 }
 
 export default orderFormState;

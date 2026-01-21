@@ -256,6 +256,7 @@ function renderTimeSlotsComponent() {
 function renderSummaryComponent() {
     // Mobile container
     if (orderFormView.refs.summaryContainer) {
+        console.log('[RenderOrderForm] renderSummaryComponent: rendering mobile summary, onRemove:', typeof deselectIngredient);
         renderSelectedIngredientsSummary(
             orderFormView.refs.summaryContainer,
             {
@@ -269,6 +270,7 @@ function renderSummaryComponent() {
     
     // Desktop container
     if (orderFormView.refs.summaryContainerDesktop) {
+        console.log('[RenderOrderForm] renderSummaryComponent: rendering desktop summary, onRemove:', typeof deselectIngredient);
         renderSelectedIngredientsSummary(
             orderFormView.refs.summaryContainerDesktop,
             {
@@ -283,11 +285,22 @@ function renderSummaryComponent() {
 
 /**
  * Render Ingredients Accordion Sections
+ * 
+ * SINCRONIZZAZIONE AUTOMATICA:
+ * Quando un ingrediente viene rimosso da "Your Selection":
+ * 1. Lo stato viene aggiornato (removeIngredient)
+ * 2. Questa funzione viene chiamata dal re-render completo
+ * 3. Legge selectedIds DALLO STATO (non dalla UI)
+ * 4. Passa selectedIds a renderIngredientSections
+ * 5. Il componente renderizza checkbox unchecked per ingredienti non in selectedIds
+ * 
+ * SSOT: La UI non decide, riflette solo lo stato.
  */
 function renderIngredientsComponent() {
     if (!orderFormView.refs.ingredientsContainer) return;
     
-    // Estrai IDs ingredienti selezionati
+    // SSOT: Deriva gli IDs selezionati DALLO STATO (unica fonte di verità)
+    // Questi IDs determinano quali checkbox saranno checked/unchecked
     const selectedIds = orderFormState.order.selectedIngredients.map(i => i.id);
     
     renderIngredientSections(
@@ -295,7 +308,7 @@ function renderIngredientsComponent() {
         {
             sections: orderFormState.availability.ingredients,
             openSectionId: orderFormState.openSectionId,
-            selectedIngredientIds: selectedIds,
+            selectedIngredientIds: selectedIds, // ← Questo sincronizza i checkbox
         },
         {
             onToggle: toggleSection,
