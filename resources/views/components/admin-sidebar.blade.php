@@ -1,20 +1,6 @@
-{{-- Reusable Admin Sidebar Partial
-     Expects: $menu (array), $user (array), $sidebarTitle (string)
---}}
+<div data-sidebar-backdrop class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden" data-action="close-sidebar"></div>
 
-{{-- Backdrop (overlay) --}}
-<div
-    data-sidebar-backdrop
-    class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden"
-    data-action="close-sidebar"
-></div>
-
-{{-- Sidebar panel (right side) --}}
-<aside
-    data-admin-sidebar
-    class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300"
-    id="sidebar-menu"
->
+<aside data-admin-sidebar class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300" id="sidebar-menu">
     <div class="flex items-center justify-between p-6 border-b border-slate-800">
         <div class="flex items-center gap-3">
             <div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
@@ -26,16 +12,9 @@
             </div>
         </div>
 
-        <button
-            type="button"
-            data-action="close-sidebar"
-            class="grid center lg:hidden -ml-2 text-slate-400 hover:text-white"
-            aria-label="Close menu"
-        >
+        <button type="button" data-action="close-sidebar" class="grid center lg:hidden -ml-2 text-slate-400 hover:text-white" aria-label="Close menu">
             <span class="material-symbols-outlined text-2xl">close</span>
         </button>
-
-
     </div>
 
     <nav class="flex-1 p-4">
