@@ -106,11 +106,15 @@ class ServicePlanningService
             $dateStr = $date->format('Y-m-d');
             $workingDay = $workingDays->get($dateStr);
 
-            // Conta ordini per questo giorno (se esiste)
+            // Conta ordini attivi (pending/confirmed) per questo giorno (se esiste)
+            // Escludiamo gli ordini già "rejected" perché vengono marcati
+            // come tali dal backend quando uno slot/giorno viene eliminato.
             $ordersCount = 0;
             if ($workingDay) {
                 $ordersCount = TimeSlot::where('working_day_id', $workingDay->id)
-                    ->withCount('orders')
+                    ->withCount(['orders as orders_count' => function ($q) {
+                        $q->whereIn('status', ['pending', 'confirmed']);
+                    }])
                     ->get()
                     ->sum('orders_count');
             }
