@@ -244,8 +244,10 @@ class HomeController extends Controller
         $dateString = $validated['date'];
         $date = \Carbon\Carbon::parse($dateString);
 
-        // Se la data è nel passato, restituisci slots vuoti
-        if ($date->isPast()) {
+        // Se la data è nel passato (esclusa la stessa giornata), restituisci slots vuoti
+        // Nota: Carbon::parse('YYYY-MM-DD') imposta mezzanotte, che rende isPast() true
+        // per la giornata corrente se usiamo isPast() da solo. Escludiamo isToday().
+        if ($date->isPast() && !$date->isToday()) {
             return response()->json([
                 'dateLabel' => $date->format('l, F j'),
                 'locationLabel' => config('ui.location_label', 'Engineering Hub'),
