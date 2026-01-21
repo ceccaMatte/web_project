@@ -37,16 +37,17 @@ export function renderOrdersHeader(container, props, callbacks) {
     const { onBack } = callbacks;
 
     const html = `
-        <div class="px-5 py-2 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center justify-between px-5 py-2 border-b border-slate-800">
             <button 
-                class="flex items-center justify-center w-8 h-8 rounded-full text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                type="button"
+                class="flex items-center text-primary active:scale-95 transition-transform"
                 data-action="go-back"
-                aria-label="Go back to home"
+                aria-label="Torna alla lista ordini"
             >
-                <span class="material-symbols-outlined text-xl" aria-hidden="true">arrow_back_ios</span>
+                <span class="material-symbols-outlined text-3xl leading-none">chevron_left</span>
             </button>
-            <h1 class="text-sm font-bold tracking-tight text-slate-500">${title}</h1>
-            <div class="w-8"></div>
+            <h1 class="text-xl font-bold text-white">${title}</h1>
+            <div class="w-10"></div>
         </div>
     `;
 

@@ -15,16 +15,7 @@
     class="fixed top-0 right-0 h-full w-80 bg-[#0d1117] border-l border-slate-800 flex flex-col z-50 transform translate-x-full transition-transform duration-300"
     id="sidebar-menu"
 >
-    <div class="p-6 border-b border-slate-800">
-        <button
-            type="button"
-            data-action="close-sidebar"
-            class="lg:hidden mb-4 p-2 -ml-2 text-slate-400 hover:text-white"
-            aria-label="Close menu"
-        >
-            <span class="material-symbols-outlined text-2xl">close</span>
-        </button>
-
+    <div class="flex items-center justify-between p-6 border-b border-slate-800">
         <div class="flex items-center gap-3">
             <div class="flex size-10 items-center justify-center rounded-lg bg-primary/20 text-primary">
                 <span class="material-symbols-outlined text-2xl">{{ config('ui.icons.logo') }}</span>
@@ -34,6 +25,17 @@
                 <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">{{ $sidebarTitle ?? '' }}</p>
             </div>
         </div>
+
+        <button
+            type="button"
+            data-action="close-sidebar"
+            class="grid center lg:hidden -ml-2 text-slate-400 hover:text-white"
+            aria-label="Close menu"
+        >
+            <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+
+
     </div>
 
     <nav class="flex-1 p-4">

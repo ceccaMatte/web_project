@@ -83,7 +83,7 @@
     {{-- ========================================
          MAIN CONTENT
          ======================================== --}}
-    <main class="p-4 pb-24 space-y-4">
+    <main class="p-4 pb-24 space-y-4 max-w-3xl mx-auto">
 
         {{-- Week Selector --}}
         <div data-week-selector-container>
@@ -148,7 +148,7 @@
     {{-- ========================================
          SAVE BUTTON - STICKY BOTTOM
          ======================================== --}}
-    <div class="fixed bottom-0 left-0 right-0 p-4 z-20" style="background: linear-gradient(to top, #0a0e1a, #0a0e1a, transparent);">
+    <div class="fixed bottom-0 left-0 right-0 p-4 z-20 max-w-3xl mx-auto" style="background: linear-gradient(to top, #0a0e1a, #0a0e1a, transparent);">
         <button 
             type="button"
             data-action="save-changes"
