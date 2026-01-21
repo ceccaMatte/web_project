@@ -1,16 +1,4 @@
-/**
- * ORDER FORM ACTIONS - Business Logic & Event Handlers
- * 
- * RESPONSABILITÀ:
- * - Gestire azioni utente (selezioni, submit, navigazione)
- * - Modificare state in risposta ad eventi
- * - Trigger render mirati
- * 
- * ARCHITETTURA:
- * - Ogni action modifica state e triggera render
- * - I componenti chiamano actions tramite callbacks
- * - Le actions possono chiamare API
- */
+// Action handlers for order form
 
 import { 
     orderFormState, 
@@ -44,7 +32,6 @@ import { orderFormView } from './orderForm.view.js';
  * Apri sidebar
  */
 export function openSidebar() {
-    console.log('[Actions] Opening sidebar');
     mutateSidebar(true);
     renderOrderFormPage();
 }
@@ -53,7 +40,6 @@ export function openSidebar() {
  * Chiudi sidebar
  */
 export function closeSidebar() {
-    console.log('[Actions] Closing sidebar');
     mutateSidebar(false);
     renderOrderFormPage();
 }
@@ -66,7 +52,6 @@ export function closeSidebar() {
  * Torna a /orders
  */
 export function goBack() {
-    console.log('[Actions] Going back to /orders');
     window.location.href = '/orders';
 }
 
@@ -79,7 +64,6 @@ export function goBack() {
  * 3. Redirect a /
  */
 export async function logout() {
-    console.log('[Actions] Logout clicked');
     
     try {
         const response = await fetch('/logout', {
@@ -94,13 +78,12 @@ export async function logout() {
         });
         
         if (response.ok) {
-            console.log('[Actions] Logout successful, redirecting...');
             window.location.href = '/';
         } else {
-            console.error('[Actions] Logout failed');
+            console.error('Logout failed');
         }
     } catch (error) {
-        console.error('[Actions] Logout error:', error);
+        console.error('Logout error:', error);
     }
 }
 
@@ -119,10 +102,9 @@ export async function logout() {
  * @param {string} dayId - ID giorno (YYYY-MM-DD)
  */
 export async function selectDay(dayId) {
-    console.log(`[Actions] Selecting day: ${dayId}`);
     
     if (orderFormState.mode !== 'create') {
-        console.warn('[Actions] selectDay called in modify mode, ignoring');
+        console.warn('selectDay called in modify mode, ignoring');
         return;
     }
     
@@ -147,10 +129,9 @@ export async function selectDay(dayId) {
         }
         
         renderOrderFormPage();
-        console.log(`[Actions] Day ${dayId} selected, time slots updated`);
         
     } catch (error) {
-        console.error('[Actions] Failed to fetch time slots:', error);
+        console.error('Failed to fetch time slots:', error);
     }
 }
 
@@ -164,17 +145,16 @@ export async function selectDay(dayId) {
  * @param {number} slotId - ID slot
  */
 export function selectTimeSlot(slotId) {
-    console.log(`[Actions] Selecting time slot: ${slotId}`);
     
     if (orderFormState.mode !== 'create') {
-        console.warn('[Actions] selectTimeSlot called in modify mode, ignoring');
+        console.warn('selectTimeSlot called in modify mode, ignoring');
         return;
     }
     
     // Verifica che lo slot sia disponibile
     const slot = orderFormState.availability.timeSlots.find(s => s.id === slotId);
     if (!slot || !slot.available) {
-        console.warn('[Actions] Slot not available, ignoring');
+        console.warn('Slot not available, ignoring');
         return;
     }
     
@@ -186,92 +166,30 @@ export function selectTimeSlot(slotId) {
 // INGREDIENT ACTIONS
 // =============================================================================
 
-/**
- * Toggle sezione ingredienti (accordion).
- * 
- * Solo UNA sezione può essere aperta alla volta.
- * 
- * @param {string} sectionId - ID categoria (es. 'bread')
- */
+// Only one section open at a time
 export function toggleSection(sectionId) {
-    console.log(`[Actions] Toggling section: ${sectionId}`);
-    
-    // Se stessa sezione, chiudi. Altrimenti apri nuova.
     const newSectionId = orderFormState.openSectionId === sectionId ? null : sectionId;
-    
     mutateOpenSection(newSectionId);
     renderOrderFormPage();
 }
 
-/**
- * Seleziona/deseleziona ingrediente.
- * 
- * REGOLE:
- * - Se available === false E non è già selezionato → IGNORA
- * - Se available === false MA è selezionato → permetti deselect (per MODIFY)
- * - Se categoria bread → deseleziona pane precedente
- * 
- * @param {Object} ingredient - { id, name, category, available }
- */
+// Handles ingredient selection rules (availability, bread uniqueness)
 export function selectIngredient(ingredient) {
-    console.log(`[Actions] Selecting ingredient:`, ingredient);
-    
-    // Verifica se è già selezionato
     const isSelected = orderFormState.order.selectedIngredients.some(i => i.id === ingredient.id);
-    
-    // Se non disponibile E non è già selezionato → IGNORA
-    // Se non disponibile MA è selezionato → permetti deselect
     if (!ingredient.available && !isSelected) {
-        console.warn('[Actions] Ingredient not available, ignoring');
+        console.warn('Ingredient not available, ignoring');
         return;
     }
-    
     toggleIngredient(ingredient);
     renderOrderFormPage();
 }
 
-/**
- * Rimuove ingrediente dalla selezione (chiamato dal pulsante "−" in "Your Selection").
- * 
- * FLUSSO COMPLETO:
- * 1. Utente clicca "−" in "Your Selection"
- * 2. Event delegation in selectedIngredientsSummary.component.js intercetta click
- * 3. Chiama onRemove(ingredientId) → questa funzione
- * 4. removeIngredient() aggiorna lo STATE (SSOT)
- * 5. renderOrderFormPage() re-renderizza TUTTA la UI
- * 6. "Your Selection" si aggiorna (ingrediente sparisce)
- * 7. "Add Ingredients" si sincronizza (checkbox diventa unchecked)
- * 
- * PRINCIPIO FONDAMENTALE:
- * - NON modifichiamo MAI il DOM direttamente
- * - Modifichiamo SOLO lo stato
- * - La UI si aggiorna automaticamente perché legge dallo stato
- * 
- * @param {number} ingredientId - ID ingrediente da rimuovere
- */
 export function deselectIngredient(ingredientId) {
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('[Actions] 🗑️ DESELECT INGREDIENT CALLED');
-    console.log('[Actions] ingredientId:', ingredientId);
-    console.log('[Actions] ingredientId type:', typeof ingredientId);
-    console.log('═══════════════════════════════════════════════════════');
-
     try {
-        // Step 1: Aggiorna lo STATE (unica fonte di verità)
-        console.log('[Actions] Calling removeIngredient with', ingredientId);
         removeIngredient(ingredientId);
-        console.log('[Actions] removeIngredient completed. Remaining:', orderFormState.order.selectedIngredients.length);
-
-        // Step 2: Re-renderizza TUTTO basandosi sul nuovo stato
-        // Questo sincronizza automaticamente:
-        // - La lista "Your Selection" (ingrediente rimosso sparisce)
-        // - I dropdown "Add Ingredients" (checkbox diventa unchecked)
-        console.log('[Actions] Calling renderOrderFormPage()');
         renderOrderFormPage();
-        console.log('[Actions] renderOrderFormPage() returned');
     } catch (err) {
-        console.error('[Actions] Error during deselectIngredient:', err);
-        // Rilancia o gestisci a seconda dei casi
+        console.error('Error during deselectIngredient:', err);
     }
 }
 
@@ -283,14 +201,6 @@ export function deselectIngredient(ingredientId) {
  * Submit ordine (create o update in base a mode).
  */
 export async function submitOrder() {
-    console.log('[Actions] Submitting order...');
-    console.log('[Actions] Current state:', {
-        mode: orderFormState.mode,
-        selectedTimeSlotId: orderFormState.order.selectedTimeSlotId,
-        selectedIngredients: orderFormState.order.selectedIngredients,
-        isValid: isOrderValid()
-    });
-    
     mutateUI({ isSubmitting: true });
     renderOrderFormPage();
     
@@ -311,11 +221,10 @@ export async function submitOrder() {
             );
         }
         
-        console.log('[Actions] Order submitted successfully, redirecting...');
         window.location.href = '/orders';
         
     } catch (error) {
-        console.error('[Actions] Submit failed:', error);
+        console.error('Submit failed:', error);
         mutateUI({ isSubmitting: false });
         renderOrderFormPage();
         
@@ -328,7 +237,6 @@ export async function submitOrder() {
  * Annulla e torna a /orders.
  */
 export function cancel() {
-    console.log('[Actions] Cancelling, going back...');
     window.location.href = '/orders';
 }
 
@@ -336,10 +244,9 @@ export function cancel() {
  * Elimina ordine (solo MODIFY).
  */
 export async function deleteCurrentOrder() {
-    console.log('[Actions] Deleting order...');
     
     if (orderFormState.mode !== 'modify') {
-        console.warn('[Actions] deleteCurrentOrder called in create mode, ignoring');
+        console.warn('deleteCurrentOrder called in create mode, ignoring');
         return;
     }
     
@@ -353,11 +260,11 @@ export async function deleteCurrentOrder() {
     try {
         await deleteOrder(orderFormState.order.id);
         
-        console.log('[Actions] Order deleted successfully, redirecting...');
+        
         window.location.href = '/orders';
         
     } catch (error) {
-        console.error('[Actions] Delete failed:', error);
+        console.error('Delete failed:', error);
         mutateUI({ isSubmitting: false });
         renderOrderFormPage();
         

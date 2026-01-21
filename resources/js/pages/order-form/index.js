@@ -1,25 +1,4 @@
-/**
- * ORDER FORM PAGE - Entry Point
- * 
- * RESPONSABILITÀ:
- * - Inizializza la pagina Order Form (Create / Modify)
- * - Orchestra hydration, render, polling
- * - Gestisce event delegation globale
- * 
- * ARCHITETTURA:
- * - Segue stesso pattern di Home e Orders
- * - State centralizzato in orderForm.state.js
- * - View refs in orderForm.view.js
- * - API calls in orderForm.api.js
- * - Actions in orderForm.actions.js
- * - Hydration in orderForm.hydration.js
- * - Render in orderForm.render.js
- * 
- * FLUSSI:
- * - CREATE: inline data → fetch availability → render
- * - MODIFY: inline data → fetch order data → render
- * - Polling ogni 5 secondi per availability
- */
+// Entry point for Order Form page
 
 import { orderFormState, mutateUI } from './orderForm.state.js';
 import { orderFormView } from './orderForm.view.js';
@@ -39,25 +18,16 @@ const POLLING_INTERVAL = 5000; // 5 secondi
  */
 function startPolling() {
     if (pollingIntervalId) return;
-
-    console.log('[OrderForm] Starting polling every 5 seconds...');
-
     pollingIntervalId = setInterval(async () => {
         // In create, passa data per time slots
         const date = orderFormState.mode === 'create' ? orderFormState.selectedDayId : null;
-        
-        console.log(`[OrderForm] Polling: refreshing availability (date: ${date || 'none'})`);
-        
         try {
             await refreshAvailability(date);
             renderOrderFormPage();
-            console.log('[OrderForm] Polling: availability updated');
         } catch (error) {
             console.error('[OrderForm] Polling error:', error);
         }
     }, POLLING_INTERVAL);
-
-    console.log('[OrderForm] Polling started with interval ID:', pollingIntervalId);
 }
 
 /**
@@ -65,7 +35,6 @@ function startPolling() {
  */
 function stopPolling() {
     if (pollingIntervalId) {
-        console.log('[OrderForm] Stopping polling...');
         clearInterval(pollingIntervalId);
         pollingIntervalId = null;
     }
@@ -82,8 +51,6 @@ window.addEventListener('beforeunload', stopPolling);
  * Inizializza pagina Order Form.
  */
 async function initOrderFormPage() {
-    console.log('[OrderForm] Initializing order form page...');
-
     try {
         // 1. Init DOM refs
         orderFormView.init();
@@ -99,14 +66,10 @@ async function initOrderFormPage() {
         mutateUI({ isLoading: true });
         renderOrderFormPage();
 
-        // 4. Hydrate in base a mode
+        // 4. Hydrate based on mode
         if (orderFormState.mode === 'modify' && orderFormState.order.id) {
-            // MODIFY MODE
-            console.log('[OrderForm] Hydrating MODIFY mode...');
             await hydrateModifyMode(orderFormState.order.id);
         } else {
-            // CREATE MODE
-            console.log('[OrderForm] Hydrating CREATE mode...');
             const date = orderFormState.selectedDayId || new Date().toISOString().split('T')[0];
             await hydrateCreateMode(date);
         }
@@ -118,15 +81,11 @@ async function initOrderFormPage() {
         // 6. Avvia polling
         startPolling();
 
-        // 7. Setup event delegation
         setupEventDelegation();
-
-        console.log('[OrderForm] Page initialized successfully');
 
     } catch (error) {
         console.error('[OrderForm] Initialization failed:', error);
         mutateUI({ isLoading: false });
-        // TODO: mostrare errore all'utente
     }
 }
 
@@ -140,8 +99,6 @@ async function initOrderFormPage() {
  * Gestisce eventi che non sono legati a componenti specifici.
  */
 function setupEventDelegation() {
-    console.log('[OrderForm] Setting up event delegation...');
-
     document.addEventListener('click', (e) => {
         // Logout (dalla sidebar)
         const logoutBtn = e.target.closest('[data-action="logout"]');
@@ -151,14 +108,10 @@ function setupEventDelegation() {
             return;
         }
 
-        // Debug: log all clicks on submit buttons
         const submitBtn = e.target.closest('[data-action="submit-order"]');
-        if (submitBtn) {
-            console.log('[DEBUG] Submit button clicked:', submitBtn);
-        }
+        if (submitBtn) return;
     });
 
-    console.log('[OrderForm] Event delegation setup complete');
 }
 
 // =============================================================================

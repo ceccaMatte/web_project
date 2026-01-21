@@ -1,21 +1,4 @@
-/**
- * ORDER FORM HYDRATION - State Initialization
- * 
- * RESPONSABILITÀ:
- * - Inizializzare state da inline data + API
- * - Flussi separati per CREATE e MODIFY
- * - Gestire loading state
- * 
- * ARCHITETTURA:
- * - Legge inline data dal DOM
- * - Chiama API per dati completi
- * - Popola orderFormState
- * - Trigger render
- * 
- * SSOT CRITICO:
- * - REORDER e MODIFY usano la stessa funzione resetAndApplySelection()
- * - Nessun merge, solo reset atomico
- */
+// State hydration utilities for order form
 
 import { 
     orderFormState, 
@@ -37,18 +20,15 @@ import { fetchCreateData, fetchModifyData, fetchAvailability } from './orderForm
  * Legge #order-form-data e popola state iniziale.
  */
 export function hydrateFromInlineData() {
-    console.log('[Hydration] Reading inline data...');
     
     const scriptEl = document.getElementById('order-form-data');
     if (!scriptEl) {
-        console.error('[Hydration] Inline data script not found');
+        console.error('Inline data script not found');
         return null;
     }
     
     try {
         const data = JSON.parse(scriptEl.textContent);
-        console.log('[Hydration] Inline data parsed:', data);
-        
         // Mode
         mutateMode(data.mode || 'create');
         
@@ -68,9 +48,8 @@ export function hydrateFromInlineData() {
             selectedIngredients: [], // Reset - verranno applicati atomicamente dopo
         });
         
-        // Reorder: usa resetAndApplySelection per SSOT
+        // Use atomic reset/apply for initial selection
         if (data.reorderIngredients && data.reorderIngredients.length > 0) {
-            console.log('[Hydration] REORDER: Applying initial selection with', data.reorderIngredients.length, 'ingredients');
             resetAndApplySelection(data.reorderIngredients);
         }
         
@@ -79,11 +58,10 @@ export function hydrateFromInlineData() {
             orderFormState.selectedDayId = data.selectedDate;
         }
         
-        console.log('[Hydration] Inline data hydrated');
         return data;
         
     } catch (error) {
-        console.error('[Hydration] Failed to parse inline data:', error);
+        console.error('Failed to parse inline data:', error);
         return null;
     }
 }
@@ -99,8 +77,6 @@ export function hydrateFromInlineData() {
  * 5. Trigger render
  */
 export async function hydrateCreateMode(date) {
-    console.log(`[Hydration] Hydrating CREATE mode for date: ${date}`);
-    
     mutateUI({ isLoading: true });
     
     try {
@@ -125,13 +101,10 @@ export async function hydrateCreateMode(date) {
             });
         }
         
-        mutateUI({ isLoading: false });
-        console.log('[Hydration] CREATE mode hydrated successfully');
-        
         return data;
         
     } catch (error) {
-        console.error('[Hydration] CREATE hydration failed:', error);
+        console.error('CREATE hydration failed:', error);
         mutateUI({ isLoading: false });
         throw error;
     }
@@ -152,14 +125,10 @@ export async function hydrateCreateMode(date) {
  * - Usa resetAndApplySelection per reset atomico
  */
 export async function hydrateModifyMode(orderId) {
-    console.log(`[Hydration] Hydrating MODIFY mode for order: ${orderId}`);
-    console.log('[Hydration] BEFORE: selectedIngredients count =', orderFormState.order.selectedIngredients.length);
-    
     mutateUI({ isLoading: true });
     
     try {
         const data = await fetchModifyData(orderId);
-        console.log('[Hydration] MODIFY API response:', data);
         
         // 1. Availability PRIMA (così i dropdown hanno i dati)
         if (data.availability) {
@@ -178,23 +147,19 @@ export async function hydrateModifyMode(orderId) {
                 // NON settare selectedIngredients qui - usa resetAndApplySelection
             });
             
-            // 3. SSOT: Applica selezione atomicamente (come REORDER)
-            console.log('[Hydration] MODIFY: Applying selection with', data.order.selectedIngredients?.length || 0, 'ingredients');
+            // Apply selection atomically (SSOT)
             resetAndApplySelection(data.order.selectedIngredients || []);
         }
         
         // 4. Debug: verifica coerenza
         const summaryCount = orderFormState.order.selectedIngredients.length;
         const selectedIds = deriveSelectedIds();
-        console.log('[Hydration] AFTER: summary count =', summaryCount, ', selectedIds =', selectedIds);
-        
         mutateUI({ isLoading: false });
-        console.log('[Hydration] MODIFY mode hydrated successfully');
         
         return data;
         
     } catch (error) {
-        console.error('[Hydration] MODIFY hydration failed:', error);
+        console.error('MODIFY hydration failed:', error);
         mutateUI({ isLoading: false });
         throw error;
     }
@@ -209,8 +174,6 @@ export async function hydrateModifyMode(orderId) {
  * @param {string|null} date - Data per time slots (solo create)
  */
 export async function refreshAvailability(date = null) {
-    console.log('[Hydration] Refreshing availability...');
-    
     try {
         const data = await fetchAvailability(date);
         
@@ -237,7 +200,6 @@ export async function refreshAvailability(date = null) {
             );
             
             if (updatedIngredients.length !== orderFormState.order.selectedIngredients.length) {
-                console.log('[Hydration] Removed unavailable ingredients from CREATE');
                 mutateOrder({ selectedIngredients: updatedIngredients });
             }
         }
@@ -250,17 +212,14 @@ export async function refreshAvailability(date = null) {
             );
             
             if (!slotStillAvailable) {
-                console.log('[Hydration] Selected time slot no longer available');
                 mutateOrder({ selectedTimeSlotId: null });
             }
         }
-        
-        console.log('[Hydration] Availability refreshed');
         return data;
         
     } catch (error) {
-        console.error('[Hydration] Availability refresh failed:', error);
-        // Non propagare errore, polling deve continuare
+        console.error('Availability refresh failed:', error);
+        // Do not propagate; polling should continue
     }
 }
 

@@ -1,11 +1,6 @@
 import { qs } from '../../utils/dom.js';
 export const homeView = {
-    /**
-     * Riferimenti DOM (cached)
-     * 
-     * Popolati da init(), usati da home.render.js per
-     * passare container ai componenti.
-     */
+    // Cached DOM references
     refs: {
         // TopBar
         topBar: null,
@@ -33,17 +28,8 @@ export const homeView = {
         bookingSlotsContainer: null,
     },
 
-    /**
-     * Inizializza tutti i riferimenti DOM
-     * 
-     * Chiamato una sola volta da home.js al caricamento pagina.
-     * Valida esistenza elementi critici e logga warning se mancanti.
-     * 
-     * IMPORTANTE: Chiamare prima di qualsiasi render.
-     */
+    // Initialize cached DOM refs
     init() {
-        // initialize cached DOM refs
-
         // TopBar
         this.refs.topBar = qs('[data-top-bar]');
 
@@ -73,14 +59,7 @@ export const homeView = {
         this._validateRefs();
     },
 
-    /**
-     * Valida esistenza elementi DOM critici
-     * 
-     * Logga warning per elementi mancanti (non bloccante).
-     * Aiuta debug durante sviluppo.
-     * 
-     * @private
-     */
+    // Warn if critical refs are missing
     _validateRefs() {
         const criticalRefs = [
             'topBar',
@@ -97,20 +76,12 @@ export const homeView = {
         });
     },
 
-    /**
-     * Reset refs (per cleanup o testing)
-     * 
-     * Non usato in produzione, utile per test.
-     */
+    // Reset cached refs (used in tests)
     reset() {
         Object.keys(this.refs).forEach(key => {
             this.refs[key] = null;
         });
-        // refs reset (used in tests)
     },
 };
 
-/**
- * Export default per import aggregato
- */
 export default homeView;

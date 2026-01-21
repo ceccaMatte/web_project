@@ -1,16 +1,4 @@
-/**
- * ORDER FORM API - HTTP Communication Layer
- * 
- * RESPONSABILITÀ:
- * - Fetch dati da API backend
- * - Submit ordini
- * - Polling disponibilità
- * 
- * ARCHITETTURA:
- * - Tutte le chiamate HTTP centralizzate qui
- * - I componenti NON fanno mai fetch
- * - Ritorna dati grezzi, hydration li processa
- */
+// HTTP layer for order form
 
 /**
  * Ottiene CSRF token dal meta tag
@@ -29,7 +17,6 @@ function getCsrfToken() {
  * @returns {Promise<Object>} Payload create
  */
 export async function fetchCreateData(date) {
-    console.log(`[OrderFormAPI] Fetching create data for ${date}...`);
     
     const url = `/api/orders/form/create?date=${date}`;
     
@@ -47,8 +34,6 @@ export async function fetchCreateData(date) {
     }
     
     const data = await response.json();
-    console.log('[OrderFormAPI] Create data fetched successfully');
-    
     return data;
 }
 
@@ -61,7 +46,6 @@ export async function fetchCreateData(date) {
  * @returns {Promise<Object>} Payload modify
  */
 export async function fetchModifyData(orderId) {
-    console.log(`[OrderFormAPI] Fetching modify data for order ${orderId}...`);
     
     const url = `/api/orders/${orderId}/form`;
     
@@ -85,8 +69,6 @@ export async function fetchModifyData(orderId) {
     }
     
     const data = await response.json();
-    console.log('[OrderFormAPI] Modify data fetched successfully');
-    
     return data;
 }
 
@@ -99,8 +81,6 @@ export async function fetchModifyData(orderId) {
  * @returns {Promise<Object>} Availability data
  */
 export async function fetchAvailability(date = null) {
-    console.log(`[OrderFormAPI] Fetching availability (date: ${date || 'none'})...`);
-    
     let url = '/api/orders/form/availability';
     if (date) {
         url += `?date=${date}`;
@@ -120,8 +100,6 @@ export async function fetchAvailability(date = null) {
     }
     
     const data = await response.json();
-    console.log('[OrderFormAPI] Availability fetched successfully');
-    
     return data;
 }
 
@@ -136,7 +114,6 @@ export async function fetchAvailability(date = null) {
  * @returns {Promise<Object>} Response con ordine creato
  */
 export async function createOrder(timeSlotId, ingredientIds) {
-    console.log('[OrderFormAPI] Creating order...', { timeSlotId, ingredientIds });
     
     const response = await fetch('/orders', {
         method: 'POST',
@@ -154,13 +131,10 @@ export async function createOrder(timeSlotId, ingredientIds) {
     });
     
     const data = await response.json();
-    
     if (!response.ok) {
-        console.error('[OrderFormAPI] Create failed:', data);
+        console.error('Create failed:', data);
         throw new Error(data.message || 'Creazione ordine fallita');
     }
-    
-    console.log('[OrderFormAPI] Order created successfully:', data.order?.id);
     return data;
 }
 
@@ -175,7 +149,6 @@ export async function createOrder(timeSlotId, ingredientIds) {
  * @returns {Promise<Object>} Response con ordine aggiornato
  */
 export async function updateOrder(orderId, ingredientIds) {
-    console.log('[OrderFormAPI] Updating order...', { orderId, ingredientIds });
     
     const response = await fetch(`/orders/${orderId}`, {
         method: 'PUT',
@@ -192,13 +165,10 @@ export async function updateOrder(orderId, ingredientIds) {
     });
     
     const data = await response.json();
-    
     if (!response.ok) {
-        console.error('[OrderFormAPI] Update failed:', data);
+        console.error('Update failed:', data);
         throw new Error(data.message || 'Aggiornamento ordine fallito');
     }
-    
-    console.log('[OrderFormAPI] Order updated successfully');
     return data;
 }
 
@@ -211,7 +181,6 @@ export async function updateOrder(orderId, ingredientIds) {
  * @returns {Promise<Object>} Response
  */
 export async function deleteOrder(orderId) {
-    console.log('[OrderFormAPI] Deleting order...', { orderId });
     
     const response = await fetch(`/orders/${orderId}`, {
         method: 'DELETE',
@@ -224,13 +193,12 @@ export async function deleteOrder(orderId) {
     });
     
     const data = await response.json();
-    
+
     if (!response.ok) {
-        console.error('[OrderFormAPI] Delete failed:', data);
+        console.error('Delete failed:', data);
         throw new Error(data.message || 'Eliminazione ordine fallita');
     }
-    
-    console.log('[OrderFormAPI] Order deleted successfully');
+
     return data;
 }
 

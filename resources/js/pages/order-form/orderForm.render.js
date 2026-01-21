@@ -1,19 +1,4 @@
-/**
- * ORDER FORM RENDER ORCHESTRATOR
- * 
- * RESPONSABILITÀ:
- * - Orchestra render di tutti i componenti Order Form
- * - Passa container, props e callbacks ai componenti
- * - Legge da orderFormState, NON lo modifica
- * - Gestisce show/hide loader e content
- * 
- * ARCHITETTURA:
- * - Funzione renderOrderFormPage() chiamata dopo hydration o mutation state
- * - Importa tutti i component renderers
- * - Calcola props da state e le passa ai componenti
- * - Passa callbacks da orderForm.actions.js
- */
-
+// Render orchestrator for order form
 import { orderFormState, isOrderValid, isIngredientSelected } from './orderForm.state.js';
 import { orderFormView } from './orderForm.view.js';
 
@@ -100,7 +85,7 @@ function updateSchedulerSelection(weekDays, selectedDayId) {
  * IDEMPOTENTE: Può essere chiamata N volte.
  */
 export function renderOrderFormPage() {
-    console.log('[RenderOrderForm] Rendering page...');
+    
 
     // 1. Loading state
     if (orderFormState.ui.isLoading) {
@@ -114,16 +99,6 @@ export function renderOrderFormPage() {
 
     // 2. Content ready
     hideLoader();
-
-    // DEBUG: Verifica SSOT prima del render
-    const summaryCount = orderFormState.order.selectedIngredients.length;
-    const selectedIds = orderFormState.order.selectedIngredients.map(i => i.id);
-    console.log('[RenderOrderForm] SSOT check:', {
-        mode: orderFormState.mode,
-        summaryCount,
-        selectedIds,
-        uniqueIds: [...new Set(selectedIds)].length,
-    });
 
     // 3. Render componenti
     renderTopBarComponent();
@@ -140,7 +115,7 @@ export function renderOrderFormPage() {
     renderIngredientsComponent();
     renderFooterComponent();
 
-    console.log('[RenderOrderForm] Page rendered successfully');
+    
 }
 
 // =============================================================================
@@ -256,7 +231,6 @@ function renderTimeSlotsComponent() {
 function renderSummaryComponent() {
     // Mobile container
     if (orderFormView.refs.summaryContainer) {
-        console.log('[RenderOrderForm] renderSummaryComponent: rendering mobile summary, onRemove:', typeof deselectIngredient);
         renderSelectedIngredientsSummary(
             orderFormView.refs.summaryContainer,
             {
@@ -270,7 +244,6 @@ function renderSummaryComponent() {
     
     // Desktop container
     if (orderFormView.refs.summaryContainerDesktop) {
-        console.log('[RenderOrderForm] renderSummaryComponent: rendering desktop summary, onRemove:', typeof deselectIngredient);
         renderSelectedIngredientsSummary(
             orderFormView.refs.summaryContainerDesktop,
             {
@@ -283,24 +256,11 @@ function renderSummaryComponent() {
     }
 }
 
-/**
- * Render Ingredients Accordion Sections
- * 
- * SINCRONIZZAZIONE AUTOMATICA:
- * Quando un ingrediente viene rimosso da "Your Selection":
- * 1. Lo stato viene aggiornato (removeIngredient)
- * 2. Questa funzione viene chiamata dal re-render completo
- * 3. Legge selectedIds DALLO STATO (non dalla UI)
- * 4. Passa selectedIds a renderIngredientSections
- * 5. Il componente renderizza checkbox unchecked per ingredienti non in selectedIds
- * 
- * SSOT: La UI non decide, riflette solo lo stato.
- */
+// UI is derived from state (SSOT)
 function renderIngredientsComponent() {
     if (!orderFormView.refs.ingredientsContainer) return;
     
-    // SSOT: Deriva gli IDs selezionati DALLO STATO (unica fonte di verità)
-    // Questi IDs determinano quali checkbox saranno checked/unchecked
+    // Derive selected IDs from state
     const selectedIds = orderFormState.order.selectedIngredients.map(i => i.id);
     
     renderIngredientSections(
@@ -334,26 +294,24 @@ function renderFooterComponent() {
     
     // Mobile footer
     if (orderFormView.refs.footerActions) {
-        console.log('[RenderOrderForm] Rendering mobile footer');
         renderActionFooter(
             orderFormView.refs.footerActions,
             footerProps,
             footerCallbacks
         );
     } else {
-        console.log('[RenderOrderForm] Mobile footer container not found');
+        // mobile footer not present
     }
     
     // Desktop footer
     if (orderFormView.refs.footerActionsDesktop) {
-        console.log('[RenderOrderForm] Rendering desktop footer');
         renderActionFooter(
             orderFormView.refs.footerActionsDesktop,
             footerProps,
             footerCallbacks
         );
     } else {
-        console.log('[RenderOrderForm] Desktop footer container not found');
+        // desktop footer not present
     }
 }
 

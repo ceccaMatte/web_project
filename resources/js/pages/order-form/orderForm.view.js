@@ -1,26 +1,6 @@
-/**
- * ORDER FORM VIEW - DOM References
- * 
- * RESPONSABILITÀ:
- * - Inizializza e mantiene riferimenti DOM
- * - Fornisce accesso centralizzato ai container
- * 
- * ARCHITETTURA:
- * - NON contiene dati applicativi
- * - NON contiene logica
- * - Solo riferimenti DOM cached
- */
-
-/**
- * VIEW LAYER
- * 
- * Contiene riferimenti DOM cached.
- * Inizializzato una sola volta all'avvio.
- */
+// DOM references for order form
 export const orderFormView = {
-    /**
-     * Riferimenti DOM
-     */
+    // Cached refs
     refs: {
         // TopBar e Sidebar
         topBar: null,
@@ -62,12 +42,8 @@ export const orderFormView = {
         footerActionsDesktop: null,
     },
 
-    /**
-     * Inizializza riferimenti DOM.
-     * Chiamato una sola volta all'avvio.
-     */
+    // Initialize refs
     init() {
-        console.log('[OrderFormView] Initializing DOM refs...');
         
         // TopBar e Sidebar
         this.refs.topBar = document.querySelector('[data-topbar]');
@@ -108,10 +84,7 @@ export const orderFormView = {
         // Footer Actions (Desktop)
         this.refs.footerActionsDesktop = document.querySelector('[data-footer-actions-desktop]');
         
-        console.log('[OrderFormView] footerActions ref:', this.refs.footerActions);
-        console.log('[OrderFormView] footerActionsDesktop ref:', this.refs.footerActionsDesktop);
-        
-        console.log('[OrderFormView] DOM refs initialized');
+        // refs initialized
     },
 };
 
