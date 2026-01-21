@@ -30,6 +30,11 @@ let cleanupListener = null;
 function renderTimeSlotItem(slot, isSelected) {
     const { id, timeLabel, slotsLeft, available } = slot;
 
+    // Display time without seconds (e.g. "11:15:00" -> "11:15")
+    const displayTimeLabel = typeof timeLabel === 'string'
+        ? timeLabel.replace(/:\d{2}$/, '')
+        : timeLabel;
+
     // Classi base
     let containerClasses = 'min-w-32 p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all';
     let timeClasses = 'text-base font-bold';
@@ -46,9 +51,9 @@ function renderTimeSlotItem(slot, isSelected) {
                 class="${containerClasses}"
                 data-slot-id="${id}"
                 aria-disabled="true"
-                aria-label="${timeLabel}, fully booked"
+                aria-label="${displayTimeLabel}, fully booked"
             >
-                <span class="${timeClasses}">${timeLabel}</span>
+                <span class="${timeClasses}">${displayTimeLabel}</span>
                 <span class="${slotsClasses}">FULL</span>
             </div>
         `;
@@ -68,9 +73,9 @@ function renderTimeSlotItem(slot, isSelected) {
                 role="button"
                 tabindex="0"
                 aria-pressed="true"
-                aria-label="${timeLabel}, ${slotsLeft} slots left, selected"
+                aria-label="${displayTimeLabel}, ${slotsLeft} slots left, selected"
             >
-                <span class="${timeClasses}">${timeLabel}</span>
+                <span class="${timeClasses}">${displayTimeLabel}</span>
                 <span class="${slotsClasses}">${slotsLeft} LEFT</span>
                 <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1">
                     check_circle
@@ -93,9 +98,9 @@ function renderTimeSlotItem(slot, isSelected) {
             role="button"
             tabindex="0"
             aria-pressed="false"
-            aria-label="${timeLabel}, ${slotsLeft} slots left"
+            aria-label="${displayTimeLabel}, ${slotsLeft} slots left"
         >
-            <span class="${timeClasses}">${timeLabel}</span>
+            <span class="${timeClasses}">${displayTimeLabel}</span>
             <span class="${slotsClasses}">${slotsLeft} LEFT</span>
         </div>
     `;
