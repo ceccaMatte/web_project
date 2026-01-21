@@ -15,9 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Chiama il seeder di test che popola il database con dati realistici
+        // Chiama il seeder specifico per i requisiti dell'utente
         $this->call([
-            TestDataSeeder::class,
+            UserRequirementsSeeder::class,
         ]);
     }
 }
