@@ -66,82 +66,55 @@ export function buildActiveOrderCardHTML(props, callbacks) {
         `;
     }
 
-    // =========================================================================
-    // ACTIVE MODE (Card principale)
-    // =========================================================================
-    
-    // Ingredienti: preview truncata o lista completa
-    const previewCount = 3;
-    const ingredientsList = ingredients || [];
-    const ingredientsToShow = isExpanded ? ingredientsList : ingredientsList.slice(0, previewCount);
-    const hasMore = ingredientsList.length > previewCount;
-    
-    // Build ingredienti stringa per line-clamp
-    const ingredientsText = ingredientsList.map(i => i.name).join(', ');
-    const showIngredientsAsTags = isExpanded;
+        // =========================================================================
+        // ACTIVE MODE (Card principale) - Nuovo markup e logica
+        // =========================================================================
+        const previewCount = 3;
+        const ingredientsList = ingredients || [];
+        const hasMore = ingredientsList.length > previewCount;
+        const ingredientsText = ingredientsList.map(i => i.name).join(', ');
+        const showIngredients = isExpanded;
+        const isPending = statusLabel && statusLabel.toLowerCase() === 'pending';
 
-    return `
-        <div class="carousel-card carousel-card-active" data-order-id="${id}" data-mode="active">
-            <div class="bg-card-dark rounded-2xl p-4 border border-slate-800 relative overflow-hidden">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="px-2 py-0.5 rounded-full ${statusColors.bg} ${statusColors.text} text-[9px] font-bold uppercase tracking-widest">
-                        ${statusLabel}
-                    </span>
-                    <span class="text-[9px] font-medium text-slate-400">${formatTimeSlot(time_slot)}</span>
-                </div>
-                
-                <div class="flex gap-3 items-start mb-4">
-                        <div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg ring-1 ring-white/10 shrink-0 relative flex items-center justify-center">
-                            <img src="/img/panino.png" alt="Panino" class="w-full h-full object-cover" />
-                        </div>
-                    <div class="flex-grow min-w-0">
-                        ${!isExpanded ? `
-                            <p class="text-[10px] text-slate-400 leading-relaxed line-clamp-3">
-                                ${ingredientsText || 'No ingredients'}
-                            </p>
-                            ${hasMore ? `
-                                <button 
-                                    class="mt-1 flex items-center gap-1 text-[9px] font-bold text-primary uppercase focus:outline-none focus-visible:underline"
-                                    data-action="toggle-expand"
-                                    data-order-id="${id}"
-                                    aria-expanded="false"
-                                >
-                                    ${showMoreLabel} <span class="material-symbols-outlined text-[10px]" aria-hidden="true">expand_more</span>
-                                </button>
-                            ` : ''}
-                        ` : `
-                            <div class="space-y-1">
-                                ${ingredientsList.map(ing => `
-                                    <span class="inline-block text-[9px] px-1.5 py-0.5 bg-slate-800 rounded text-slate-400 mr-1">
-                                        ${ing.name}
-                                    </span>
-                                `).join('')}
-                            </div>
-                            <button 
-                                class="mt-2 flex items-center gap-1 text-[9px] font-bold text-primary uppercase focus:outline-none focus-visible:underline"
-                                data-action="toggle-expand"
-                                data-order-id="${id}"
-                                aria-expanded="true"
-                            >
-                                ${showLessLabel} <span class="material-symbols-outlined text-[10px]" aria-hidden="true">expand_less</span>
-                            </button>
-                        `}
+        return `
+            <div class="carousel-card carousel-card-active" data-order-id="${id}" data-mode="active">
+                <div class="bg-card-dark rounded-[2.5rem] p-7 border border-slate-800 relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="px-4 py-1.5 rounded-full ${statusColors.bg || 'bg-orange-100 dark:bg-orange-500/20'} ${statusColors.text || 'text-orange-600 dark:text-orange-400'} text-[11px] font-bold uppercase tracking-widest">
+                            ${statusLabel}
+                        </span>
+                        <span class="text-[10px] font-medium text-slate-400">${formatTimeSlot(time_slot)}</span>
                     </div>
+                    <div class="w-full aspect-square rounded-[2rem] overflow-hidden bg-slate-800 mb-6 shadow-2xl ring-4 ring-white/5">
+                        <img alt="Order Item" class="w-full h-full object-cover" src="./img/panino.png" />
+                    </div>
+                    <div class="text-center ${isPending ? 'mb-6' : ''}">
+                        <h3 class="text-lg font-bold text-slate-100 uppercase tracking-wide mb-2">${order.name || 'Campus Melt'}</h3>
+                        ${!showIngredients ? `
+                            <p class="text-[12px] text-slate-400 line-clamp-2 px-2 leading-relaxed">${ingredientsText || 'No ingredients'}</p>
+                        ` : `
+                            <div class="flex flex-wrap justify-center gap-1 mb-2">
+                                ${ingredientsList.map(ing => `<span class="inline-block text-[11px] px-2 py-1 bg-slate-800 rounded text-slate-400">${ing.name}</span>`).join('')}
+                            </div>
+                        `}
+                        <button 
+                            class="mt-2 flex items-center gap-1 text-[11px] font-bold text-primary uppercase focus:outline-none focus-visible:underline mx-auto"
+                            data-action="toggle-expand"
+                            data-order-id="${id}"
+                            aria-expanded="${showIngredients ? 'true' : 'false'}"
+                        >
+                            ${showIngredients ? showLessLabel : showMoreLabel}
+                            <span class="material-symbols-outlined text-[12px]" aria-hidden="true">${showIngredients ? 'expand_less' : 'expand_more'}</span>
+                        </button>
+                    </div>
+                    ${isPending ? `
+                        <button class="w-full bg-primary text-white text-[11px] font-bold uppercase py-4 rounded-2xl active:scale-95 transition-transform shadow-xl shadow-primary/20" data-action="modify-order" data-order-id="${id}" aria-label="${modifyLabel}">
+                            ${modifyLabel}
+                        </button>
+                    ` : ''}
                 </div>
-                
-                ${is_modifiable ? `
-                    <button 
-                        class="w-full bg-primary text-white text-[10px] font-bold uppercase py-2.5 rounded-xl active:scale-95 transition-transform shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        data-action="modify-order"
-                        data-order-id="${id}"
-                        aria-label="${modifyLabel}"
-                    >
-                        ${modifyLabel}
-                    </button>
-                ` : ''}
             </div>
-        </div>
-    `;
+        `;
 }
 
 /**
