@@ -278,6 +278,15 @@ class HomeController extends Controller
         $dateString = $validated['date'];
         $date = \Carbon\Carbon::parse($dateString);
 
+        // Se la data è nel passato, restituisci slots vuoti
+        if ($date->isPast()) {
+            return response()->json([
+                'dateLabel' => $date->format('l, F j'),
+                'locationLabel' => config('ui.location_label', 'Engineering Hub'),
+                'slots' => [],
+            ]);
+        }
+
         // 2. Recupera working day per quella data con time slots
         $workingDay = \App\Models\WorkingDay::where('day', $dateString)
             ->with(['timeSlots' => function ($query) {
