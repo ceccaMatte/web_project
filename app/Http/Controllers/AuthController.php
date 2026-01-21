@@ -10,17 +10,6 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * Handle login request
-     * 
-     * POST /login
-     * Body: { email, password }
-     * 
-     * Returns:
-     * - 200: { success: true, redirect: '/' }
-     * - 401: { success: false, message: 'Invalid credentials' }
-     * - 422: { errors: { email: [...], password: [...] } }
-     */
     public function login(Request $request)
     {
         // Validazione input
@@ -52,16 +41,6 @@ class AuthController extends Controller
         ], 401);
     }
 
-    /**
-     * Handle registration request
-     * 
-     * POST /register
-     * Body: { nickname, email, password, password_confirmation }
-     * 
-     * Returns:
-     * - 200: { success: true, redirect: '/' }
-     * - 422: { errors: { email: [...], password: [...], nickname: [...] } }
-     */
     public function register(Request $request)
     {
         // Validazione input
@@ -90,11 +69,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Handle logout request
-     * 
-     * POST /logout
-     */
     public function logout(Request $request)
     {
         Auth::logout();

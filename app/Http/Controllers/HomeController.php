@@ -6,31 +6,9 @@ use App\Services\HomeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * HomeController
- * 
- * RESPONSABILITÀ:
- * - Serve la home page pubblica
- * - Passa stato user alla view
- * - Passa dati working days/slots disponibili
- * 
- * COSA NON FA:
- * - NON applica middleware auth (home è pubblica)
- * - NON gestisce logica di business (delegata ai services)
- */
+// Controller pubblico per la home page
 class HomeController extends Controller
 {
-    /**
-     * Mostra la home page.
-     * 
-     * LOGICA:
-     * 1. Determina stato user (guest, autenticato, disabilitato)
-     * 2. Recupera working day corrente (se disponibile)
-     * 3. Recupera giorni futuri con slot
-     * 4. Passa tutto alla view
-     * 
-     * @return \Illuminate\View\View
-     */
     public function index()
     {
         // 1. Determina stato user
@@ -59,16 +37,6 @@ class HomeController extends Controller
         ]);
     }
 
-    /**
-     * Determina stato utente.
-     * 
-     * STATI:
-     * - Guest: { authenticated: false, enabled: false, name: null }
-     * - User autenticato attivo: { authenticated: true, enabled: true, name: '...' }
-     * - User autenticato disabilitato: { authenticated: true, enabled: false, name: '...' }
-     * 
-     * @return array
-     */
     private function getUserState(): array
     {
         if (!Auth::check()) {
@@ -89,19 +57,9 @@ class HomeController extends Controller
         ];
     }
 
-    /**
-     * Recupera working day corrente (se disponibile oggi).
-     * 
-     * TODO: Implementare query reale
-     * 
-     * @return array|null
-     */
     private function getTodayWorkingDay(): ?array
     {
-        // TODO: Query WorkingDay per today
-        // $workingDay = WorkingDay::whereDate('day', today())->first();
-
-        // Placeholder
+        // Placeholder until WorkingDay query implemented
         return [
             'location' => 'North Quad Station',
             'start_time' => '11:00 AM',
@@ -110,34 +68,12 @@ class HomeController extends Controller
         ];
     }
 
-    /**
-     * Recupera working days futuri con slot disponibili.
-     * 
-     * TODO: Implementare query reale
-     * 
-     * @return array
-     */
     private function getFutureWorkingDays(): array
     {
-        // TODO: Query WorkingDay futuri + TimeSlots
-        // $days = WorkingDay::where('day', '>', today())->with('timeSlots')->get();
-
-        // Placeholder
+        // Placeholder until WorkingDay query implemented
         return [];
     }
 
-    /**
-     * Prepara dati per truck-status-card basati su todayWorkingDay.
-     * 
-     * LOGICA:
-     * - Se todayWorkingDay esiste → status = 'active' con tutti i dati
-     * - Altrimenti → status = 'inactive'
-     * 
-     * NOTA: NON calcola stati temporali, solo trasforma i dati.
-     * 
-     * @param array|null $todayWorkingDay
-     * @return array
-     */
     private function getTodayServiceData(?array $todayWorkingDay): array
     {
         if ($todayWorkingDay) {
@@ -159,47 +95,12 @@ class HomeController extends Controller
         ];
     }
 
-    /**
-     * Prepara dati per week-scheduler (7 giorni).
-     * 
-     * LOGICA:
-     * - Parte da oggi (today)
-     * - Genera 7 giorni consecutivi
-     * - Per ogni giorno calcola: isToday, isActive, isDisabled, isSelected
-     * 
-     * STATI:
-     * - isToday: giorno === oggi
-     * - isActive: giorno presente/futuro E servizio disponibile
-     * - isDisabled: passato O futuro senza servizio
-     * - isSelected: today di default (anche se disabled)
-     * 
-     * @param array|null $todayWorkingDay
-     * @param array $futureWorkingDays
-     * @return array
-     */
     private function getWeekDaysData(?array $todayWorkingDay, array $futureWorkingDays): array
     {
         // Delegate to shared SchedulerService so server-render and API use same logic
         return app(\App\Services\SchedulerService::class)->buildWeekScheduler();
     }
 
-    /**
-     * API endpoint per la Home page.
-     *
-     * ARCHITETTURA:
-     * - Endpoint read-only, idempotente
-     * - Non richiede autenticazione (usa sessione)
-     * - Restituisce contratto stabile per frontend
-     * - Orchestrazione: chiama HomeService per costruire response
-     *
-     * PERCHÉ API SEPARATA:
-     * - Frontend può fare polling per aggiornamenti real-time
-     * - Separazione chiara tra view rendering e data API
-     * - Possibilità di caching a livello API
-     * - Frontend può essere SPA o server-rendered indifferentemente
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function apiIndex()
     {
         $homeService = app(HomeService::class);
@@ -208,35 +109,9 @@ class HomeController extends Controller
         return response()->json($payload);
     }
 
-    /**
-     * API endpoint per time slots di un giorno specifico.
-     * 
-     * WORKFLOW:
-     * 1. Valida parametro ?date=YYYY-MM-DD
-     * 2. Recupera time slots per quel giorno
-     * 3. Formatta risposta con dateLabel, locationLabel, slots
-     * 
-     * RESPONSE: {
-     *   dateLabel: "Friday, January 17",
-     *   locationLabel: "Engineering Hub",
-     *   slots: [
-     *     {
-     *       id: 13,
-     *       timeLabel: "11:00",
-     *       slotsLeft: 45,
-     *       href: "/orders/create?slot=13",
-     *       isDisabled: false
-     *     },
-     *     ...
-     *   ]
-     * }
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getTimeSlots(Request $request)
     {
-        // 1. Valida parametro date
+        // valida parametro date
         $validated = $request->validate([
             'date' => ['required', 'date_format:Y-m-d'],
         ]);

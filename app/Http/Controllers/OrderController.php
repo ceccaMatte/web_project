@@ -13,50 +13,18 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Controller per la gestione degli ordini.
- * 
- * RESPONSABILITÀ:
- * - Riceve le richieste HTTP
- * - Valida l'input (via FormRequest)
- * - Chiama l'OrderService per la logica di business
- * - Converte gli errori di dominio in risposte HTTP
- * - Restituisce JSON con dati o errori
- * 
- * COSA NON FA:
- * - Non contiene logica di business
- * - Non accede direttamente al DB (usa il Service)
- * - Non crea messaggi di errore inline
- * 
- * GESTIONE ERRORI:
- * Tutti i DomainError vengono catturati e convertiti in:
- * {
- *   "code": "SLOT_FULL",
- *   "message": "Lo slot è pieno...",
- * }
- * Con lo status HTTP appropriato (409, 422, 403, ecc.)
- */
+// Controller ordini: orchestration e mapping degli errori di dominio su HTTP
 class OrderController extends Controller
 {
     private OrderService $orderService;
     private OrdersPageService $ordersPageService;
 
-    /**
-     * Dependency injection dei services.
-     */
     public function __construct(OrderService $orderService, OrdersPageService $ordersPageService)
     {
         $this->orderService = $orderService;
         $this->ordersPageService = $ordersPageService;
     }
 
-    /**
-     * Mostra pagina ordini dell'utente autenticato.
-     * 
-     * GET /orders
-     * 
-     * @return \Illuminate\View\View
-     */
     public function index()
     {
         $user = Auth::user();
@@ -77,24 +45,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * API: Inizializza pagina ordini (dati completi).
-     * 
-     * GET /api/orders/init?date=YYYY-MM-DD
-     * 
-     * Query params:
-     * - date: YYYY-MM-DD (opzionale, default: oggi)
-     * 
-     * Response:
-     * {
-     *   user: { authenticated, enabled, name },
-     *   scheduler: { selectedDayId, monthLabel, weekDays },
-     *   activeOrders: [...],
-     *   recentOrders: [...]
-     * }
-     * 
-     * @return JsonResponse
-     */
     public function apiInit(): JsonResponse
     {
         $date = request()->query('date', now()->toDateString());
@@ -102,18 +52,6 @@ class OrderController extends Controller
         return response()->json($payload);
     }
 
-    /**
-     * API: Ordini attivi per una data specifica.
-     * 
-     * GET /api/orders?date=YYYY-MM-DD
-     * 
-     * Response:
-     * {
-     *   orders: [...]
-     * }
-     * 
-     * @return JsonResponse
-     */
     public function apiActiveOrders(): JsonResponse
     {
         $date = request()->query('date', now()->toDateString());
@@ -122,35 +60,12 @@ class OrderController extends Controller
         return response()->json(['orders' => $orders]);
     }
 
-    /**
-     * API: Ordini recenti (storico).
-     * 
-     * GET /api/orders/recent
-     * 
-     * Response:
-     * {
-     *   orders: [...]
-     * }
-     * 
-     * @return JsonResponse
-     */
     public function apiRecentOrders(): JsonResponse
     {
         $orders = $this->ordersPageService->getRecentOrders();
         return response()->json(['orders' => $orders]);
     }
 
-    /**
-     * Crea un nuovo ordine.
-     * 
-     * POST /orders
-     * Body: { time_slot_id: 1, ingredients: [1, 3, 5] }
-     * 
-     * Risposte:
-     * - 201: ordine creato con successo
-     * - 409: slot pieno
-     * - 422: validazione fallita
-     */
     public function store(CreateOrderRequest $request): JsonResponse
     {
         try {
@@ -170,17 +85,6 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Aggiorna un ordine esistente.
-     * 
-     * PUT /orders/{order}
-     * Body: { ingredients: [1, 3, 5] }
-     * 
-     * Risposte:
-     * - 200: ordine aggiornato
-     * - 403: non autorizzato (non proprietario)
-     * - 422: non modificabile (non pending) o validazione fallita
-     */
     public function update(UpdateOrderRequest $request, Order $order): JsonResponse
     {
         // Verifica autorizzazione via Policy
@@ -203,16 +107,6 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Elimina un ordine.
-     * 
-     * DELETE /orders/{order}
-     * 
-     * Risposte:
-     * - 200: ordine eliminato
-     * - 403: non autorizzato (non proprietario)
-     * - 422: non eliminabile (non pending)
-     */
     public function destroy(Order $order): JsonResponse
     {
         // Verifica autorizzazione via Policy
@@ -233,17 +127,6 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Cambia lo stato di un ordine (solo admin).
-     * 
-     * PUT /admin/orders/{order}/status
-     * Body: { status: "confirmed" }
-     * 
-     * Risposte:
-     * - 200: stato aggiornato
-     * - 403: non admin
-     * - 422: transizione non consentita
-     */
     public function changeStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
     {
         // Verifica autorizzazione via Policy
@@ -265,16 +148,6 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Converte un DomainError in una risposta HTTP JSON.
-     * 
-     * IMPORTANTE:
-     * - Non crea messaggi di errore qui
-     * - Usa code() e message() dell'errore di dominio
-     * - Usa httpStatus() per lo status HTTP
-     * 
-     * Questo mantiene la separazione tra dominio e HTTP.
-     */
     private function handleDomainError(DomainError $error): JsonResponse
     {
         return response()->json([

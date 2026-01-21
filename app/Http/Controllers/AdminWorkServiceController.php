@@ -9,30 +9,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Carbon\Carbon;
 
-/**
- * AdminWorkServiceController
- * 
- * Controller per la pagina Admin Work Service.
- * Gestisce la visualizzazione e le API per la gestione operativa ordini.
- * 
- * ENDPOINTS:
- * - GET /admin/work-service → Vista pagina
- * - GET /api/admin/work-service?date=YYYY-MM-DD → Fetch iniziale
- * - GET /api/admin/work-service/poll?date=YYYY-MM-DD → Polling
- * - POST /api/admin/orders/{order}/status → Cambio stato ordine
- */
+// Controller per la pagina Admin Work Service
 class AdminWorkServiceController extends Controller
 {
     public function __construct(
         private AdminWorkServiceService $workService
     ) {}
 
-    /**
-     * GET /admin/work-service
-     * 
-     * Mostra la pagina Admin Work Service.
-     * I dati vengono caricati via JS dopo il render iniziale.
-     */
     public function index(Request $request): View
     {
         $user = auth()->user();
@@ -47,12 +30,6 @@ class AdminWorkServiceController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/admin/work-service?date=YYYY-MM-DD
-     * 
-     * Fetch iniziale dei dati per una data specifica.
-     * Restituisce time slots + ordini + currentTimeSlotId.
-     */
     public function apiIndex(Request $request): JsonResponse
     {
         $request->validate([
@@ -65,12 +42,6 @@ class AdminWorkServiceController extends Controller
         return response()->json($data);
     }
 
-    /**
-     * GET /api/admin/work-service/poll?date=YYYY-MM-DD
-     * 
-     * Polling endpoint - stessa struttura del fetch iniziale.
-     * Il frontend decide cosa aggiornare e cosa mantenere.
-     */
     public function apiPoll(Request $request): JsonResponse
     {
         $request->validate([
@@ -83,14 +54,6 @@ class AdminWorkServiceController extends Controller
         return response()->json($data);
     }
 
-    /**
-     * POST /api/admin/orders/{order}/status
-     * 
-     * Cambia lo stato di un ordine.
-     * Accetta qualsiasi stato valido (admin override).
-     * 
-     * Body: { "status": "confirmed" | "ready" | "picked_up" | "pending" | "rejected" }
-     */
     public function changeStatus(Request $request, Order $order): JsonResponse
     {
         $request->validate([

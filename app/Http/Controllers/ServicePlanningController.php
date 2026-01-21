@@ -8,17 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
-/**
- * ServicePlanningController - Admin Week Configuration
- * 
- * Handles the Service Planning page for admin users to configure
- * weekly opening hours, time slots, and order constraints.
- * 
- * API Endpoints:
- * - GET  /admin/service-planning/config       → getConfig (initial data)
- * - GET  /admin/service-planning/week/{date}  → getWeek (week configuration)
- * - POST /admin/service-planning/week/{date}  → saveWeek (save configuration)
- */
+// Controller per la Service Planning (admin)
 class ServicePlanningController extends Controller
 {
     private ServicePlanningService $servicePlanningService;
@@ -53,21 +43,12 @@ class ServicePlanningController extends Controller
     {
         try {
             $config = $this->servicePlanningService->getConfig();
-            
-            Log::info('[ServicePlanningController] getConfig called', [
-                'slotDuration' => $config['slotDuration'] ?? null,
-            ]);
-            
             return response()->json([
                 'success' => true,
                 'data' => $config,
             ]);
         } catch (\Exception $e) {
-            Log::error('[ServicePlanningController] getConfig failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
+            Log::error('[ServicePlanningController] getConfig failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Errore nel recupero della configurazione',
@@ -87,22 +68,12 @@ class ServicePlanningController extends Controller
     public function getWeek(string $startDate): JsonResponse
     {
         try {
-            // Validate date format
             if (!$this->isValidDate($startDate)) {
-                Log::warning('[ServicePlanningController] getWeek: invalid date format', [
-                    'startDate' => $startDate,
-                ]);
-                
                 return response()->json([
                     'success' => false,
                     'message' => 'Formato data non valido. Usare YYYY-MM-DD.',
                 ], 400);
             }
-            
-            Log::info('[ServicePlanningController] getWeek called', [
-                'startDate' => $startDate,
-            ]);
-            
             $weekData = $this->servicePlanningService->getWeekConfiguration($startDate);
             
             return response()->json([
@@ -110,11 +81,7 @@ class ServicePlanningController extends Controller
                 'data' => $weekData,
             ]);
         } catch (\Exception $e) {
-            Log::error('[ServicePlanningController] getWeek failed', [
-                'startDate' => $startDate,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('[ServicePlanningController] getWeek failed: ' . $e->getMessage());
             
             return response()->json([
                 'success' => false,
@@ -137,26 +104,13 @@ class ServicePlanningController extends Controller
     public function saveWeek(Request $request, string $startDate): JsonResponse
     {
         try {
-            // Validate date format
             if (!$this->isValidDate($startDate)) {
-                Log::warning('[ServicePlanningController] saveWeek: invalid date format', [
-                    'startDate' => $startDate,
-                ]);
-                
                 return response()->json([
                     'success' => false,
                     'message' => 'Formato data non valido. Usare YYYY-MM-DD.',
                 ], 400);
             }
-            
-            // Validate request payload
             $validated = $this->validateSaveRequest($request);
-            
-            Log::info('[ServicePlanningController] saveWeek called', [
-                'startDate' => $startDate,
-                'globalConstraints' => $validated['globalConstraints'] ?? null,
-                'daysCount' => count($validated['days'] ?? []),
-            ]);
             
             // Call service to save configuration
             $result = $this->servicePlanningService->saveWeekConfiguration(
@@ -167,11 +121,6 @@ class ServicePlanningController extends Controller
             
             // Check if week was rejected (entirely in the past)
             if (!$result['saved']) {
-                Log::warning('[ServicePlanningController] saveWeek: week rejected', [
-                    'startDate' => $startDate,
-                    'reason' => $result['message'] ?? 'Past week',
-                ]);
-                
                 return response()->json([
                     'success' => false,
                     'message' => $result['message'] ?? 'Impossibile modificare una settimana passata',
@@ -179,33 +128,19 @@ class ServicePlanningController extends Controller
                 ], 422);
             }
             
-            Log::info('[ServicePlanningController] saveWeek completed', [
-                'startDate' => $startDate,
-                'report' => $result['report'],
-            ]);
-            
             return response()->json([
                 'success' => true,
                 'message' => $this->buildSuccessMessage($result['report']),
                 'report' => $result['report'],
             ]);
         } catch (ValidationException $e) {
-            Log::warning('[ServicePlanningController] saveWeek: validation failed', [
-                'startDate' => $startDate,
-                'errors' => $e->errors(),
-            ]);
-            
             return response()->json([
                 'success' => false,
                 'message' => 'Dati non validi',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('[ServicePlanningController] saveWeek failed', [
-                'startDate' => $startDate,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('[ServicePlanningController] saveWeek failed: ' . $e->getMessage());
             
             return response()->json([
                 'success' => false,

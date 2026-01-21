@@ -6,36 +6,14 @@ use App\Models\Ingredient;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-/**
- * FormRequest per l'aggiornamento di un ordine esistente.
- * 
- * REGOLE:
- * - L'utente può aggiornare solo i propri ordini (verificato da Policy)
- * - L'ordine deve essere in stato "pending" (verificato da Service)
- * - Non è possibile cambiare time_slot (se vuole, deve cancellare e ricreare)
- * - Gli ingredienti vengono completamente sostituiti (non merge)
- * 
- * VALIDAZIONE:
- * Stessa validazione di CreateOrderRequest:
- * - Esattamente un pane
- * - Nessun duplicato
- * - Ingredienti disponibili
- */
+// Aggiornamento ordine: stesse regole di validazione del create
 class UpdateOrderRequest extends FormRequest
 {
-    /**
-     * L'autorizzazione è gestita dalla Policy.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Regole di validazione.
-     * 
-     * NOTA: time_slot_id NON è presente perché non può essere modificato.
-     */
     public function rules(): array
     {
         return [
@@ -47,9 +25,6 @@ class UpdateOrderRequest extends FormRequest
         ];
     }
 
-    /**
-     * Validazione personalizzata: stessa logica di CreateOrderRequest.
-     */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
@@ -94,9 +69,6 @@ class UpdateOrderRequest extends FormRequest
         });
     }
 
-    /**
-     * Messaggi di errore personalizzati.
-     */
     public function messages(): array
     {
         return [

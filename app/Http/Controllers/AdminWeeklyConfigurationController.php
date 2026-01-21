@@ -9,48 +9,28 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Controller per la gestione della configurazione settimanale da parte dell'admin.
- * Permette di configurare i giorni lavorativi futuri senza modificare quelli passati.
- */
+// Gestisce la configurazione settimanale admin (non modifica giorni passati)
 class AdminWeeklyConfigurationController extends Controller
 {
-    /**
-     * Service per la generazione degli slot temporali.
-     */
     private TimeSlotGeneratorService $timeSlotGenerator;
 
-    /**
-     * Costruttore: inietta le dipendenze necessarie.
-     */
     public function __construct(TimeSlotGeneratorService $timeSlotGenerator)
     {
         $this->timeSlotGenerator = $timeSlotGenerator;
     }
 
-    /**
-     * Aggiorna la configurazione settimanale dei giorni lavorativi.
-     *
-     * Questo metodo riceve una configurazione completa per la settimana e applica
-     * le modifiche solo ai giorni futuri, senza toccare i working_days esistenti.
-     * Tutta l'operazione avviene in una transazione database per garantire l'integrità.
-     *
-     * @param AdminWeeklyConfigurationRequest $request La richiesta validata
-     * @return JsonResponse Risposta JSON con il risultato dell'operazione
-     */
     public function updateWeeklyConfiguration(AdminWeeklyConfigurationRequest $request): JsonResponse
     {
-        // Estrae i parametri dalla richiesta validata
+        // parametri validati
         $maxOrders = $request->input('max_orders');
         $maxTime = $request->input('max_time');
         $location = $request->input('location');
         $daysConfig = $request->input('days');
 
-        // Ottiene la data di oggi per determinare i giorni futuri
+        // riferimento: oggi
         $today = Carbon::today();
 
-        // Mappa dei giorni della settimana per calcolare le prossime date
-        // Carbon usa costanti come Carbon::MONDAY, etc.
+        // mappa giorno->costante Carbon
         $dayMappings = [
             'monday' => Carbon::MONDAY,
             'tuesday' => Carbon::TUESDAY,
@@ -61,11 +41,10 @@ class AdminWeeklyConfigurationController extends Controller
             'sunday' => Carbon::SUNDAY,
         ];
 
-        // Inizia una transazione per garantire atomicità dell'operazione
-        // Se qualcosa va storto, tutto viene annullato
+        // applica modifiche solo a giorni futuri; operazione atomica
         DB::transaction(function () use ($daysConfig, $dayMappings, $today, $maxOrders, $maxTime, $location) {
             foreach ($daysConfig as $dayName => $dayConfig) {
-                // Calcola la prossima data per questo giorno della settimana
+                // calcola prossima occorrenza
                 $currentDayOfWeek = $today->dayOfWeek;
                 $targetDayOfWeek = $dayMappings[$dayName];
                 $daysToAdd = ($targetDayOfWeek - $currentDayOfWeek + 7) % 7;
@@ -74,18 +53,16 @@ class AdminWeeklyConfigurationController extends Controller
                 }
                 $nextDate = $today->copy()->addDays($daysToAdd);
 
-                // Salta se la data calcolata non è futura (non dovrebbe accadere, ma sicurezza)
+                // ignora date non future
                 if (!$nextDate->isFuture()) {
                     continue;
                 }
 
-                // Verifica se esiste già un working_day per questa data
+                // esistenza working_day per la data
                 $existingWorkingDay = WorkingDay::whereDate('day', $nextDate)->first();
 
                 if ($dayConfig['enabled']) {
-                    // Il giorno deve essere abilitato
                     if (!$existingWorkingDay) {
-                        // Non esiste, quindi crea un nuovo working_day
                         $workingDay = WorkingDay::create([
                             'day' => $nextDate,
                             'location' => $location,
@@ -95,20 +72,15 @@ class AdminWeeklyConfigurationController extends Controller
                             'end_time' => $dayConfig['end_time'],
                         ]);
 
-                        // Genera automaticamente gli slot temporali
-                        // Avviene nella stessa transazione per garantire atomicità
+                        // genera slot in stessa transazione
                         $this->timeSlotGenerator->generate($workingDay);
                     }
-                    // Se esiste già, NON lo aggiorniamo (regola fondamentale)
+                    // non sovrascrive existing working_day
                 } else {
-                    // Il giorno deve essere disabilitato
                     if ($existingWorkingDay) {
-                        // Esiste, quindi dobbiamo eliminarlo
-                        // TODO: Aggiungere controlli per verificare se ci sono ordini esistenti
-                        // prima di eliminare. Per ora eliminiamo direttamente.
+                        // TODO: verificare ordini prima dell'eliminazione
                         $existingWorkingDay->delete();
                     }
-                    // Se non esiste, non facciamo nulla
                 }
             }
         });

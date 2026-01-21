@@ -6,47 +6,14 @@ use App\Models\Ingredient;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-/**
- * FormRequest per la creazione di un ordine.
- * 
- * VALIDAZIONE INGREDIENTI (REGOLA FONDAMENTALE):
- * 
- * 1. Deve esserci ESATTAMENTE UN ingrediente di categoria "bread"
- *    - Zero pani → errore
- *    - Due o più pani → errore
- * 
- * 2. Altri ingredienti (meat, cheese, vegetable, sauce, other):
- *    - Tutti opzionali
- *    - Possono essere multipli
- * 
- * 3. Nessun ingrediente può essere duplicato
- * 
- * 4. Tutti gli ingredienti devono:
- *    - Esistere nel database
- *    - Essere disponibili (is_available = true)
- * 
- * ESEMPIO VALIDO:
- * ingredients: [1, 3, 5, 7]  // 1=pane, 3=prosciutto, 5=mozzarella, 7=pomodoro
- * 
- * ESEMPIO INVALIDO:
- * ingredients: [1, 2, 3]  // 1 e 2 sono entrambi pane → errore
- * ingredients: [3, 5, 7]  // nessun pane → errore
- * ingredients: [1, 3, 3]  // 3 è duplicato → errore
- */
+// Validazione ordine: un solo pane, nessun duplicato, ingredienti disponibili
 class CreateOrderRequest extends FormRequest
 {
-    /**
-     * L'utente deve essere autenticato.
-     * L'autorizzazione è gestita dal middleware auth.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Regole di validazione.
-     */
     public function rules(): array
     {
         return [
@@ -61,14 +28,6 @@ class CreateOrderRequest extends FormRequest
         ];
     }
 
-    /**
-     * Validazione personalizzata dopo le regole base.
-     * 
-     * Qui verifichiamo:
-     * 1. Esattamente un pane
-     * 2. Nessun duplicato
-     * 3. Ingredienti disponibili
-     */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
@@ -113,9 +72,6 @@ class CreateOrderRequest extends FormRequest
         });
     }
 
-    /**
-     * Messaggi di errore personalizzati.
-     */
     public function messages(): array
     {
         return [

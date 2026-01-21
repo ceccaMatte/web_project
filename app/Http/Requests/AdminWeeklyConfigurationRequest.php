@@ -4,25 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * FormRequest per validare la configurazione settimanale dell'admin.
- * Valida tutti i parametri necessari per configurare i giorni lavorativi.
- */
+// Validazione richiesta per la configurazione settimanale admin
 class AdminWeeklyConfigurationRequest extends FormRequest
 {
-    /**
-     * Determina se l'utente è autorizzato a fare questa richiesta.
-     * Restituisce true perché l'autorizzazione è già gestita dal middleware admin.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Regole di validazione per la richiesta.
-     * Definisce tutti i controlli necessari sui parametri di input.
-     */
     public function rules(): array
     {
         return [
@@ -76,10 +65,6 @@ class AdminWeeklyConfigurationRequest extends FormRequest
         ];
     }
 
-    /**
-     * Messaggi di errore personalizzati per la validazione.
-     * Fornisce messaggi più chiari per l'utente admin.
-     */
     public function messages(): array
     {
         return [

@@ -8,18 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Controller per la pagina Order Form (Create / Modify).
- * 
- * RESPONSABILITÀ:
- * - Gestire view create e modify (stessa pagina, mode diversa)
- * - API per init, availability polling
- * 
- * REGOLE:
- * - CREATE: nessun orderId, mode = "create"
- * - MODIFY: orderId presente, mode = "modify"
- * - Il backend è l'unica fonte di verità
- */
+// Gestione pagina order-form (create / modify)
 class OrderFormController extends Controller
 {
     private OrderFormService $orderFormService;
@@ -29,12 +18,6 @@ class OrderFormController extends Controller
         $this->orderFormService = $orderFormService;
     }
 
-    /**
-     * Mostra pagina CREATE order.
-     * 
-     * GET /orders/create
-     * GET /orders/create?reorder={orderId} - per prepopolare da ordine esistente
-     */
     public function create()
     {
         $user = Auth::user();
@@ -49,7 +32,7 @@ class OrderFormController extends Controller
                 ->find($reorderFromId);
             
             if ($sourceOrder) {
-                // OrderIngredient sono snapshot (name, category), dobbiamo matchare con Ingredient
+                // OrderIngredient sono snapshot; matchare per nome con Ingredient
                 $ingredientNames = $sourceOrder->ingredients->pluck('name')->toArray();
                 
                 // Trova ingredienti attuali per nome
@@ -76,11 +59,6 @@ class OrderFormController extends Controller
         ]);
     }
 
-    /**
-     * Mostra pagina MODIFY order.
-     * 
-     * GET /orders/{order}/edit
-     */
     public function edit(Order $order)
     {
         // Verifica ownership
@@ -108,13 +86,6 @@ class OrderFormController extends Controller
         ]);
     }
 
-    /**
-     * API: Init pagina CREATE.
-     * 
-     * GET /api/orders/form/create?date=YYYY-MM-DD
-     * 
-     * Response: payload completo per create mode
-     */
     public function apiCreate(): JsonResponse
     {
         $date = request()->query('date', now()->toDateString());
@@ -123,13 +94,6 @@ class OrderFormController extends Controller
         return response()->json($payload);
     }
 
-    /**
-     * API: Init pagina MODIFY.
-     * 
-     * GET /api/orders/{order}/form
-     * 
-     * Response: payload completo per modify mode
-     */
     public function apiModify(Order $order): JsonResponse
     {
         // Verifica ownership
@@ -148,13 +112,6 @@ class OrderFormController extends Controller
         return response()->json($payload);
     }
 
-    /**
-     * API: Polling disponibilità.
-     * 
-     * GET /api/orders/form/availability?date=YYYY-MM-DD
-     * 
-     * Response: ingredienti e time slots aggiornati
-     */
     public function apiAvailability(): JsonResponse
     {
         $date = request()->query('date');
