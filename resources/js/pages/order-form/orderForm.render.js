@@ -224,11 +224,23 @@ function renderSchedulerComponent() {
  */
 function renderTimeSlotsComponent() {
     if (!orderFormView.refs.timeSlotsContainer) return;
-    
+    // Normalize backend timeSlots to the shape expected by TimeSlotSelector:
+    // { id, timeLabel, slotsLeft, available }
+    const rawSlots = orderFormState.availability.timeSlots || [];
+    const normalizedSlots = rawSlots.map(s => ({
+        id: s.id,
+        // Backend may use `time` or `timeLabel`
+        timeLabel: s.timeLabel || s.time || s.label || '',
+        // Use numeric `available` as slotsLeft when present, otherwise fallback to slotsLeft
+        slotsLeft: typeof s.available === 'number' ? s.available : (s.slotsLeft ?? 0),
+        // available boolean: true when slotsLeft > 0
+        available: (typeof s.available === 'number' ? s.available : (s.slotsLeft ?? 0)) > 0,
+    }));
+
     renderTimeSlotSelector(
         orderFormView.refs.timeSlotsContainer,
         {
-            timeSlots: orderFormState.availability.timeSlots,
+            timeSlots: normalizedSlots,
             selectedTimeSlotId: orderFormState.order.selectedTimeSlotId,
         },
         {
