@@ -61,10 +61,8 @@ export function buildRecentOrderCardHTML(props) {
             </button>
             
             <div class="flex gap-4 ${showFullList ? 'mb-4' : ''}">
-                <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700">
-                    <div class="w-full h-full flex items-center justify-center">
-                        <span class="material-symbols-outlined text-slate-400 text-3xl" aria-hidden="true">lunch_dining</span>
-                    </div>
+                <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700 relative flex items-center justify-center">
+                    <img src="/img/panino.png" alt="Panino" class="w-full h-full object-cover" />
                 </div>
                 
                 <div class="flex-grow pt-1 pr-8">

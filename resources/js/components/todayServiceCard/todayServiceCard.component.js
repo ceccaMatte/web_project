@@ -25,7 +25,7 @@ export function renderTodayServiceCard(container, props) {
     if (status === 'active') {
         const ariaLabel = a11y.service.active(location, startTime, endTime);
         // Placeholder image (può essere sostituito con dato reale se disponibile)
-        const locationImageUrl = 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&h=400&fit=crop';
+        const locationImageUrl = '/img/camincino.png';
         
         html = `
             <div class="relative overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-5 shadow-xl" aria-label="${ariaLabel}">
@@ -49,7 +49,10 @@ export function renderTodayServiceCard(container, props) {
                     </div>
                     <!-- Location Image -->
                     <div class="w-40 aspect-square rounded-xl overflow-hidden border border-border-dark">
-                        <img src="${locationImageUrl}" alt="Location photo" class="w-full h-full object-cover" />
+                        <img src="${locationImageUrl}" alt="Location photo" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+                        <div class="w-full h-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-slate-400 text-3xl" aria-hidden="true">local_dining</span>
+                        </div>
                     </div>
                 </div>
 

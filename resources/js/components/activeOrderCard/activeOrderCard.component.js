@@ -58,10 +58,8 @@ export function buildActiveOrderCardHTML(props, callbacks) {
         return `
             <div class="carousel-card carousel-card-side" data-order-id="${id}" data-mode="side">
                 <div class="bg-card-dark rounded-xl p-3 border border-slate-800">
-                    <div class="h-12 w-full rounded-lg overflow-hidden mb-2 bg-slate-800">
-                        <div class="w-full h-full flex items-center justify-center grayscale opacity-50">
-                            <span class="material-symbols-outlined text-slate-400 text-2xl" aria-hidden="true">lunch_dining</span>
-                        </div>
+                    <div class="h-12 w-full rounded-lg overflow-hidden mb-2 bg-slate-800 flex items-center justify-center grayscale opacity-50">
+                        <img src="/img/panino.png" alt="Panino" class="w-full h-full object-cover" />
                     </div>
                 </div>
             </div>
@@ -93,11 +91,9 @@ export function buildActiveOrderCardHTML(props, callbacks) {
                 </div>
                 
                 <div class="flex gap-3 items-start mb-4">
-                    <div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg ring-1 ring-white/10 shrink-0">
-                        <div class="w-full h-full flex items-center justify-center">
-                            <span class="material-symbols-outlined text-slate-400 text-3xl" aria-hidden="true">lunch_dining</span>
+                        <div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg ring-1 ring-white/10 shrink-0 relative flex items-center justify-center">
+                            <img src="/img/panino.png" alt="Panino" class="w-full h-full object-cover" />
                         </div>
-                    </div>
                     <div class="flex-grow min-w-0">
                         ${!isExpanded ? `
                             <p class="text-[10px] text-slate-400 leading-relaxed line-clamp-3">
