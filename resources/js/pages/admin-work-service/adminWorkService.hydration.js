@@ -1,11 +1,4 @@
-/**
- * ADMIN WORK SERVICE HYDRATION
- * 
- * RESPONSABILITÀ:
- * - Idrata state da dati inline (script tags)
- * - Fetch stato iniziale da API
- * - Gestisce refresh durante polling
- */
+// Hydration utilities for admin work service
 
 import { workServiceView } from './adminWorkService.view.js';
 import { 
@@ -27,7 +20,7 @@ import { renderWorkServicePage, renderTimeSlotSelector, renderOrdersPipeline } f
 export function hydrateUserFromDOM() {
     const script = workServiceView.userStateScript;
     if (!script) {
-        console.warn('[WorkServiceHydration] User state script not found');
+        console.warn('User state script not found');
         return;
     }
 
@@ -39,9 +32,8 @@ export function hydrateUserFromDOM() {
             nickname: userData.nickname || null,
             role: userData.role || null,
         });
-        console.log('[WorkServiceHydration] User hydrated from DOM');
     } catch (error) {
-        console.error('[WorkServiceHydration] Failed to parse user state:', error);
+        console.error('Failed to parse user state:', error);
     }
 }
 
@@ -57,21 +49,13 @@ export function hydrateSchedulerFromDOM() {
     const weekDays = generateWeekDays(today, selectedDayId);
     const monthLabel = formatMonthLabel(today);
 
-    mutateScheduler({
-        selectedDayId,
-        monthLabel,
-        weekDays,
-    });
-
-    console.log('[WorkServiceHydration] Scheduler generated for today:', selectedDayId);
+    mutateScheduler({ selectedDayId, monthLabel, weekDays });
 }
 
 /**
  * Fetch stato iniziale da API
  */
 export async function refreshWorkServiceState(date) {
-    console.log(`[WorkServiceHydration] Refreshing state for ${date}...`);
-
     try {
         mutateLoading(true);
         renderWorkServicePage();
@@ -81,9 +65,8 @@ export async function refreshWorkServiceState(date) {
         mutateTimeSlots(data.timeSlots || [], data.currentTimeSlotId);
         mutateOrders(data.orders || []);
         mutateError(null);
-
     } catch (error) {
-        console.error('[WorkServiceHydration] Failed to refresh state:', error);
+        console.error('Failed to refresh state:', error);
         mutateError(error.message);
     } finally {
         mutateLoading(false);
@@ -95,70 +78,24 @@ export async function refreshWorkServiceState(date) {
  * Polling refresh (NON interferisce con selezioni utente)
  */
 export async function pollRefresh(date) {
-    const pollStartTime = performance.now();
-    console.log(`[WorkServiceHydration] 🔄 START pollRefresh for ${date} at ${pollStartTime}ms`);
-
-    // NON fare polling se l'utente sta interagendo
-    if (workServiceState.isUserInteracting) {
-        console.log(`[WorkServiceHydration] 🚫 User interacting, skipping poll to avoid interference`);
-        return;
-    }
+    if (workServiceState.isUserInteracting) return;
 
     try {
         mutatePolling(true);
-        console.log(`[WorkServiceHydration] 🔄 Polling state set to true`);
-
-        const apiStartTime = performance.now();
         const data = await pollWorkServiceData(date);
-        const apiEndTime = performance.now();
-        console.log(`[WorkServiceHydration] 📡 API call completed in ${(apiEndTime - apiStartTime).toFixed(2)}ms`);
 
-        // Aggiorna SOLO dati, NON selzioni utente
-        console.log(`[WorkServiceHydration] 💾 Updating state data (preserving user selections)...`);
-        const updateStartTime = performance.now();
-        
-        // NON toccare selectedTimeSlotId (è gestito solo da user actions)
+        // Aggiorna SOLO dati, non selezioni utente
         workServiceState.timeSlots = data.timeSlots || [];
         mutateOrders(data.orders || []);
         mutateError(null);
-        
-        const updateEndTime = performance.now();
-        console.log(`[WorkServiceHydration] ✅ State updated in ${(updateEndTime - updateStartTime).toFixed(2)}ms`);
-        console.log(`[WorkServiceHydration] 📊 Updated data:`, {
-            timeSlots: (data.timeSlots || []).length,
-            orders: (data.orders || []).length,
-            selectedTimeSlotStillIs: workServiceState.selectedTimeSlotId,
-            userStillInteracting: workServiceState.isUserInteracting
-        });
-
     } catch (error) {
-        const errorTime = performance.now();
-        console.error(`[WorkServiceHydration] ❌ Poll failed after ${(errorTime - pollStartTime).toFixed(2)}ms:`, error);
-        // Non mostrare errore per polling fallito, riprova al prossimo ciclo
+        console.error('Poll failed:', error);
     } finally {
         mutatePolling(false);
-        
-        // Render solo se l'utente NON sta interagendo
         if (!workServiceState.isUserInteracting) {
-            const renderStartTime = performance.now();
-            console.log(`[WorkServiceHydration] 🖼️  User not interacting, safe to render...`);
-            
             renderTimeSlotSelector();
-            const selectorTime = performance.now();
-            
             renderOrdersPipeline();
-            const pipelineTime = performance.now();
-            
-            console.log(`[WorkServiceHydration] ✅ Poll renders completed:`, {
-                selectorTime: (selectorTime - renderStartTime).toFixed(2) + 'ms',
-                pipelineTime: (pipelineTime - selectorTime).toFixed(2) + 'ms'
-            });
-        } else {
-            console.log(`[WorkServiceHydration] 🚫 User still interacting, skipping renders to avoid conflict`);
         }
-        
-        const totalTime = performance.now() - pollStartTime;
-        console.log(`[WorkServiceHydration] ✅ COMPLETE pollRefresh in ${totalTime.toFixed(2)}ms`);
     }
 }
 

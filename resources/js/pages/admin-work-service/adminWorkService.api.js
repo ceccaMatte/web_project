@@ -1,16 +1,4 @@
-/**
- * ADMIN WORK SERVICE API LAYER
- * 
- * RESPONSABILITÀ:
- * - Gestisce comunicazione HTTP con backend
- * - Centralizza endpoint API per Admin Work Service
- * - Fornisce error handling consistente
- * 
- * ENDPOINTS:
- * - GET /api/admin/work-service?date=YYYY-MM-DD → Fetch iniziale
- * - GET /api/admin/work-service/poll?date=YYYY-MM-DD → Polling
- * - POST /api/admin/orders/{order}/status → Cambio stato
- */
+// API helper for admin work service
 
 /**
  * Fetch dati iniziali per una data
@@ -32,11 +20,7 @@ export async function fetchWorkServiceData(date) {
         throw new Error('[WorkServiceAPI] fetchWorkServiceData: date is required');
     }
 
-    const startTime = performance.now();
-    console.log(`[WorkServiceAPI] 🚀 START fetch /api/admin/work-service?date=${date} at ${startTime}ms`);
-
     try {
-        const fetchStartTime = performance.now();
         const response = await fetch(`/api/admin/work-service?date=${date}`, {
             method: 'GET',
             headers: {
@@ -45,32 +29,12 @@ export async function fetchWorkServiceData(date) {
             },
             credentials: 'include',
         });
-        const fetchEndTime = performance.now();
-        console.log(`[WorkServiceAPI] 🌐 Network request completed in ${(fetchEndTime - fetchStartTime).toFixed(2)}ms`);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-        const parseStartTime = performance.now();
-        const data = await response.json();
-        const parseEndTime = performance.now();
-        console.log(`[WorkServiceAPI] 📝 JSON parsing completed in ${(parseEndTime - parseStartTime).toFixed(2)}ms`);
-        
-        const totalTime = performance.now() - startTime;
-        console.log(`[WorkServiceAPI] ✅ COMPLETE fetch for ${date} in ${totalTime.toFixed(2)}ms:`, {
-            timeSlots: data.timeSlots?.length || 0,
-            orders: data.orders?.length || 0,
-            currentTimeSlotId: data.currentTimeSlotId,
-            networkTime: (fetchEndTime - fetchStartTime).toFixed(2) + 'ms',
-            parseTime: (parseEndTime - parseStartTime).toFixed(2) + 'ms',
-            totalTime: totalTime.toFixed(2) + 'ms'
-        });
-        
-        return data;
+        return await response.json();
     } catch (error) {
-        const totalTime = performance.now() - startTime;
-        console.error(`[WorkServiceAPI] ❌ FAILED fetch for ${date} after ${totalTime.toFixed(2)}ms:`, error);
+        console.error(`Failed to fetch work service data for ${date}:`, error);
         throw error;
     }
 }
@@ -88,11 +52,7 @@ export async function pollWorkServiceData(date) {
         throw new Error('[WorkServiceAPI] pollWorkServiceData: date is required');
     }
 
-    const startTime = performance.now();
-    console.log(`[WorkServiceAPI] 🔄 START poll /api/admin/work-service/poll?date=${date} at ${startTime}ms`);
-
     try {
-        const fetchStartTime = performance.now();
         const response = await fetch(`/api/admin/work-service/poll?date=${date}`, {
             method: 'GET',
             headers: {
@@ -101,30 +61,11 @@ export async function pollWorkServiceData(date) {
             },
             credentials: 'include',
         });
-        const fetchEndTime = performance.now();
-        console.log(`[WorkServiceAPI] 🌐 Poll network request completed in ${(fetchEndTime - fetchStartTime).toFixed(2)}ms`);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const parseStartTime = performance.now();
-        const data = await response.json();
-        const parseEndTime = performance.now();
-        console.log(`[WorkServiceAPI] 📝 Poll JSON parsing completed in ${(parseEndTime - parseStartTime).toFixed(2)}ms`);
-        
-        const totalTime = performance.now() - startTime;
-        console.log(`[WorkServiceAPI] ✅ COMPLETE poll for ${date} in ${totalTime.toFixed(2)}ms:`, {
-            timeSlots: data.timeSlots?.length || 0,
-            orders: data.orders?.length || 0,
-            networkTime: (fetchEndTime - fetchStartTime).toFixed(2) + 'ms',
-            parseTime: (parseEndTime - parseStartTime).toFixed(2) + 'ms',
-            totalTime: totalTime.toFixed(2) + 'ms'
-        });
-        
-        return data;
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
     } catch (error) {
-        console.error(`[WorkServiceAPI] Polling failed for ${date}:`, error);
+        console.error(`Polling failed for ${date}:`, error);
         throw error;
     }
 }
@@ -145,26 +86,10 @@ export async function pollWorkServiceData(date) {
  * @returns {Promise<Object>} - Response
  */
 export async function changeOrderStatus(orderId, newStatus) {
-    console.log('🌐🌐🌐 API FUNCTION CALLED 🌐🌐🌐');
-    console.log('[WorkServiceAPI] 📊 changeOrderStatus called with:', { orderId, newStatus });
-    
-    if (!orderId || !newStatus) {
-        const error = '[WorkServiceAPI] changeOrderStatus: orderId and newStatus are required';
-        console.error('[WorkServiceAPI] ❌', error);
-        throw new Error(error);
-    }
-
-    console.log(`[WorkServiceAPI] 🚀 POST /api/admin/orders/${orderId}/status -> ${newStatus}`);
+    if (!orderId || !newStatus) throw new Error('orderId and newStatus are required');
 
     try {
-        // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        console.log('[WorkServiceAPI] 🔑 CSRF token:', csrfToken ? 'Found' : 'NOT FOUND');
-
-        console.log('[WorkServiceAPI] 📤 Sending POST request...');
-        console.log('[WorkServiceAPI] 📤 URL:', `/api/admin/orders/${orderId}/status`);
-        console.log('[WorkServiceAPI] 📤 Body:', JSON.stringify({ status: newStatus }));
-        
         const response = await fetch(`/api/admin/orders/${orderId}/status`, {
             method: 'POST',
             headers: {
@@ -176,23 +101,15 @@ export async function changeOrderStatus(orderId, newStatus) {
             body: JSON.stringify({ status: newStatus }),
         });
 
-        console.log('[WorkServiceAPI] 📥 Response received:', response.status, response.statusText);
-
         if (!response.ok) {
-            console.error('[WorkServiceAPI] ❌ Response not OK:', response.status);
             const errorData = await response.json().catch(() => ({}));
-            console.error('[WorkServiceAPI] ❌ Error data:', errorData);
-            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            const message = errorData.error || `HTTP error! status: ${response.status}`;
+            throw new Error(message);
         }
 
-        const data = await response.json();
-        console.log('[WorkServiceAPI] ✅ Response data:', data);
-        console.log(`[WorkServiceAPI] ✅ Order ${orderId} status changed to ${newStatus}`);
-        console.log('🌐🌐🌐 API FUNCTION COMPLETE 🌐🌐🌐');
-        
-        return data;
+        return await response.json();
     } catch (error) {
-        console.error(`[WorkServiceAPI] Failed to change status for order ${orderId}:`, error);
+        console.error(`Failed to change status for order ${orderId}:`, error);
         throw error;
     }
 }

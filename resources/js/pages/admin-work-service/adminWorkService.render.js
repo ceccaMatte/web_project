@@ -1,11 +1,4 @@
-/**
- * ADMIN WORK SERVICE RENDER
- * 
- * RESPONSABILITÀ:
- * - Orchestrazione render componenti
- * - Trasforma state in props per componenti
- * - Chiama componenti con props + callbacks
- */
+// Render helpers for admin work service
 
 import { workServiceState, getOrdersByStatus, getSelectedOrder } from './adminWorkService.state.js';
 import { workServiceView } from './adminWorkService.view.js';
@@ -26,15 +19,11 @@ let mobileRecapListenerAdded = false;
  * Chiamato dopo ogni mutation dello state.
  */
 export function renderWorkServicePage() {
-    console.log('[WorkServiceRender] Rendering page...');
-
     renderCurrentTime();
     renderScheduler();
     renderTimeSlotSelector();
     renderOrdersPipeline();
     renderRecapCard();
-
-    console.log('[WorkServiceRender] Page rendered');
 }
 
 /**
@@ -58,7 +47,7 @@ export function renderScheduler() {
     if (!container) return;
 
     const callbacks = getCallbacks();
-    const selectDay = callbacks?.selectDay || (() => console.warn('[Render] selectDay callback not ready'));
+    const selectDay = callbacks?.selectDay || (() => {});
 
     renderWeekScheduler(container, {
         monthLabel: workServiceState.monthLabel,
@@ -76,7 +65,7 @@ export function renderTimeSlotSelector() {
     if (!container) return;
 
     const callbacks = getCallbacks();
-    const selectTimeSlot = callbacks?.selectTimeSlot || (() => console.warn('[Render] selectTimeSlot callback not ready'));
+    const selectTimeSlot = callbacks?.selectTimeSlot || (() => {});
 
     // Preserve scroll position by finding the topmost visible slot
     const scrollContainer = container.querySelector('.flex.overflow-x-auto');
@@ -119,9 +108,8 @@ export function renderOrdersPipeline() {
     const { confirmed, ready, picked_up } = getOrdersByStatus();
     const callbacks = getCallbacks();
     
-    // Fallback if callbacks not loaded yet
-    const selectOrder = callbacks?.selectOrder || (() => console.warn('[Render] selectOrder callback not ready'));
-    const changeStatus = callbacks?.changeStatus || (() => console.warn('[Render] changeStatus callback not ready'));
+    const selectOrder = callbacks?.selectOrder || (() => {});
+    const changeStatus = callbacks?.changeStatus || (() => {});
 
     // Render each status row
     renderWorkStatusRow(workServiceView.confirmedRow, {
@@ -159,15 +147,7 @@ export function renderRecapCard() {
     const selectedOrder = getSelectedOrder();
     const callbacks = getCallbacks();
     
-    console.log('[WorkServiceRender] 🔍 renderRecapCard called');
-    console.log('[WorkServiceRender] 📊 callbacks object:', callbacks);
-    console.log('[WorkServiceRender] 📊 callbacks.changeStatus exists?', !!callbacks?.changeStatus);
-    console.log('[WorkServiceRender] 📊 callbacks.changeStatus type:', typeof callbacks?.changeStatus);
-    
-    // Fallback if callbacks not loaded yet
-    const changeStatus = callbacks?.changeStatus || (() => console.warn('[Render] changeStatus callback not ready'));
-    
-    console.log('[WorkServiceRender] 📊 Final changeStatus function type:', typeof changeStatus);
+    const changeStatus = callbacks?.changeStatus || (() => {});
 
     // Desktop sidebar recap
     renderWorkOrderRecapCard(workServiceView.recapCard, selectedOrder, {
@@ -242,7 +222,6 @@ export function renderRecapCard() {
                 if (e.target.closest('[data-action="toggle-recap-expansion"]')) {
                     workServiceState.mobileRecapExpanded = !workServiceState.mobileRecapExpanded;
                     renderRecapCard();
-                    console.log(`[MobileRecap] Toggled to: ${workServiceState.mobileRecapExpanded ? 'expanded' : 'collapsed'}`);
                 }
             });
             mobileRecapListenerAdded = true;
@@ -298,7 +277,6 @@ async function ensureCallbacksLoaded() {
                 selectOrder: module.selectOrder,
                 changeStatus: module.changeStatus,
             };
-            console.log('[WorkServiceRender] Callbacks loaded successfully');
             return _callbacks;
         });
     }

@@ -1,22 +1,4 @@
-/**
- * ADMIN WORK SERVICE STATE - Single Source of Truth
- * 
- * RESPONSABILITÀ:
- * - Definisce struttura workServiceState (SOLO dati, MAI riferimenti DOM)
- * - Fornisce helper per mutation sicure dello stato
- * 
- * ARCHITETTURA:
- * - Centralizza lo stato della pagina Admin Work Service
- * - Esportato e importato da index.js, hydration.js, actions.js
- * - I componenti NON importano questo modulo (ricevono props)
- */
-
-/**
- * STATO GLOBALE PAGINA ADMIN WORK SERVICE (SSOT)
- * 
- * Contiene SOLO dati primitivi e serializzabili.
- * MAI riferimenti DOM, funzioni, o oggetti complessi.
- */
+// Single source of truth for admin work service state
 export const workServiceState = {
     /**
      * User state
@@ -175,7 +157,6 @@ export const workServiceState = {
  */
 export function mutateUser(user) {
     Object.assign(workServiceState.user, user);
-    console.log('[WorkServiceState] User updated:', workServiceState.user);
 }
 
 /**
@@ -185,7 +166,6 @@ export function mutateScheduler({ selectedDayId, monthLabel, weekDays }) {
     if (selectedDayId !== undefined) workServiceState.selectedDayId = selectedDayId;
     if (monthLabel !== undefined) workServiceState.monthLabel = monthLabel;
     if (weekDays !== undefined) workServiceState.weekDays = weekDays;
-    console.log('[WorkServiceState] Scheduler updated:', { selectedDayId, monthLabel });
 }
 
 /**
@@ -204,8 +184,6 @@ export function mutateSelectedDay(dayId) {
     // Reset time slot selection on day change
     workServiceState.selectedTimeSlotId = 'all';
     workServiceState.selectedOrderId = null;
-    
-    console.log('[WorkServiceState] Selected day changed:', dayId);
 }
 
 /**
@@ -219,12 +197,8 @@ export function mutateTimeSlots(timeSlots, currentTimeSlotId = null) {
         workServiceState.currentTimeSlotId = currentTimeSlotId;
         workServiceState.selectedTimeSlotId = currentTimeSlotId;
         workServiceState.isFirstLoad = false;
-        console.log('[WorkServiceState] Auto-selected time slot:', currentTimeSlotId);
     } else if (workServiceState.isUserInteracting) {
-        console.log('[WorkServiceState] User interacting, skipping auto-selection');
     }
-    
-    console.log('[WorkServiceState] Time slots updated:', timeSlots?.length || 0);
 }
 
 /**
@@ -233,14 +207,12 @@ export function mutateTimeSlots(timeSlots, currentTimeSlotId = null) {
 export function mutateSelectedTimeSlot(slotId) {
     // IDEMPOTENZA: Non fare nulla se lo slot è già selezionato
     if (workServiceState.selectedTimeSlotId === slotId) {
-        console.log(`[WorkServiceState] Time slot ${slotId} already selected, ignoring`);
         return false;
     }
     
     workServiceState.selectedTimeSlotId = slotId;
     // Reset order selection when time slot changes
     workServiceState.selectedOrderId = null;
-    console.log('[WorkServiceState] Selected time slot:', slotId);
     return true;
 }
 
@@ -255,11 +227,8 @@ export function mutateOrders(orders) {
         const stillExists = orders?.some(o => o.id === workServiceState.selectedOrderId);
         if (!stillExists) {
             workServiceState.selectedOrderId = null;
-            console.log('[WorkServiceState] Selected order deselected (no longer exists)');
         }
     }
-    
-    console.log('[WorkServiceState] Orders updated:', orders?.length || 0);
 }
 
 /**
@@ -267,7 +236,6 @@ export function mutateOrders(orders) {
  */
 export function mutateSelectedOrder(orderId) {
     workServiceState.selectedOrderId = orderId;
-    console.log('[WorkServiceState] Selected order:', orderId);
 }
 
 /**
@@ -280,7 +248,6 @@ export function mutateOrderStatus(orderId, newStatus) {
             ...workServiceState.orders[orderIndex],
             status: newStatus,
         };
-        console.log(`[WorkServiceState] Order ${orderId} status updated to: ${newStatus}`);
     }
 }
 
@@ -310,7 +277,6 @@ export function mutateError(error) {
  */
 export function setUserInteracting(isInteracting) {
     workServiceState.isUserInteracting = isInteracting;
-    console.log('[WorkServiceState] User interacting:', isInteracting);
 }
 
 /**
@@ -320,7 +286,6 @@ export function resetUserInteractionAfterDelay(delayMs = 3000) {
     setTimeout(() => {
         if (workServiceState.isUserInteracting) {
             workServiceState.isUserInteracting = false;
-            console.log('[WorkServiceState] User interaction timeout, reset flag');
         }
     }, delayMs);
 }

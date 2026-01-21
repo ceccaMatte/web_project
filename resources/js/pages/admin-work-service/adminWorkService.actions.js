@@ -1,12 +1,4 @@
-/**
- * ADMIN WORK SERVICE ACTIONS
- * 
- * RESPONSABILITÀ:
- * - Gestisce azioni utente
- * - Muta state
- * - Trigger render
- * - Comunicazione API per side effects
- */
+// Actions for admin work service page
 
 import { 
     workServiceState,
@@ -27,22 +19,11 @@ import { renderWorkServicePage, renderOrdersPipeline, renderRecapCard, toggleRec
  * @param {string} dayId - ID giorno (YYYY-MM-DD)
  */
 export async function selectDay(dayId) {
-    console.log(`[WorkServiceActions] Selecting day: ${dayId}`);
+    if (dayId === workServiceState.selectedDayId) return;
 
-    if (dayId === workServiceState.selectedDayId) {
-        console.log('[WorkServiceActions] Same day selected, ignoring');
-        return;
-    }
-
-    // Reset user interaction flag quando si cambia giorno
+    // Evita interferenze polling quando si cambia giorno
     setUserInteracting(false);
-    
-    // Reset user interaction flag quando si cambia giorno
-    setUserInteracting(false);
-    
     mutateSelectedDay(dayId);
-    
-    // Refresh data for new day
     await refreshWorkServiceState(dayId);
 }
 
@@ -52,52 +33,15 @@ export async function selectDay(dayId) {
  * @param {number|'all'} slotId - ID time slot o 'all'
  */
 export function selectTimeSlot(slotId) {
-    const actionStartTime = performance.now();
-    console.log(`[WorkServiceActions] ⚡ START selectTimeSlot(${slotId}) at ${actionStartTime}ms`);
-    console.log(`[WorkServiceActions] 📊 Current state:`, {
-        currentSelectedSlot: workServiceState.selectedTimeSlotId,
-        isUserInteracting: workServiceState.isUserInteracting,
-        ordersCount: workServiceState.orders?.length || 0,
-        timeSlotsCount: workServiceState.timeSlots?.length || 0
-    });
-
-    // IDEMPOTENZA: Non fare nulla se lo slot è già selezionato
-    const mutateStartTime = performance.now();
     const wasChanged = mutateSelectedTimeSlot(slotId);
-    const mutateEndTime = performance.now();
-    console.log(`[WorkServiceActions] 🔄 State mutation took ${(mutateEndTime - mutateStartTime).toFixed(2)}ms`);
-    
-    if (!wasChanged) {
-        const totalTime = performance.now() - actionStartTime;
-        console.log(`[WorkServiceActions] ⏭️  SKIP: Time slot ${slotId} already selected, completed in ${totalTime.toFixed(2)}ms`);
-        return;
-    }
+    if (!wasChanged) return;
 
-    console.log(`[WorkServiceActions] 🚫 Setting user interaction flag to block polling...`);
-    // Marca che l'utente sta interagendo (blocca polling interferenza)
+    // Blocca polling per breve interazione utente
     setUserInteracting(true);
     resetUserInteractionAfterDelay(3000);
 
-    // Render solo i componenti interessati
-    const renderStartTime = performance.now();
-    console.log(`[WorkServiceActions] 🖼️  Starting selective renders...`);
-    
     renderTimeSlotSelector();
-    const selectorRenderTime = performance.now();
-    console.log(`[WorkServiceActions] ✅ TimeSlotSelector rendered in ${(selectorRenderTime - renderStartTime).toFixed(2)}ms`);
-    
     renderOrdersPipeline();
-    const pipelineRenderTime = performance.now();
-    console.log(`[WorkServiceActions] ✅ OrdersPipeline rendered in ${(pipelineRenderTime - selectorRenderTime).toFixed(2)}ms`);
-    
-    const totalTime = performance.now() - actionStartTime;
-    console.log(`[WorkServiceActions] ✅ COMPLETE selectTimeSlot(${slotId}) in ${totalTime.toFixed(2)}ms`, {
-        mutationTime: (mutateEndTime - mutateStartTime).toFixed(2) + 'ms',
-        selectorRenderTime: (selectorRenderTime - renderStartTime).toFixed(2) + 'ms',
-        pipelineRenderTime: (pipelineRenderTime - selectorRenderTime).toFixed(2) + 'ms',
-        totalRenderTime: (pipelineRenderTime - renderStartTime).toFixed(2) + 'ms',
-        totalActionTime: totalTime.toFixed(2) + 'ms'
-    });
 }
 
 /**
@@ -107,24 +51,11 @@ export function selectTimeSlot(slotId) {
  * @param {number} orderId - ID ordine
  */
 export function selectOrder(orderId) {
-    // IDEMPOTENZA: se lo stesso ordine è già selezionato, ignora
-    if (orderId === workServiceState.selectedOrderId) {
-        console.log(`[WorkServiceActions] Order ${orderId} already selected, ignoring`);
-        return;
-    }
-    
-    console.log(`[WorkServiceActions] Selecting order: ${orderId}`);
-    
-    mutateSelectedOrder(orderId);
-    
-    // Close dropdown when selecting a new order
-    workServiceState.isStatusDropdownOpen = false;
-    
-    // Show mobile recap on mobile devices
-    if (window.innerWidth < 1024) {
-        showMobileRecap();
-    }
+    if (orderId === workServiceState.selectedOrderId) return;
 
+    mutateSelectedOrder(orderId);
+    workServiceState.isStatusDropdownOpen = false;
+    if (window.innerWidth < 1024) showMobileRecap();
     renderOrdersPipeline();
     renderRecapCard();
 }
@@ -156,12 +87,7 @@ function hideMobileRecap() {
  * Usato per chiudere esplicitamente la recap card
  */
 export function deselectOrder() {
-    if (workServiceState.selectedOrderId === null) {
-        console.log('[WorkServiceActions] No order selected, ignoring deselect');
-        return;
-    }
-    
-    console.log('[WorkServiceActions] Deselecting current order');
+    if (workServiceState.selectedOrderId === null) return;
     mutateSelectedOrder(null);
     hideMobileRecap();
     renderOrdersPipeline();
@@ -181,70 +107,32 @@ export function deselectOrder() {
  * @param {string} newStatus - Nuovo stato
  */
 export async function changeStatus(orderId, newStatus) {
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('[WorkServiceActions] 🚀 changeStatus FUNCTION CALLED!');
-    console.log('[WorkServiceActions] 📊 Parameters:', { orderId, newStatus });
-    console.log('[WorkServiceActions] 📊 Type check:', { 
-        orderIdType: typeof orderId, 
-        newStatusType: typeof newStatus 
-    });
-    console.log(`[WorkServiceActions] Changing order ${orderId} to ${newStatus}`);
-
-    // Trova ordine corrente per rollback
     const order = workServiceState.orders.find(o => o.id === orderId);
-    console.log('[WorkServiceActions] 🔍 Order lookup result:', order ? `Found order #${order.daily_number}` : 'NOT FOUND');
     if (!order) {
-        console.error('[WorkServiceActions] ❌ Order not found:', orderId);
-        console.error('[WorkServiceActions] 📊 Available orders:', workServiceState.orders.map(o => o.id));
+        console.error('Order not found:', orderId);
         return;
     }
 
     const previousStatus = order.status;
-    console.log('[WorkServiceActions] 📊 Previous status:', previousStatus);
-    
-    // Se lo stato non cambia, non fare nulla
     if (previousStatus === newStatus) {
-        console.log('[WorkServiceActions] ⏭️  Status is the same, skipping');
         workServiceState.isStatusDropdownOpen = false;
         renderRecapCard();
         return;
     }
 
-    // Close dropdown immediately
-    console.log('[WorkServiceActions] 🔒 Closing dropdown...');
     workServiceState.isStatusDropdownOpen = false;
-
-    // 1. Optimistic update
-    console.log('[WorkServiceActions] 🔄 Step 1: Optimistic update...');
+    // Optimistic update
     mutateOrderStatus(orderId, newStatus);
-    console.log('[WorkServiceActions] ✅ Optimistic update complete');
-    
-    // 2. Render immediato (ordine si sposta nella row corretta)
-    console.log('[WorkServiceActions] 🖼️  Step 2: Rendering UI...');
     renderOrdersPipeline();
     renderRecapCard();
-    console.log('[WorkServiceActions] ✅ UI rendered');
 
-    // 3. API call
-    console.log('[WorkServiceActions] 🌐 Step 3: Calling API...');
-    console.log('[WorkServiceActions] 🌐 Calling apiChangeOrderStatus:', { orderId, newStatus });
     try {
-        const result = await apiChangeOrderStatus(orderId, newStatus);
-        console.log('[WorkServiceActions] ✅ API call successful!');
-        console.log('[WorkServiceActions] 📊 API response:', result);
-        console.log(`[WorkServiceActions] Order ${orderId} status changed successfully to ${newStatus}`);
-        console.log('═══════════════════════════════════════════════════════');
-
+        await apiChangeOrderStatus(orderId, newStatus);
     } catch (error) {
-        console.error('[WorkServiceActions] ❌ API call FAILED!');
-        console.error('[WorkServiceActions] ❌ Error details:', error);
-        
-        // 4. Rollback
+        console.error('Failed to change order status:', error);
         mutateOrderStatus(orderId, previousStatus);
         renderOrdersPipeline();
         renderRecapCard();
-
-        // Mostra errore all'utente (toast-like, no modal)
         showToast(`Failed to update order: ${error.message}`, 'error');
     }
 }
@@ -272,7 +160,6 @@ function showToast(message, type = 'info') {
  * Chiude la recap modal (mobile)
  */
 export function closeRecapModal() {
-    console.log('[WorkServiceActions] Closing recap modal');
     mutateSelectedOrder(null);
     toggleRecapModal(false);
     renderOrdersPipeline();
@@ -283,14 +170,9 @@ export function closeRecapModal() {
  * Logout action
  */
 export function logout() {
-    console.log('[WorkServiceActions] Logging out...');
-    
     const form = document.querySelector('form[action*="logout"]');
-    if (form) {
-        form.submit();
-    } else {
-        window.location.href = '/logout';
-    }
+    if (form) return form.submit();
+    window.location.href = '/logout';
 }
 
 export default { selectDay, selectTimeSlot, selectOrder, deselectOrder, changeStatus, closeRecapModal, logout };

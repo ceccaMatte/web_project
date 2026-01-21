@@ -1,22 +1,9 @@
-/**
- * ADMIN WORK SERVICE VIEW - DOM References
- * 
- * RESPONSABILITÀ:
- * - Centralizza riferimenti DOM per la pagina
- * - Inizializzazione pigra (chiamata da index.js)
- * - NO logica, solo getters
- */
+// DOM references for admin work service (lazy init)
 
 export const workServiceView = {
-    // Inizializzato?
     _initialized: false,
-
-    // Cache DOM refs
     _refs: {},
 
-    /**
-     * Inizializza riferimenti DOM
-     */
     init() {
         if (this._initialized) return;
 
@@ -53,12 +40,8 @@ export const workServiceView = {
         };
 
         this._initialized = true;
-        console.log('[WorkServiceView] DOM refs initialized');
     },
-
-    /**
-     * Getters for DOM refs
-     */
+    // getters
     get page() { return this._refs.page; },
     get userStateScript() { return this._refs.userStateScript; },
     get currentTimeEl() { return this._refs.currentTimeEl; },
