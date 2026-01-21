@@ -83,6 +83,13 @@ return [
             'requires_auth' => true,
             'requires_enabled' => true,
         ],
+        [
+            'label' => 'Create',
+            'icon' => 'add_circle',
+            'route' => 'orders.create',
+            'requires_auth' => true,
+            'requires_enabled' => true,
+        ],
     ],
 
     /*

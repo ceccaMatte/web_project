@@ -113,6 +113,19 @@
                     </span>
                     <span class="font-bold">{{ $item['label'] }}</span>
                 </a>
+                    @if($item['route'] === 'orders')
+                    <!-- Voce Create sotto Orders -->
+                    <a 
+                        href="{{ route('create') }}"
+                        class="flex items-center gap-4 p-4 rounded-xl text-slate-400 hover:bg-white/5 transition-colors"
+                        data-sidebar-item="create"
+                    >
+                        <span class="material-symbols-outlined">
+                            add_circle
+                        </span>
+                        <span class="font-bold">Create</span>
+                    </a>
+                    @endif
             @else
                 <div class="flex items-center gap-4 p-4 rounded-xl text-slate-600 opacity-50 cursor-not-allowed" data-sidebar-item="{{ $item['route'] }}">
                     <span class="material-symbols-outlined">
