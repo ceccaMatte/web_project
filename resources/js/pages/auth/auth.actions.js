@@ -1,19 +1,4 @@
-/**
- * AUTH ACTIONS - User Event Handlers
- * 
- * RESPONSABILITÀ:
- * - Gestisce eventi utente (click, submit, input)
- * - Muta authState
- * - Chiama render() dopo ogni mutation
- * - Chiama API per login/register
- * 
- * COSA NON FA:
- * - NON fa query DOM dirette (usa authView)
- * - NON renderizza direttamente (chiama render)
- * 
- * UTILIZZO:
- * import { switchToLogin, switchToSignup, handleSubmit } from './auth.actions.js';
- */
+// UI actions for the auth page
 
 import { authState, mutateMode, mutateFormField, mutateValidationError, mutateIsValid, mutateSubmitState, resetValidation } from './auth.state.js';
 import { render, renderValidation, renderSubmitButton } from './auth.render.js';
@@ -23,7 +8,6 @@ import { loginUser, registerUser } from './auth.api.js';
  * Switch to Login mode
  */
 export function switchToLogin() {
-    console.log('[AuthActions] Switching to login');
     mutateMode('login');
     render();
 }
@@ -32,7 +16,6 @@ export function switchToLogin() {
  * Switch to Signup mode
  */
 export function switchToSignup() {
-    console.log('[AuthActions] Switching to signup');
     mutateMode('signup');
     render();
 }
@@ -61,8 +44,6 @@ export function togglePasswordVisibility(targetId) {
  * Aggiorna authState.form SENZA validare (validazione al blur)
  */
 export function handleInputChange(field, value) {
-    console.log('[AuthActions] Input change:', field, value);
-    
     // Aggiorna form state
     mutateFormField(field, value);
     
@@ -79,8 +60,6 @@ export function handleInputChange(field, value) {
  * Valida campo quando l'utente esce dall'input
  */
 export function handleInputBlur(field) {
-    console.log('[AuthActions] Input blur:', field);
-    
     const { form } = authState;
     const value = form[field];
     
@@ -164,12 +143,8 @@ export async function handleSubmit(event) {
     event.preventDefault();
     
     const { mode, form, validation } = authState;
-    
-    console.log('[AuthActions] Submit:', mode, form);
-    
     // Verifica validità
     if (!validation.isValid) {
-        console.warn('[AuthActions] Form not valid, submit blocked');
         return;
     }
     
@@ -188,17 +163,11 @@ export async function handleSubmit(event) {
             result = await registerUser(form.nickname, form.email, form.password);
         }
         
-        console.log('[AuthActions] API result:', result);
-        
         // Gestisci risposta
         if (result.success) {
             // Redirect con replace per forzare refresh completo (no cache)
-            console.log('[AuthActions] Success, redirecting to:', result.redirect);
             window.location.replace(result.redirect);
         } else if (result.errors) {
-            // Validation errors dal backend
-            console.warn('[AuthActions] Validation errors from backend:', result.errors);
-            
             // Inietta errori in authState
             for (const field in result.errors) {
                 mutateValidationError(field, result.errors[field]);
@@ -208,13 +177,12 @@ export async function handleSubmit(event) {
             render();
         } else {
             // Errore generico
-            console.error('[AuthActions] Submit failed:', result.message);
+            console.error(result.message || 'Submit failed');
             mutateSubmitState(false, result.message);
             render();
         }
         
     } catch (error) {
-        console.error('[AuthActions] Submit error:', error);
         mutateSubmitState(false, 'An error occurred. Please try again.');
         render();
     }

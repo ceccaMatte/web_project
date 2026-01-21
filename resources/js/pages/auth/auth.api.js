@@ -1,55 +1,15 @@
-/**
- * AUTH API - Backend Communication
- * 
- * RESPONSABILITÀ:
- * - Fetch POST /login
- * - Fetch POST /register
- * - Gestione CSRF token
- * - Parsing errori Laravel
- * 
- * COSA NON FA:
- * - NON muta authState direttamente
- * - NON gestisce UI
- * - NON valida input (fatto da backend)
- * 
- * UTILIZZO:
- * import { loginUser, registerUser } from './auth.api.js';
- */
+// Backend calls for auth
 
-/**
- * Helper: ottieni CSRF token da meta tag
- */
+// CSRF token helper
 function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     return meta ? meta.getAttribute('content') : '';
 }
 
-/**
- * Helper: parse errori Laravel 422 validation
- * 
- * Laravel ritorna:
- * {
- *   "message": "The email field is required...",
- *   "errors": {
- *     "email": ["The email field is required."],
- *     "password": ["The password must be at least 8 characters."]
- *   }
- * }
- * 
- * Noi ritorniamo:
- * {
- *   email: "The email field is required.",
- *   password: "The password must be at least 8 characters."
- * }
- */
+// Normalize Laravel validation errors
 function parseValidationErrors(errors) {
     const parsed = {};
-    
-    for (const field in errors) {
-        // Prendi primo errore dell'array
-        parsed[field] = errors[field][0];
-    }
-    
+    for (const field in errors) parsed[field] = errors[field][0];
     return parsed;
 }
 
@@ -66,8 +26,6 @@ function parseValidationErrors(errors) {
  * - server error: { success: false, message: 'Server error' }
  */
 export async function loginUser(email, password) {
-    console.log('[AuthAPI] Login attempt:', { email });
-    
     try {
         const response = await fetch('/login', {
             method: 'POST',
@@ -82,46 +40,15 @@ export async function loginUser(email, password) {
         
         const data = await response.json();
         
-        // Validation errors (422)
-        if (response.status === 422 && data.errors) {
-            console.warn('[AuthAPI] Validation errors:', data.errors);
-            return {
-                success: false,
-                errors: parseValidationErrors(data.errors),
-            };
-        }
-        
-        // Auth failed (401)
-        if (response.status === 401) {
-            console.warn('[AuthAPI] Authentication failed');
-            return {
-                success: false,
-                message: data.message || 'Invalid credentials',
-            };
-        }
-        
-        // Success (200)
-        if (response.ok) {
-            console.log('[AuthAPI] Login successful');
-            return {
-                success: true,
-                redirect: data.redirect || '/',
-            };
-        }
-        
-        // Altri errori
-        console.error('[AuthAPI] Login failed:', response.status);
-        return {
-            success: false,
-            message: data.message || 'Login failed',
-        };
+        if (response.status === 422 && data.errors) return { success: false, errors: parseValidationErrors(data.errors) };
+        if (response.status === 401) return { success: false, message: data.message || 'Invalid credentials' };
+        if (response.ok) return { success: true, redirect: data.redirect || '/' };
+        console.error('Login failed:', response.status);
+        return { success: false, message: data.message || 'Login failed' };
         
     } catch (error) {
-        console.error('[AuthAPI] Network error:', error);
-        return {
-            success: false,
-            message: 'Network error. Please check your connection.',
-        };
+        console.error('Network error:', error);
+        return { success: false, message: 'Network error. Please check your connection.' };
     }
 }
 
@@ -134,8 +61,6 @@ export async function loginUser(email, password) {
  * Returns: stesso formato di loginUser()
  */
 export async function registerUser(nickname, email, password) {
-    console.log('[AuthAPI] Register attempt:', { nickname, email });
-    
     try {
         const response = await fetch('/register', {
             method: 'POST',
@@ -155,36 +80,13 @@ export async function registerUser(nickname, email, password) {
         
         const data = await response.json();
         
-        // Validation errors (422)
-        if (response.status === 422 && data.errors) {
-            console.warn('[AuthAPI] Validation errors:', data.errors);
-            return {
-                success: false,
-                errors: parseValidationErrors(data.errors),
-            };
-        }
-        
-        // Success (200/201)
-        if (response.ok) {
-            console.log('[AuthAPI] Registration successful');
-            return {
-                success: true,
-                redirect: data.redirect || '/',
-            };
-        }
-        
-        // Altri errori
-        console.error('[AuthAPI] Registration failed:', response.status);
-        return {
-            success: false,
-            message: data.message || 'Registration failed',
-        };
-        
     } catch (error) {
-        console.error('[AuthAPI] Network error:', error);
-        return {
-            success: false,
-            message: 'Network error. Please check your connection.',
-        };
+        if (response.status === 422 && data.errors) return { success: false, errors: parseValidationErrors(data.errors) };
+        if (response.ok) return { success: true, redirect: data.redirect || '/' };
+        console.error('Registration failed:', response.status);
+        return { success: false, message: data.message || 'Registration failed' };
+    } catch (error) {
+        console.error('Network error:', error);
+        return { success: false, message: 'Network error. Please check your connection.' };
     }
 }

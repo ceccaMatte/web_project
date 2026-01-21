@@ -1,21 +1,4 @@
-/**
- * HOME ACTIONS LAYER
- * 
- * RESPONSABILITÀ:
- * - Gestisce azioni utente sulla pagina Home
- * - Modifica homeState in risposta ad eventi
- * - Trigger render mirati o completi
- * - Gestisce polling automatico ogni 5 secondi
- * - Gestisce fetch e render dei time slots
- * 
- * ARCHITETTURA:
- * - Ogni action è una funzione che modifica state + rende
- * - Importato da componenti come callbacks
- * - Può chiamare API per fetch dati aggiuntivi
- * 
- * UTILIZZO:
- * import { openSidebar, closeSidebar, selectDay, startPolling, stopPolling } from './home.actions.js';
- */
+// Home page actions (state updates and targeted renders)
 
 import { 
     homeState, 
@@ -46,8 +29,6 @@ import { homeView } from './home.view.js';
  * 2. Re-render sidebar + topbar
  */
 export function openSidebar() {
-    console.log('[Actions] Opening sidebar');
-    
     mutateSidebar(true);
     
     // Render solo sidebar e topbar (ottimizzazione)
@@ -74,8 +55,6 @@ export function openSidebar() {
  * 2. Re-render sidebar + topbar
  */
 export function closeSidebar() {
-    console.log('[Actions] Closing sidebar');
-    
     mutateSidebar(false);
     
     // Render solo sidebar e topbar
@@ -111,32 +90,10 @@ export function closeSidebar() {
  * @param {string} dayId - ID giorno nel formato YYYY-MM-DD
  */
 export async function selectDay(dayId) {
-    console.log(`[Actions] selectDay: ${dayId}`);
-    
-    if (!dayId) {
-        console.warn('[Actions] selectDay: dayId is required');
-        return;
-    }
-
-    // 1. Verifica che il giorno sia selezionabile
+    if (!dayId) return;
     const dayData = homeState.weekDays.find(day => day.id === dayId);
-    if (!dayData) {
-        console.warn(`[Actions] selectDay: day ${dayId} not found in weekDays`);
-        return;
-    }
-
-    if (dayData.isDisabled || !dayData.isActive) {
-        console.warn(`[Actions] selectDay: day ${dayId} is not selectable`);
-        return;
-    }
-
-    // 2. Se già selezionato, non fare nulla (idempotenza)
-    if (homeState.selectedDayId === dayId) {
-        console.log(`[Actions] selectDay: day ${dayId} already selected, skipping`);
-        return;
-    }
-
-    // 3. Aggiorna selectedDayId E selectedDate (sincronizzazione scheduler ↔ time slots)
+    if (!dayData || dayData.isDisabled || !dayData.isActive) return;
+    if (homeState.selectedDayId === dayId) return;
     mutateSelectedDay(dayId);
     
     // 4. Re-render scheduler immediato per feedback visivo
@@ -165,12 +122,10 @@ export async function selectDay(dayId) {
  */
 export async function loadTimeSlots(date) {
     if (!date) {
-        console.error('[Actions] loadTimeSlots: date is required');
+        console.error('loadTimeSlots: date is required');
         return;
     }
 
-    console.log(`[Actions] Loading time slots for ${date}...`);
-    
     try {
         // Indica loading
         mutateTimeSlots({ loading: true, error: null });
@@ -194,15 +149,12 @@ export async function loadTimeSlots(date) {
             error: null 
         });
         
-        // Re-render time slots e header
+        // Re-render time slots and header
         renderBookingHeader();
         renderTimeSlots();
         
-        console.log(`[Actions] Time slots loaded for ${date}:`, timeSlots.length, 'slots');
-        
     } catch (error) {
-        console.error(`[Actions] Failed to load time slots for ${date}:`, error);
-        
+        console.error('Failed to load time slots for', date, error);
         mutateTimeSlots({ 
             timeSlots: [],
             loading: false,
@@ -224,20 +176,13 @@ export async function loadTimeSlots(date) {
  * 2. Altrimenti inizializza selectedDate e carica i time slots
  */
 export async function loadInitialTimeSlots() {
-    console.log('[Actions] Loading initial time slots...');
-    
     let targetDate = homeState.selectedDate;
     
-    if (!targetDate) {
-        // Inizializza selectedDate secondo le regole (oggi o primo giorno attivo)
-        targetDate = initializeSelectedDate();
-        console.log(`[Actions] Initialized selectedDate: ${targetDate}`);
-    }
+    if (!targetDate) targetDate = initializeSelectedDate();
     
     if (targetDate) {
         // If time slots for the selected date are already hydrated (from initialTimeSlots), skip fetch
         if (homeState.timeSlots && homeState.timeSlots.length > 0 && homeState.selectedDate === targetDate) {
-            console.log('[Actions] Time slots already present from hydration, skipping fetch');
             // Ensure UI is rendered with the existing slots
             renderBookingHeader();
             renderTimeSlots();
@@ -245,7 +190,7 @@ export async function loadInitialTimeSlots() {
             await loadTimeSlots(targetDate);
         }
     } else {
-        console.warn('[Actions] No active days found, skipping time slots loading');
+        console.warn('No active days found');
         mutateTimeSlots({ 
             timeSlots: [], 
             loading: false, 
@@ -270,38 +215,16 @@ export async function loadInitialTimeSlots() {
  * - Ora usa ESCLUSIVAMENTE data-booking-section esistente
  */
 function renderTimeSlots() {
-    const container = homeView.refs.bookingSlotsContainer;  // Usa SOLO data-booking-slots-container
-    if (!container) {
-        console.warn('[Actions] renderTimeSlots: bookingSlotsContainer not found');
-        return;
-    }
+    const container = homeView.refs.bookingSlotsContainer;
+    if (!container) return;
 
     const { timeSlots, timeSlotsLoading, timeSlotsError, selectedDate } = homeState;
+    if (timeSlotsLoading) return void (container.innerHTML = '<div class="text-slate-500 text-center py-4">Loading time slots...</div>');
+    if (timeSlotsError) return void (container.innerHTML = `<div class="text-red-500 text-center py-4">${timeSlotsError}</div>`);
+    if (!selectedDate) return void (container.innerHTML = '<div class="text-slate-500 text-center py-4">Select a day to view time slots</div>');
+    if (!timeSlots || timeSlots.length === 0) return void (container.innerHTML = '<div class="text-slate-500 text-center py-4">No time slots available for this day</div>');
 
-    if (timeSlotsLoading) {
-        container.innerHTML = '<div class="text-slate-500 text-center py-4">Loading time slots...</div>';
-        return;
-    }
-
-    if (timeSlotsError) {
-        container.innerHTML = `<div class="text-red-500 text-center py-4">${timeSlotsError}</div>`;
-        return;
-    }
-
-    if (!selectedDate) {
-        container.innerHTML = '<div class="text-slate-500 text-center py-4">Select a day to view time slots</div>';
-        return;
-    }
-
-    if (!timeSlots || timeSlots.length === 0) {
-        container.innerHTML = '<div class="text-slate-500 text-center py-4">No time slots available for this day</div>';
-        return;
-    }
-
-    // Render lista time slots usando il componente renderTimeSlotCard
     const slotsHTML = timeSlots.map(slot => renderTimeSlotCard(slot, 'home')).join('');
-
-    // Layout ORIZONTALE per time slots
     container.innerHTML = `<div class="flex gap-3 overflow-x-auto">${slotsHTML}</div>`;
 }
 
@@ -316,7 +239,7 @@ function renderTimeSlots() {
 function renderBookingHeader() {
     const headerContainer = homeView.refs.bookingHeader;
     if (!headerContainer) {
-        console.warn('[Actions] renderBookingHeader: header container not found');
+        console.warn('Booking header container not found');
         return;
     }
 
@@ -355,10 +278,7 @@ function renderBookingHeader() {
  * @param {HTMLElement} button - Bottone cliccato
  */
 export function bookSlot(button) {
-    console.log('[Actions] Book slot clicked');
-    
     if (!homeState.user.authenticated) {
-        console.log('[Actions] User not authenticated, redirecting to login');
         window.location.href = '/login';
         return;
     }
@@ -366,7 +286,6 @@ export function bookSlot(button) {
     // Utente autenticato: usa href dal slot
     const href = button.dataset.slotHref;
     if (href) {
-        console.log(`[Actions] Redirecting to: ${href}`);
         window.location.href = href;
     }
 }
@@ -389,12 +308,9 @@ export function bookSlot(button) {
 export function startPolling() {
     // Se già attivo, non avviare un secondo timer
     if (homeState.pollingEnabled) {
-        console.warn('[Actions] Polling already active');
+        console.warn('Polling already active');
         return;
     }
-
-    console.log('[Actions] Starting polling every 5 seconds...');
-    
     const pollingTimer = setInterval(async () => {
         await runPolling();
     }, 5000); // 5 secondi
@@ -405,7 +321,6 @@ export function startPolling() {
         lastUpdate: null
     });
 
-    console.log('[Actions] Polling started');
 }
 
 /**
@@ -413,12 +328,9 @@ export function startPolling() {
  */
 export function stopPolling() {
     if (!homeState.pollingEnabled || !homeState.pollingTimer) {
-        console.warn('[Actions] No active polling to stop');
+        console.warn('No active polling to stop');
         return;
     }
-
-    console.log('[Actions] Stopping polling...');
-    
     clearInterval(homeState.pollingTimer);
     
     mutatePolling({
@@ -427,7 +339,6 @@ export function stopPolling() {
         lastUpdate: null
     });
 
-    console.log('[Actions] Polling stopped');
 }
 
 /**
@@ -439,12 +350,11 @@ export function stopPolling() {
  */
 async function runPolling() {
     if (!homeState.selectedDate) {
-        console.warn('[Actions] runPolling: no selectedDate, skipping');
+        console.warn('runPolling: no selectedDate');
         return;
     }
 
     try {
-        console.debug(`[Actions] Polling: fetching updates for selectedDate=${homeState.selectedDate}`);
         
         const pollingData = await fetchPolling(homeState.selectedDate);
         
@@ -486,11 +396,8 @@ async function runPolling() {
         
         mutatePolling({ lastUpdate: Date.now() });
         
-        console.debug('[Actions] Polling update completed');
-        
     } catch (error) {
-        console.error('[Actions] Polling failed:', error);
-        // NON interrompere il polling per errori temporanei
+        console.error('Polling failed:', error);
     }
 }
 
@@ -502,25 +409,17 @@ async function runPolling() {
  * 2. Refresh completo della pagina
  */
 export async function logout() {
-    console.log('[Actions] Logout clicked');
-    
     try {
         const result = await logoutUser();
         
         if (!result.success) {
-            console.error('[Actions] Logout failed:', result.message || result.error);
-            
-            if (result.error === 'csrf_mismatch') {
-                alert('Session expired. Please refresh the page.');
-            }
+            console.error('Logout failed:', result.message || result.error);
+            if (result.error === 'csrf_mismatch') alert('Session expired. Please refresh the page.');
             return;
         }
-        
-        console.log('[Actions] Logout successful, refreshing page');
         window.location.reload();
-        
     } catch (error) {
-        console.error('[Actions] Logout error:', error);
+        console.error('Logout error:', error);
         alert('Logout failed. Please try again.');
     }
 }

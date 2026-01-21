@@ -1,34 +1,7 @@
-/**
- * AUTH RENDER - UI as Function of State
- * 
- * RESPONSABILITÀ:
- * - Renderizza UI basandosi su authState
- * - Inietta HTML form (login o signup)
- * - Aggiorna stili tab (active/inactive)
- * - Mostra/nasconde errori validation
- * - Aggiorna stato submit button
- * 
- * COSA NON FA:
- * - NON gestisce eventi (lo fa auth.actions.js)
- * - NON muta stato (legge solo)
- * - NON fa fetch
- * 
- * UTILIZZO:
- * import { render } from './auth.render.js';
- */
-
 import { authState } from './auth.state.js';
 import { authView, updateFormRefs, getFieldInput, getFieldError } from './auth.view.js';
 
-/**
- * RENDER PRINCIPALE
- * 
- * Chiama tutti i sub-render in sequenza.
- * Chiamata da auth.actions.js dopo ogni mutation.
- */
 export function render() {
-    console.log('[AuthRender] Rendering...', authState.mode);
-    
     renderTabs();
     renderForm();
     renderValidation();
@@ -70,16 +43,11 @@ function renderTabs() {
     }
 }
 
-/**
- * Render form
- * 
- * Inietta HTML form (login o signup) importando componenti in-memory
- */
 function renderForm() {
     const { mode } = authState;
     
     if (!authView.formContainer) {
-        console.error('[AuthRender] Form container not found');
+        console.error('Form container not found');
         return;
     }
     
@@ -92,8 +60,6 @@ function renderForm() {
     
     // Aggiorna riferimenti form in authView
     updateFormRefs();
-    
-    console.log('[AuthRender] Form rendered:', mode);
 }
 
 /**
@@ -359,8 +325,8 @@ export function renderSubmitButton() {
     
     // Server error message
     if (submit.error) {
-        // TODO: mostrare errore server sopra il form
-        console.error('[AuthRender] Server error:', submit.error);
+        // mostrare errore server sopra il form
+        console.error(submit.error);
     }
 }
 
@@ -370,7 +336,6 @@ export function renderSubmitButton() {
  * Chiamata da auth.js dopo hydration
  */
 export function renderInitial() {
-    console.log('[AuthRender] Initial render');
-    renderForm(); // Render sincrono (no await)
-    render(); // Poi aggiorna tutto
+    renderForm();
+    render();
 }

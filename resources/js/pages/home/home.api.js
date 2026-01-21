@@ -1,22 +1,4 @@
-/**
- * HOME API LAYER
- * 
- * RESPONSABILITÀ:
- * - Gestisce comunicazione HTTP con backend
- * - Centralizza endpoint API per Home page
- * - Fornisce error handling consistente
- * 
- * ARCHITETTURA:
- * - Funzioni pure che ritornano Promise
- * - No side effects (no DOM, no state mutation)
- * - Usato da home.hydration.js e home.actions.js
- * 
- * UTILIZZO:
- * import { fetchHome, fetchBookingForDay } from './home.api.js';
- * 
- * const data = await fetchHome();
- * const bookingData = await fetchBookingForDay('2026-01-16');
- */
+// Home API: thin fetch wrappers for the home page
 
 /**
  * Fetch dati completi Home page
@@ -35,8 +17,6 @@
  * @throws {Error} - Se fetch fallisce o response non ok
  */
 export async function fetchHome() {
-    console.log('[HomeAPI] Fetching /api/home...');
-
     try {
         const response = await fetch('/api/home', {
             method: 'GET',
@@ -52,12 +32,10 @@ export async function fetchHome() {
         }
 
         const data = await response.json();
-        console.log('[HomeAPI] /api/home fetched successfully');
-        
         return data;
     } catch (error) {
-        console.error('[HomeAPI] Failed to fetch /api/home:', error);
-        throw error; // Re-throw per gestione chiamante
+        console.error('Failed to fetch /api/home:', error);
+        throw error;
     }
 }
 
@@ -89,11 +67,8 @@ export async function fetchHome() {
  */
 export async function fetchBookingForDay(dayId) {
     if (!dayId) {
-        throw new Error('[HomeAPI] fetchBookingForDay: dayId is required');
+        throw new Error('fetchBookingForDay: dayId is required');
     }
-
-    console.log(`[HomeAPI] Fetching /api/booking?day=${dayId}...`);
-
     try {
         const response = await fetch(`/api/booking?day=${dayId}`, {
             method: 'GET',
@@ -108,12 +83,10 @@ export async function fetchBookingForDay(dayId) {
         }
 
         const data = await response.json();
-        console.log(`[HomeAPI] /api/booking?day=${dayId} fetched successfully`);
-        
         return data;
     } catch (error) {
-        console.error(`[HomeAPI] Failed to fetch /api/booking?day=${dayId}:`, error);
-        throw error; // Re-throw per gestione chiamante
+        console.error('Failed to fetch booking for', dayId, error);
+        throw error;
     }
 }
 
@@ -131,18 +104,14 @@ export async function fetchBookingForDay(dayId) {
  * @throws {Error} - Se fetch fallisce o response non ok
  */
 export async function logoutUser() {
-    console.log('[HomeAPI] Logging out user...');
-
     try {
         // Ottieni CSRF token da meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
         if (!csrfToken) {
-            console.error('[HomeAPI] CSRF token not found in meta tag');
+            console.error('CSRF token not found in meta tag');
             throw new Error('CSRF token not found');
         }
-        
-        console.debug('[HomeAPI] CSRF token:', csrfToken.substring(0, 10) + '...');
         
         const response = await fetch('/logout', {
             method: 'POST',
@@ -153,31 +122,26 @@ export async function logoutUser() {
             },
             credentials: 'same-origin',
         });
-
-        console.debug('[HomeAPI] Logout response status:', response.status);
-
+        
         // Gestione esplicita 419 CSRF Token Mismatch
         if (response.status === 419) {
-            console.error('[HomeAPI] CSRF Token Mismatch (419) - token potrebbe essere scaduto');
+            console.error('CSRF token mismatch (419)');
             return {
                 success: false,
                 message: 'Session expired. Please refresh the page.',
                 error: 'csrf_mismatch',
             };
         }
-
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('[HomeAPI] Logout failed:', response.status, errorText);
+            console.error('Logout failed:', response.status, errorText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('[HomeAPI] Logout successful:', data);
-        
         return data;
     } catch (error) {
-        console.error('[HomeAPI] Failed to logout:', error);
+        console.error('Failed to logout:', error);
         throw error;
     }
 }
@@ -208,11 +172,8 @@ export async function logoutUser() {
  */
 export async function fetchTimeSlots(date) {
     if (!date) {
-        throw new Error('[HomeAPI] fetchTimeSlots: date is required');
+        throw new Error('fetchTimeSlots: date is required');
     }
-
-    console.log(`[HomeAPI] Fetching /api/time-slots?date=${date}...`);
-
     try {
         const response = await fetch(`/api/time-slots?date=${date}`, {
             method: 'GET',
@@ -228,17 +189,9 @@ export async function fetchTimeSlots(date) {
         }
 
         const data = await response.json();
-        console.log(`[HomeAPI] /api/time-slots?date=${date} fetched successfully`);
-        console.debug('[HomeAPI] TimeSlots data:', {
-            dateLabel: data.dateLabel,
-            locationLabel: data.locationLabel,
-            slotsCount: data.slots?.length || 0,
-            slots: data.slots,
-        });
-        
         return data;
     } catch (error) {
-        console.error(`[HomeAPI] Failed to fetch /api/time-slots?date=${date}:`, error);
+        console.error('Failed to fetch time slots for', date, error);
         throw error;
     }
 }
@@ -275,11 +228,8 @@ export async function fetchTimeSlots(date) {
  */
 export async function fetchPolling(selectedDate) {
     if (!selectedDate) {
-        throw new Error('[HomeAPI] fetchPolling: selectedDate is required');
+        throw new Error('fetchPolling: selectedDate is required');
     }
-
-    console.log(`[HomeAPI] Polling: fetching /api/home/polling?date=${selectedDate}...`);
-
     try {
         const response = await fetch(`/api/home/polling?date=${selectedDate}`, {
             method: 'GET',
@@ -295,12 +245,10 @@ export async function fetchPolling(selectedDate) {
         }
 
         const data = await response.json();
-        console.log(`[HomeAPI] Polling successful for date ${selectedDate}`);
-        
         return data;
     } catch (error) {
-        console.error(`[HomeAPI] Polling failed for date ${selectedDate}:`, error);
-        throw error; // Re-throw per gestione chiamante
+        console.error('Polling failed for', selectedDate, error);
+        throw error;
     }
 }
 

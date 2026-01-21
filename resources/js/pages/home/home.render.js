@@ -1,23 +1,3 @@
-/**
- * HOME RENDER ORCHESTRATOR
- * 
- * RESPONSABILITÀ:
- * - Orchestra render di tutti i componenti Home
- * - Passa container, props e callbacks ai componenti
- * - Legge da homeState, NON lo modifica
- * 
- * ARCHITETTURA:
- * - Funzione renderHome() chiamata dopo hydration o mutation state
- * - Importa tutti i component renderers
- * - Passa callbacks da home.actions.js
- * 
- * UTILIZZO:
- * import { renderHome } from './home.render.js';
- * 
- * // Dopo hydration o state change:
- * renderHome();
- */
-
 import { homeState } from './home.state.js';
 import { homeView } from './home.view.js';
 import { openSidebar, closeSidebar, selectDay } from './home.actions.js';
@@ -64,7 +44,6 @@ import { renderTimeSlotsList } from '../../components/timeSlotCard/timeSlotCard.
  * Ogni render rimpiazza il contenuto precedente.
  */
 export function renderHome() {
-    console.log('[RenderHome] Rendering complete home UI...');
 
     // 1. TopBar
     renderTopBar(
@@ -122,30 +101,11 @@ export function renderHome() {
     );
 
     // 6. Orders Preview Card (dinamico in base a autenticazione + ordini)
-    // LOGICA:
-    // - Se NON autenticato → variant: 'login-cta'
-    // - Se autenticato + 0 ordini → variant: 'empty'
-    // - Se autenticato + 1 ordine → variant: 'single'
-    // - Se autenticato + 2+ ordini → variant: 'multi'
-    console.log('[RenderHome] ========== ORDERS PREVIEW SECTION ==========');
-    console.log('[RenderHome] homeState.user:', {
-        authenticated: homeState.user.authenticated,
-        id: homeState.user.id,
-        name: homeState.user.name,
-    });
-    console.log('[RenderHome] homeState.ordersPreview:', {
-        variant: homeState.ordersPreview.variant,
-        ordersCount: homeState.ordersPreview.ordersCount,
-        selectedOrder: homeState.ordersPreview.selectedOrder,
-    });
-    
+    // Orders preview logic: variant depends on authentication and ordersCount
     const ordersPreviewProps = getOrdersPreviewProps(
         homeState.user.authenticated,
         homeState.ordersPreview
     );
-    
-    console.log('[RenderHome] OrdersPreview props AFTER getOrdersPreviewProps():', ordersPreviewProps);
-    console.log('[RenderHome] ===================================================');
     
     renderOrdersPreviewCard(
         homeView.refs.orderPreviewContainer,
@@ -167,9 +127,8 @@ export function renderHome() {
         homeState.booking,
         {} // No callbacks per ora (usano href)
     );
-
-    console.log('[RenderHome] Complete home UI rendered successfully');
 }
+ 
 
 /**
  * Renderizza l'header della sezione Order Preview
@@ -182,10 +141,7 @@ export function renderHome() {
  * @param {boolean} isAuthenticated - Stato autenticazione
  */
 function renderOrderPreviewHeader(container, isAuthenticated) {
-    if (!container) {
-        console.warn('[RenderHome] Order preview header container not found');
-        return;
-    }
+    if (!container) return;
 
     let html = '';
 
@@ -216,7 +172,6 @@ function renderOrderPreviewHeader(container, isAuthenticated) {
     }
 
     container.innerHTML = html;
-    console.log('[RenderHome] Order preview header rendered (authenticated:', isAuthenticated, ')');
 }
 
 /**
@@ -230,17 +185,11 @@ function renderOrderPreviewHeader(container, isAuthenticated) {
  * @param {object} props - {dateLabel, locationLabel}
  */
 function renderBookingHeader(container, props) {
-    if (!container) {
-        console.warn('[RenderHome] Booking header container not found');
-        return;
-    }
+    if (!container) return;
 
     const { dateLabel, locationLabel } = props;
 
-    if (!dateLabel || !locationLabel) {
-        console.warn('[RenderHome] Booking header: missing data');
-        return;
-    }
+    if (!dateLabel || !locationLabel) return;
 
     const html = `
         <h3 class="text-white text-sm font-bold mb-1">
@@ -252,7 +201,6 @@ function renderBookingHeader(container, props) {
     `;
 
     container.innerHTML = html;
-    console.log('[RenderHome] Booking header rendered');
 }
 
 /**

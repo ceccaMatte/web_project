@@ -24,13 +24,13 @@ import { authState } from './auth.state.js';
 import { authView, initAuthView } from './auth.view.js';
 import { hydrateAuthState } from './auth.hydration.js';
 import { renderInitial, render } from './auth.render.js';
-import { 
-    switchToLogin, 
-    switchToSignup, 
+import {
+    switchToLogin,
+    switchToSignup,
     togglePasswordVisibility,
     handleInputChange,
     handleInputBlur,
-    handleSubmit 
+    handleSubmit
 } from './auth.actions.js';
 
 /**
@@ -39,12 +39,10 @@ import {
  * Entry point chiamato da app.js
  */
 export async function initAuthPage() {
-    console.log('[Auth] Initializing auth page...');
-    
-    // 1. Inizializza view (cache DOM refs)
+    // 1. Init view refs
     const viewReady = initAuthView();
     if (!viewReady) {
-        console.error('[Auth] Failed to initialize view');
+        console.error('Failed to initialize auth view');
         return;
     }
     
@@ -56,8 +54,6 @@ export async function initAuthPage() {
     
     // 4. Registra event listeners
     registerEventListeners();
-    
-    console.log('[Auth] Auth page initialized successfully');
 }
 
 /**
@@ -66,8 +62,7 @@ export async function initAuthPage() {
  * Event delegation globale per gestire tutti gli eventi
  */
 function registerEventListeners() {
-    console.log('[Auth] Registering event listeners...');
-    
+    // global click delegation
     // Event delegation: click globale
     document.addEventListener('click', (event) => {
         const target = event.target.closest('[data-action]');
@@ -123,6 +118,4 @@ function registerEventListeners() {
         event.preventDefault();
         handleSubmit(event);
     });
-    
-    console.log('[Auth] Event listeners registered');
 }

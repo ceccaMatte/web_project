@@ -1,23 +1,3 @@
-/**
- * AUTH VIEW - DOM References
- * 
- * RESPONSABILITÀ:
- * - Query e cache riferimenti DOM
- * - ZERO logica business
- * - ZERO mutazioni stato
- * 
- * ARCHITETTURA:
- * - Esegue querySelector una volta sola
- * - Esporta oggetto con riferimenti
- * - Usato da auth.render.js e auth.actions.js
- * 
- * UTILIZZO:
- * import { authView, initAuthView } from './auth.view.js';
- */
-
-/**
- * CACHE RIFERIMENTI DOM
- */
 export const authView = {
     // Root
     root: null,
@@ -40,18 +20,11 @@ export const authView = {
     loginSubmitBtn: null,
     signupSubmitBtn: null,
 };
-
-/**
- * Inizializza riferimenti DOM
- * Chiamata da auth.js dopo DOM ready
- */
 export function initAuthView() {
-    console.log('[AuthView] Initializing DOM references...');
-    
     // Root
     authView.root = document.getElementById('auth-root');
     if (!authView.root) {
-        console.error('[AuthView] CRITICAL: #auth-root not found');
+        console.error('#auth-root not found');
         return false;
     }
     
@@ -64,8 +37,6 @@ export function initAuthView() {
     
     // Validation
     _validateRefs();
-    
-    console.log('[AuthView] DOM references initialized');
     return true;
 }
 
@@ -81,8 +52,6 @@ export function updateFormRefs() {
     // Submit buttons
     authView.loginSubmitBtn = authView.loginForm?.querySelector('[data-submit="login"]');
     authView.signupSubmitBtn = authView.signupForm?.querySelector('[data-submit="signup"]');
-    
-    console.log('[AuthView] Form references updated');
 }
 
 /**
@@ -100,7 +69,7 @@ function _validateRefs() {
     
     criticalRefs.forEach(({ name, ref }) => {
         if (!ref) {
-            console.warn(`[AuthView] Missing critical ref: ${name}`);
+            console.warn('Missing auth ref:', name);
             allValid = false;
         }
     });

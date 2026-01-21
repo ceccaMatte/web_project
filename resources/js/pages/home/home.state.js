@@ -1,25 +1,3 @@
-/**
- * HOME STATE - Single Source of Truth
- * 
- * RESPONSABILITÀ:
- * - Definisce struttura homeState (SOLO dati, MAI riferimenti DOM)
- * - Fornisce helper per mutation sicure dello stato
- * 
- * ARCHITETTURA:
- * - Centralizza lo stato della pagina Home
- * - Esportato e importato da home.js, home.hydration.js, home.actions.js
- * - I componenti NON importano questo modulo (ricevono props)
- * 
- * UTILIZZO:
- * import { homeState, mutateUser, mutateSidebar } from './home.state.js';
- */
-
-/**
- * STATO GLOBALE PAGINA HOME (SSOT)
- * 
- * Contiene SOLO dati primitivi e serializzabili.
- * MAI riferimenti DOM, funzioni, o oggetti complessi.
- */
 export const homeState = {
     /**
      * User state
@@ -55,47 +33,12 @@ export const homeState = {
         queueTime: null,
     },
 
-    /**
-     * Week Scheduler state
-     * - selectedDayId: string|null - ID giorno selezionato (YYYY-MM-DD)
-     * - monthLabel: string|null - label mese corrente (es. "January 2026")
-     * - weekDays: Array<Object> - 7 giorni con struttura:
-     *   {
-     *     id: "2026-01-15",
-     *     weekday: "WED",
-     *     dayNumber: "15",
-     *     isToday: boolean,
-     *     isActive: boolean,
-     *     isDisabled: boolean,
-     *     isSelected: boolean
-     *   }
-     */
+    // Week scheduler data
     selectedDayId: null,
     monthLabel: null,
     weekDays: [],
 
-    /**
-     * Time Slots state
-     * 
-     * PRINCIPIO FONDAMENTALE:
-     * I time slots mostrati DEVONO SEMPRE corrispondere
-     * al giorno selezionato (selectedDayId) nello scheduler.
-     * 
-     * selectedDate è l'UNICA fonte di verità per determinare
-     * quali time slot mostrare.
-     * 
-     * - selectedDate: string|null - data in formato YYYY-MM-DD
-     * - timeSlots: Array<Object> - slot del selectedDate
-     *   {
-     *     id: string|number,
-     *     time: string (es. "12:00"),
-     *     available: number (posti disponibili),
-     *     isDisabled: boolean,
-     *     href: string (URL prenotazione)
-     *   }
-     * - loading: boolean - stato caricamento time slots
-     * - error: string|null - errore durante fetch
-     */
+    // Time slots; selectedDate is the source of truth for displayed slots
     selectedDate: null,
     timeSlots: [],
     timeSlotsLoading: false,
@@ -111,25 +54,7 @@ export const homeState = {
     pollingTimer: null,
     lastPollingUpdate: null,
 
-    /**
-     * Order Preview state
-     * 
-     * VARIANTI:
-     * - 'login-cta': utente non loggato
-     * - 'empty': utente loggato, nessun ordine
-     * - 'single': utente loggato, 1 ordine
-     * - 'multi': utente loggato, 2+ ordini
-     * 
-     * STRUTTURA:
-     * - variant: string - una delle varianti sopra
-     * - ordersCount: number - totale ordini
-     * - selectedOrder: Object|null - ordine più rilevante
-     *   {
-     *     id: string|number,
-     *     status: 'pending'|'confirmed'|'ready'|'picked_up'|'rejected',
-     *     statusLabel: string - label formattata per UI
-     *   }
-     */
+    // Orders preview state
     ordersPreview: {
         variant: 'login-cta',
         ordersCount: 0,
@@ -160,12 +85,7 @@ export const homeState = {
     },
 };
 
-/**
- * MUTATION HELPERS
- * 
- * Funzioni helper per modificare lo stato in modo sicuro e tracciabile.
- * Evitano mutation diretta e rendono il codice più leggibile.
- */
+// Mutation helpers
 
 /**
  * Aggiorna user state
@@ -236,10 +156,7 @@ export function mutateSelectedDay(dayId) {
  * @param {Object} ordersData - Partial<homeState.ordersPreview>
  */
 export function mutateOrdersPreview(ordersData) {
-    console.log('[mutateOrdersPreview] BEFORE mutation:', JSON.parse(JSON.stringify(homeState.ordersPreview)));
-    console.log('[mutateOrdersPreview] Applying data:', ordersData);
     homeState.ordersPreview = { ...homeState.ordersPreview, ...ordersData };
-    console.log('[mutateOrdersPreview] AFTER mutation:', JSON.parse(JSON.stringify(homeState.ordersPreview)));
 }
 
 /**

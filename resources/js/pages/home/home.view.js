@@ -1,30 +1,4 @@
-/**
- * HOME VIEW - DOM References Layer
- * 
- * RESPONSABILITÀ:
- * - Cachare riferimenti DOM per performance
- * - Fornire mounting points per i componenti
- * - Validare esistenza elementi DOM necessari
- * 
- * ARCHITETTURA:
- * - SOLO riferimenti DOM, NESSUN dato applicativo
- * - Inizializzato una volta al caricamento pagina
- * - Usato da home.render.js per passare container ai componenti
- * 
- * UTILIZZO:
- * import { homeView } from './home.view.js';
- * homeView.init(); // Inizializza refs
- * const container = homeView.refs.topBar; // Ottieni container
- */
-
 import { qs } from '../../utils/dom.js';
-
-/**
- * HOME VIEW OBJECT
- * 
- * Contiene SOLO riferimenti DOM (cached).
- * MAI dati applicativi o logica business.
- */
 export const homeView = {
     /**
      * Riferimenti DOM (cached)
@@ -68,7 +42,7 @@ export const homeView = {
      * IMPORTANTE: Chiamare prima di qualsiasi render.
      */
     init() {
-        console.log('[HomeView] Initializing DOM refs...');
+        // initialize cached DOM refs
 
         // TopBar
         this.refs.topBar = qs('[data-top-bar]');
@@ -97,8 +71,6 @@ export const homeView = {
 
         // Validazione elementi critici
         this._validateRefs();
-
-        console.log('[HomeView] DOM refs initialized');
     },
 
     /**
@@ -121,9 +93,7 @@ export const homeView = {
         ];
 
         criticalRefs.forEach(refName => {
-            if (!this.refs[refName]) {
-                console.warn(`[HomeView] Critical ref missing: ${refName}`);
-            }
+            if (!this.refs[refName]) console.warn('Missing home ref:', refName);
         });
     },
 
@@ -136,7 +106,7 @@ export const homeView = {
         Object.keys(this.refs).forEach(key => {
             this.refs[key] = null;
         });
-        console.log('[HomeView] DOM refs reset');
+        // refs reset (used in tests)
     },
 };
 

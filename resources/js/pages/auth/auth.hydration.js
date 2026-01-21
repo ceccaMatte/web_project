@@ -15,20 +15,7 @@
 
 import { authState } from './auth.state.js';
 
-/**
- * Idrata stato iniziale auth page
- * 
- * Per la pagina auth non serve fetch iniziale,
- * lo stato parte con mode: 'login' di default.
- * 
- * Questa funzione esiste per uniformità architetturale con Home.
- */
+// No network fetch required for auth page state
 export async function hydrateAuthState() {
-    console.log('[AuthHydration] Hydrating auth state...');
-    
-    // Per auth page, lo stato iniziale è già corretto
-    // Nessun fetch necessario
-    
-    console.log('[AuthHydration] Auth state hydrated:', authState);
     return true;
 }
