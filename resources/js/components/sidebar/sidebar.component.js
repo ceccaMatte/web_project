@@ -56,6 +56,13 @@ export function renderSidebar(container, overlay, props, callbacks) {
             focusTrap = createFocusTrap(container);
         }
         focusTrap.activate();
+        // AGGIUNTA: Render icona Orders SEMPRE
+        const ordersItem = container.querySelector('[data-sidebar-item="orders"]');
+        if (ordersItem && !ordersItem.querySelector('.sidebar-icon')) {
+            let iconName = icons && icons.orders ? icons.orders : 'list_alt';
+            const iconHtml = `<span class="material-symbols-outlined sidebar-icon mr-2" aria-hidden="true">${iconName}</span>`;
+            ordersItem.insertAdjacentHTML('afterbegin', iconHtml);
+        }
 
         // ESC per chiudere
         if (!escapeCleanup && onClose) {

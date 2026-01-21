@@ -101,20 +101,20 @@
                 $isCurrent = Route::currentRouteName() === $item['route'];
             @endphp
 
+            {{-- Mostra sempre l'icona per ogni voce menu, sia accessibile che disabilitata --}}
             @if($isAccessible)
-                {{-- Voce Menu Accessibile --}}
                 <a 
                     href="{{ route($item['route']) }}"
                     class="flex items-center gap-4 p-4 rounded-xl {{ $isCurrent ? 'bg-primary/10 text-primary border border-primary/20' : 'text-slate-400 hover:bg-white/5' }} transition-colors"
+                    data-sidebar-item="{{ $item['route'] }}"
                 >
                     <span class="material-symbols-outlined" style="{{ $isCurrent ? 'font-variation-settings: \'FILL\' 1' : '' }}">
-                        {{ config('ui.icons.' . $item['icon']) }}
+                        {{ config('ui.icons.' . $item['icon'], $item['icon']) }}
                     </span>
                     <span class="font-bold">{{ $item['label'] }}</span>
                 </a>
             @else
-                {{-- Voce Menu Disabilitata: mostra sempre icona --}}
-                <div class="flex items-center gap-4 p-4 rounded-xl text-slate-600 opacity-50 cursor-not-allowed">
+                <div class="flex items-center gap-4 p-4 rounded-xl text-slate-600 opacity-50 cursor-not-allowed" data-sidebar-item="{{ $item['route'] }}">
                     <span class="material-symbols-outlined">
                         {{ config('ui.icons.' . $item['icon'], $item['icon']) }}
                     </span>
