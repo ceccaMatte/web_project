@@ -48,6 +48,49 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
     }
 
     // Card container: layout verticale, min-w per scroll orizzontale
+    // Decide whether to render a <button> (used when a callback handles clicks)
+    // or an <a> link (default navigation). Preserve disabled appearance and a11y.
+    const hrefTarget = href || '/orders/create';
+
+    let actionHTML;
+    const labelText = isFullyBooked ? labels.slots.waitlist : labels.slots.book_cta;
+
+    if (onSlotClick) {
+        // Keep button that will be handled by delegated click listener
+        actionHTML = `
+            <button
+                type="button"
+                class="${ctaClasses}"
+                ${isFullyBooked || isDisabled ? 'disabled' : ''}
+                data-action="book-slot"
+                data-slot-id="${id}"
+                data-slot-href="${hrefTarget}"
+            >
+                ${labelText}
+            </button>
+        `;
+    } else {
+        // Render an anchor so clicking navigates to the create order page (or slot.href)
+        // For disabled/fully-booked, disable pointer events and add aria-disabled
+        const anchorDisabledAttrs = (isFullyBooked || isDisabled)
+            ? 'aria-disabled="true" tabindex="-1"' : '';
+        const anchorClasses = (isFullyBooked || isDisabled)
+            ? `${ctaClasses} pointer-events-none` : ctaClasses;
+
+        actionHTML = `
+            <a
+                href="${hrefTarget}"
+                class="${anchorClasses}"
+                ${anchorDisabledAttrs}
+                data-action="book-slot"
+                data-slot-id="${id}"
+                data-slot-href="${hrefTarget}"
+            >
+                ${labelText}
+            </a>
+        `;
+    }
+
     const html = `
         <div class="min-w-40 p-4 rounded-2xl border border-border-dark bg-surface-dark flex flex-col gap-4 shadow-lg ${cardOpacity}" aria-label="${ariaLabel}">
             <div>
@@ -56,15 +99,7 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
                     ${isFullyBooked ? labels.slots.fully_booked : labels.slots.slots_left(slotsLeft)}
                 </p>
             </div>
-            <button
-                type="button"
-                class="${ctaClasses}"
-                ${isFullyBooked || isDisabled ? 'disabled' : ''}
-                data-action="book-slot"
-                data-slot-id="${id}"
-            >
-                ${isFullyBooked ? labels.slots.waitlist : labels.slots.book_cta}
-            </button>
+            ${actionHTML}
         </div>
     `;
 
