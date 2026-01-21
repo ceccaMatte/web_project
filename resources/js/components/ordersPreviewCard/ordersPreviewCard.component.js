@@ -1,23 +1,7 @@
-// Utility per formattare orario HH:mm:ss -> HH:mm
 function formatStatusLabel(label) {
     if (!label) return '';
-    // Cerca pattern orario hh:mm:ss e lo sostituisce con hh:mm
     return label.replace(/(\d{1,2}:\d{2}):(\d{2})/g, '$1');
 }
-/**
- * ORDERS PREVIEW CARD COMPONENT
- * 
- * RESPONSABILITÀ:
- * - Renderizza card preview ordini
- * - Varianti: login-cta, empty, single, multi
- * 
- * PROPS:
- * - variant: 'login-cta' | 'empty' | 'single' | 'multi'
- * - ordersCount: number
- * - selectedOrder: {id, status, statusLabel} | null
- * 
- * CALLBACKS: nessuno (usano href)
- */
 
 import { icons, labels, colors, a11y } from '../../config/ui.config.js';
 import { safeInnerHTML } from '../../utils/dom.js';
@@ -27,16 +11,7 @@ export function renderOrdersPreviewCard(container, props) {
 
     const { variant, ordersCount, selectedOrder } = props;
 
-    console.log('[OrdersPreviewCard] ========== RENDER START ==========');
-    console.log('[OrdersPreviewCard] Props received:', {
-        variant,
-        ordersCount,
-        selectedOrder: selectedOrder ? {
-            id: selectedOrder.id,
-            status: selectedOrder.status,
-            statusLabel: selectedOrder.statusLabel
-        } : null
-    });
+    // render preview card
 
     const statusColors = colors.status;
     
@@ -61,7 +36,7 @@ export function renderOrdersPreviewCard(container, props) {
     const ariaLabel = getAriaLabel();
 
     if (variant === 'login-cta') {
-        console.log('[OrdersPreviewCard] Rendering variant: LOGIN-CTA');
+        // LOGIN-CTA
         html = `
             <a href="${href}" class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform rounded-xl" aria-label="${ariaLabel}">
                 <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
@@ -78,7 +53,7 @@ export function renderOrdersPreviewCard(container, props) {
             </a>
         `;
     } else if (variant === 'empty') {
-        console.log('[OrdersPreviewCard] Rendering variant: EMPTY');
+        // EMPTY
         html = `
             <a href="${href}" class="block relative h-[92px] w-full cursor-pointer active:scale-[0.98] transition-transform rounded-xl" aria-label="${ariaLabel}">
                 <div class="relative z-20 h-full p-4 rounded-xl border border-border-dark bg-surface-dark flex items-center justify-between shadow-2xl">
@@ -96,8 +71,7 @@ export function renderOrdersPreviewCard(container, props) {
             </a>
         `;
     } else if (variant === 'single' && selectedOrder) {
-        console.log('[OrdersPreviewCard] Rendering variant: SINGLE');
-        console.log('[OrdersPreviewCard] Order status:', selectedOrder.status);
+        // SINGLE
         const colorSet = statusColors[selectedOrder.status] || statusColors.pending;
         const pulseClass = selectedOrder.status === 'ready' ? 'animate-pulse' : '';
         html = `
@@ -120,9 +94,7 @@ export function renderOrdersPreviewCard(container, props) {
             </a>
         `;
     } else if (variant === 'multi' && selectedOrder) {
-        console.log('[OrdersPreviewCard] Rendering variant: MULTI');
-        console.log('[OrdersPreviewCard] Orders count:', ordersCount);
-        console.log('[OrdersPreviewCard] Selected order status:', selectedOrder.status);
+        // MULTI
         const colorSet = statusColors[selectedOrder.status] || statusColors.pending;
         const pulseClass = selectedOrder.status === 'ready' ? 'animate-pulse' : '';
         html = `
@@ -150,17 +122,10 @@ export function renderOrdersPreviewCard(container, props) {
             </a>
         `;
     } else {
-        console.warn('[OrdersPreviewCard] ⚠️ NO VARIANT MATCHED!', {
-            variant,
-            hasSelectedOrder: !!selectedOrder,
-        });
+        console.warn('[OrdersPreviewCard] NO VARIANT MATCHED', { variant, hasSelectedOrder: !!selectedOrder });
     }
 
-    console.log('[OrdersPreviewCard] HTML length:', html.length);
-    console.log('[OrdersPreviewCard] HTML preview (first 100 chars):', html.substring(0, 100));
-
     safeInnerHTML(container, html);
-    console.log(`[OrdersPreviewCard] ========== RENDER END (${variant}) ==========`);
 }
 
 export default { renderOrdersPreviewCard };

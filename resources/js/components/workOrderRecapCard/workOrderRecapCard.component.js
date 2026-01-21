@@ -1,22 +1,4 @@
-/**
- * WORK ORDER RECAP CARD COMPONENT
- * 
- * RESPONSABILITÀ:
- * - Renderizza dettagli completi di un ordine selezionato
- * - Mostra: numero, status, utente, time slot, ingredienti per categoria
- * - Azioni: avanza stato, chiudi
- * - Usato sia in sidebar desktop che in modal mobile
- * 
- * PROPS:
- * - order: { id, daily_number, status, time_slot, user, ingredients, created_at }
- * 
- * CALLBACKS:
- * - onClose: () => void
- * - onChangeStatus: (orderId, newStatus) => void
- * 
- * UTILIZZO:
- * buildWorkOrderRecapCardHTML(order)
- */
+// Recap card for selected work order
 
 import { buildOrderIngredientsSectionHTML } from '../orderIngredientsSection/orderIngredientsSection.component.js';
 import { workServiceState } from '../../pages/admin-work-service/adminWorkService.state.js';
@@ -168,82 +150,49 @@ let _storedCallbacks = null;
  */
 function setupEventDelegation(container) {
     // Check if already setup
-    if (container.dataset.delegationSetup === 'true') {
-        console.log('[WorkOrderRecapCard] 🔁 Event delegation already setup, skipping');
-        return;
-    }
-    
-    console.log('[WorkOrderRecapCard] 🎯 Setting up EVENT DELEGATION on container');
-    
-    // Mark as setup
+    if (container.dataset.delegationSetup === 'true') return;
+
     container.dataset.delegationSetup = 'true';
-    
-    // Single delegated click handler for ALL buttons
+
     container.addEventListener('click', (e) => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
-        
+
         const action = target.dataset.action;
-        console.log('[WorkOrderRecapCard] 🖱️ DELEGATED CLICK:', action);
-        
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (action === 'change-status') {
-            console.log('[WorkOrderRecapCard] 🎯 CTA BUTTON CLICKED!');
             const orderId = parseInt(target.dataset.orderId, 10);
             const newStatus = target.dataset.newStatus;
-            console.log('[WorkOrderRecapCard] 📊 CTA data:', { orderId, newStatus });
-            
-            if (_storedCallbacks?.onChangeStatus) {
-                console.log('[WorkOrderRecapCard] ✅ Calling onChangeStatus...');
-                _storedCallbacks.onChangeStatus(orderId, newStatus);
-            } else {
-                console.error('[WorkOrderRecapCard] ❌ No callback available!');
-            }
+            if (_storedCallbacks?.onChangeStatus) _storedCallbacks.onChangeStatus(orderId, newStatus);
+            return;
         }
-        
+
         if (action === 'toggle-status-dropdown') {
-            console.log('[WorkOrderRecapCard] 🎯 DROPDOWN TOGGLE CLICKED!');
-            console.log('[WorkOrderRecapCard] 📊 Current state:', workServiceState.isStatusDropdownOpen);
             workServiceState.isStatusDropdownOpen = !workServiceState.isStatusDropdownOpen;
-            console.log('[WorkOrderRecapCard] 📊 New state:', workServiceState.isStatusDropdownOpen);
-            // Re-render needed to show/hide dropdown
             const contentEl = container.querySelector('[data-recap-content]');
             const order = workServiceState.orders?.find(o => o.id === workServiceState.selectedOrderId);
-            if (contentEl && order) {
-                contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
-            }
+            if (contentEl && order) contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
+            return;
         }
-        
+
         if (action === 'select-status') {
-            console.log('[WorkOrderRecapCard] 🎯 STATUS OPTION CLICKED!');
             const orderId = parseInt(target.dataset.orderId, 10);
             const newStatus = target.dataset.status;
-            console.log('[WorkOrderRecapCard] 📊 Selected:', { orderId, newStatus });
-            
             workServiceState.isStatusDropdownOpen = false;
-            
-            if (_storedCallbacks?.onChangeStatus) {
-                console.log('[WorkOrderRecapCard] ✅ Calling onChangeStatus...');
-                _storedCallbacks.onChangeStatus(orderId, newStatus);
-            } else {
-                console.error('[WorkOrderRecapCard] ❌ No callback available!');
-            }
+            if (_storedCallbacks?.onChangeStatus) _storedCallbacks.onChangeStatus(orderId, newStatus);
+            return;
         }
-        
+
         if (action === 'toggle-recap-expansion') {
-            console.log('[WorkOrderRecapCard] 🎯 EXPANSION TOGGLE CLICKED!');
             workServiceState.recapCardExpanded = !workServiceState.recapCardExpanded;
             const contentEl = container.querySelector('[data-recap-content]');
             const order = workServiceState.orders?.find(o => o.id === workServiceState.selectedOrderId);
-            if (contentEl && order) {
-                contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
-            }
+            if (contentEl && order) contentEl.innerHTML = buildWorkOrderRecapCardHTML(order, workServiceState.recapCardExpanded);
+            return;
         }
     });
-    
-    console.log('[WorkOrderRecapCard] ✅ Event delegation setup complete');
 }
 
 /**

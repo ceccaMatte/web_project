@@ -1,23 +1,4 @@
-/**
- * SIDEBAR COMPONENT
- * 
- * RESPONSABILITÀ:
- * - Renderizza sidebar con overlay
- * - Gestisce chiusura (X, overlay click, ESC)
- * - Focus trap quando aperta
- * 
- * ARCHITETTURA:
- * - Stateless component (props + callbacks)
- * - Accessibilità: focus trap, ESC, aria-*
- * - Event delegation locale
- * 
- * PROPS:
- * - open: boolean
- * - user: { authenticated, name }
- * 
- * CALLBACKS:
- * - onClose: () => void
- */
+// Sidebar renderer (stateless)
 
 import { icons, labels, a11y } from '../../config/ui.config.js';
 import { addClass, removeClass, listen } from '../../utils/dom.js';
@@ -84,8 +65,7 @@ export function renderSidebar(container, overlay, props, callbacks) {
         const closeButton = container.querySelector('[data-action="close-sidebar"]');
         if (closeButton && onClose) {
             closeButtonCleanup = listen(closeButton, 'click', (e) => {
-                e.stopPropagation(); // Previeni event bubbling
-                console.log('[Sidebar] Close button clicked');
+                e.stopPropagation();
                 onClose();
             });
         }
@@ -111,7 +91,7 @@ export function renderSidebar(container, overlay, props, callbacks) {
         }
     }
 
-    console.log(`[Sidebar] Rendered (${open ? 'open' : 'closed'})`);
+    // render complete
 }
 
 /**

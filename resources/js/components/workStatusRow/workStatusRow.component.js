@@ -1,24 +1,4 @@
-/**
- * WORK STATUS ROW COMPONENT
- * 
- * RESPONSABILITÀ:
- * - Renderizza una riga della pipeline per uno status specifico
- * - Header con icona, label, contatore
- * - Griglia di order cards
- * 
- * PROPS:
- * - status: 'confirmed' | 'ready' | 'picked_up'
- * - orders: Array<Order>
- * - selectedOrderId: number | null
- * - emptyMessage: string
- * 
- * CALLBACKS:
- * - onSelectOrder: (orderId) => void
- * - onChangeStatus: (orderId, newStatus) => void
- * 
- * UTILIZZO:
- * renderWorkStatusRow(container, { status, orders, selectedOrderId }, callbacks)
- */
+// Row renderer for a single work status column
 
 import { buildWorkOrderCardHTML } from '../workOrderCard/workOrderCard.component.js';
 import { renderWorkOrderCard } from '../workOrderCard/workOrderCard.component.js';
@@ -98,11 +78,9 @@ export function renderWorkStatusRow(container, props, callbacks) {
 
     ordersContainer.innerHTML = cardsHTML;
 
-    // SINGLETON LISTENER PATTERN:
-    // Registra listener SOLO se non già registrato per questo container
-    // Salva i callbacks nel registry così possono essere aggiornati senza riregistrare
+    // Evita registrazioni duplicate dei listener
     if (!listenerRegistry.has(ordersContainer)) {
-        // Prima registrazione: crea entry nel registry e registra listeners
+        // Prima registrazione
         listenerRegistry.set(ordersContainer, { onSelectOrder, onChangeStatus });
         
         // Click handler delegato - legge callbacks dal registry
@@ -145,11 +123,8 @@ export function renderWorkStatusRow(container, props, callbacks) {
             }
         });
     } else {
-        // Listener già registrato: aggiorna solo i callbacks nel registry
         listenerRegistry.set(ordersContainer, { onSelectOrder, onChangeStatus });
     }
-
-    console.log(`[WorkStatusRow] Rendered ${status} (${count} orders)`);
 }
 
 export default { renderWorkStatusRow };

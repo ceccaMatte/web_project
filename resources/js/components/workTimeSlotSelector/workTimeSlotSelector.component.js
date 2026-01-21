@@ -1,21 +1,4 @@
-/**
- * WORK TIME SLOT SELECTOR COMPONENT
- * 
- * RESPONSABILITÀ:
- * - Renderizza lista orizzontale di time slot cards
- * - Bottone "All" per vedere tutti gli slot
- * - Gestisce selezione singola
- * 
- * PROPS:
- * - timeSlots: Array<{ id, start_time, end_time, counts }>
- * - selectedSlotId: number | 'all' | null
- * 
- * CALLBACKS:
- * - onSlotSelect: (slotId: number | 'all') => void
- * 
- * UTILIZZO:
- * renderWorkTimeSlotSelector(container, { timeSlots, selectedSlotId }, { onSlotSelect })
- */
+// Selector for admin work time slots
 
 import { buildWorkTimeSlotCardHTML } from '../workTimeSlotCard/workTimeSlotCard.component.js';
 import { listen } from '../../utils/dom.js';
@@ -166,31 +149,14 @@ export function renderWorkTimeSlotSelector(container, props, callbacks) {
                 const slotId = button.dataset.slotId;
                 const parsedSlotId = slotId === 'all' ? 'all' : parseInt(slotId, 10);
                 
-                console.log(`[WorkTimeSlotSelector] 🖱️  CLICK detected on time slot button`);
-                console.log(`[WorkTimeSlotSelector] 📋 Slot data:`, {
-                    rawSlotId: slotId,
-                    parsedSlotId: parsedSlotId,
-                    currentlySelected: selectedSlotId,
-                    buttonElement: button,
-                    timestamp: new Date().toISOString()
-                });
-                
-                const startTime = performance.now();
-                console.log(`[WorkTimeSlotSelector] ⚡ Calling onSlotSelect at ${startTime}ms`);
-                
                 try {
                     onSlotSelect(parsedSlotId);
-                    const endTime = performance.now();
-                    console.log(`[WorkTimeSlotSelector] ✅ onSlotSelect completed in ${(endTime - startTime).toFixed(2)}ms`);
                 } catch (error) {
-                    const endTime = performance.now();
-                    console.error(`[WorkTimeSlotSelector] ❌ onSlotSelect failed after ${(endTime - startTime).toFixed(2)}ms:`, error);
+                    console.error(error);
                 }
             }
         });
     }
-
-    console.log(`[WorkTimeSlotSelector] Rendered (${timeSlots.length} slots, selected: ${selectedSlotId})`);
 }
 
 export default { renderWorkTimeSlotSelector };

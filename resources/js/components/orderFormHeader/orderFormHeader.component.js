@@ -1,16 +1,4 @@
-/**
- * ORDER FORM HEADER COMPONENT
- * 
- * RESPONSABILITÀ:
- * - Renderizza header con back button e titolo
- * - Identico stile Orders header
- * 
- * PROPS:
- * - title: string ('Create Order' | 'Modify Order')
- * 
- * CALLBACKS:
- * - onBack: () => void
- */
+// Header for order form pages
 
 import { safeInnerHTML, listen } from '../../utils/dom.js';
 
@@ -62,7 +50,7 @@ export function renderOrderFormHeader(container, props, callbacks) {
         });
     }
 
-    console.log('[OrderFormHeader] Rendered');
+    // rendered
 }
 
 export default { renderOrderFormHeader };
