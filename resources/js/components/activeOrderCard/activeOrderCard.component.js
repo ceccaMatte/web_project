@@ -1,3 +1,4 @@
+import { getStatusClasses } from '../../config/orderStatus.config.js';
 /**
  * ACTIVE ORDER CARD COMPONENT
  * 
@@ -76,11 +77,13 @@ export function buildActiveOrderCardHTML(props, callbacks) {
         const showIngredients = isExpanded;
         const isPending = statusLabel && statusLabel.toLowerCase() === 'pending';
 
+            // Ottengo la palette badgeClass dallo stato ordine
+            const badgeClass = getStatusClasses(order.status).badgeClass;
         return `
             <div class="carousel-card carousel-card-active" data-order-id="${id}" data-mode="active">
                 <div class="bg-card-dark rounded-[2.5rem] p-7 border border-slate-800 relative overflow-hidden">
                     <div class="flex justify-between items-center mb-6">
-                        <span class="px-4 py-1.5 rounded-full ${statusColors.bg || 'bg-orange-100 dark:bg-orange-500/20'} ${statusColors.text || 'text-orange-600 dark:text-orange-400'} text-[11px] font-bold uppercase tracking-widest">
+                        <span class="px-4 py-1.5 rounded-full ${badgeClass} text-[11px] font-bold uppercase tracking-widest">
                             ${statusLabel}
                         </span>
                         <span class="text-[10px] font-medium text-slate-400">${formatTimeSlot(time_slot)}</span>
