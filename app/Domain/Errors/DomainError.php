@@ -42,46 +42,16 @@ use Exception;
  * Controller:
  *   try {
  *       $this->orderService->createOrder(...);
- *   } catch (DomainError $e) {
- *       return response()->json([
- *           'code' => $e->code(),
- *           'message' => $e->message(),
- *       ], $e->httpStatus());
- *   }
- */
+<?php
+
+namespace App\Domain\Errors;
+
+use Exception;
+
 abstract class DomainError extends Exception
 {
-    /**
-     * Codice identificativo stabile dell'errore.
-     * 
-     * Esempi: 'SLOT_FULL', 'ORDER_NOT_MODIFIABLE', 'UNAUTHORIZED_ACCESS'
-     * 
-     * Il codice è usato:
-     * - dal client per identificare il tipo di errore
-     * - nei log per filtrare e aggregare errori
-     * - nei test per verificare l'errore corretto
-     */
     abstract public function code(): string;
-
-    /**
-     * Messaggio leggibile dell'errore (in italiano).
-     * 
-     * Destinato all'utente finale o allo sviluppatore.
-     * Deve essere chiaro e indicare cosa è andato storto.
-     */
     abstract public function message(): string;
-
-    /**
-     * Status HTTP da restituire quando l'errore viene convertito in risposta HTTP.
-     * 
-     * Mapping comune:
-     * - 400 Bad Request: errore generico client
-     * - 401 Unauthorized: manca autenticazione
-     * - 403 Forbidden: autenticato ma non autorizzato
-     * - 404 Not Found: risorsa non trovata
-     * - 409 Conflict: conflitto con lo stato attuale (es. slot pieno)
-     * - 422 Unprocessable Entity: validazione fallita o stato non valido
-     * - 500 Internal Server Error: errore server (NON usare per errori di dominio)
-     */
     abstract public function httpStatus(): int;
 }
+     * Esempi: 'SLOT_FULL', 'ORDER_NOT_MODIFIABLE', 'UNAUTHORIZED_ACCESS'
