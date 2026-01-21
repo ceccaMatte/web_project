@@ -114,7 +114,7 @@ export function renderDayConfigCard(container, props, callbacks) {
             }
         </style>
         <div class="bg-card-dark border border-border-dark rounded-2xl p-4 transition-all ${cardOpacity}" data-day-card="${date}">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between ${isActive ? 'mb-4' : ''}">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl ${badgeColor} border flex flex-col items-center justify-center">
                         <span class="text-[9px] font-bold uppercase text-white">${dayNameShort}</span>

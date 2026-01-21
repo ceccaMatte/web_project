@@ -165,8 +165,11 @@ class HomeService
                 'weekday' => strtoupper($currentDay->format('D')),
                 'dayNumber' => $currentDay->format('j'),
                 'isToday' => $currentDay->isToday(),
-                'isActive' => $workingDay !== null,
-                'isDisabled' => $workingDay === null || ($currentDay->isPast() && !$currentDay->isToday()),
+                // Considera attivo SOLO se esiste il working_day E il suo flag is_active è true
+                'isActive' => $workingDay !== null && (bool) ($workingDay->is_active ?? false),
+                // Disabled se non esiste il working_day, o il working_day esiste ma è stato disattivato,
+                // oppure se la data è nel passato (escluso oggi)
+                'isDisabled' => $workingDay === null || !((bool) ($workingDay->is_active ?? false)) || ($currentDay->isPast() && !$currentDay->isToday()),
                 'isSelected' => $currentDay->isToday(), // Sempre oggi selezionato
             ];
 
