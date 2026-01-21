@@ -235,7 +235,15 @@ export async function loadInitialTimeSlots() {
     }
     
     if (targetDate) {
-        await loadTimeSlots(targetDate);
+        // If time slots for the selected date are already hydrated (from initialTimeSlots), skip fetch
+        if (homeState.timeSlots && homeState.timeSlots.length > 0 && homeState.selectedDate === targetDate) {
+            console.log('[Actions] Time slots already present from hydration, skipping fetch');
+            // Ensure UI is rendered with the existing slots
+            renderBookingHeader();
+            renderTimeSlots();
+        } else {
+            await loadTimeSlots(targetDate);
+        }
     } else {
         console.warn('[Actions] No active days found, skipping time slots loading');
         mutateTimeSlots({ 

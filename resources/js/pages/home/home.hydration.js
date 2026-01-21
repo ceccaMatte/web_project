@@ -21,7 +21,7 @@
  * hydrateHomeState(apiData);
  */
 
-import { homeState } from './home.state.js';
+import { homeState, mutateTimeSlots } from './home.state.js';
 import { fetchHome } from './home.api.js';
 
 /**
@@ -139,6 +139,13 @@ export function hydrateHomeState(data) {
                 ? data.booking.slots 
                 : [],
         };
+    }
+
+    // Initial time slots for the selected day (populated by backend to avoid extra fetch)
+    if (data.initialTimeSlots && Array.isArray(data.initialTimeSlots)) {
+        // Map backend shape directly into timeSlots state (frontend expects similar shape)
+        mutateTimeSlots({ timeSlots: data.initialTimeSlots, loading: false, error: null });
+        console.debug('[Hydration] Initial time slots hydrated:', data.initialTimeSlots.length);
     }
 
     console.log('[Hydration] Home state hydrated successfully');

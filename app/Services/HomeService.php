@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\TimeSlot;
 use App\Models\WorkingDay;
 use App\Services\SchedulerService;
+use App\Services\OrderFormService;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -38,12 +39,23 @@ class HomeService
      */
     public function buildHomePayload(): array
     {
+        $scheduler = $this->buildSchedulerSection();
+
+        // Include initial time slots for the selected day to avoid an extra fetch
+        $selectedDay = $scheduler['selectedDayId'] ?? null;
+        $initialTimeSlots = [];
+        if ($selectedDay) {
+            // Use OrderFormService to get slots for the date (reuse existing logic)
+            $initialTimeSlots = app(OrderFormService::class)->getTimeSlotsForDate($selectedDay);
+        }
+
         return [
             'user' => $this->buildUserSection(),
             'todayService' => $this->buildTodayServiceSection(),
-            'scheduler' => $this->buildSchedulerSection(),
+            'scheduler' => $scheduler,
             'ordersPreview' => $this->buildOrdersPreviewSection(),
             'booking' => $this->buildBookingSection(),
+            'initialTimeSlots' => $initialTimeSlots,
         ];
     }
 
