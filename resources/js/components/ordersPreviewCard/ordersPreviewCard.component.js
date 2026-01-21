@@ -1,3 +1,9 @@
+// Utility per formattare orario HH:mm:ss -> HH:mm
+function formatStatusLabel(label) {
+    if (!label) return '';
+    // Cerca pattern orario hh:mm:ss e lo sostituisce con hh:mm
+    return label.replace(/(\d{1,2}:\d{2}):(\d{2})/g, '$1');
+}
 /**
  * ORDERS PREVIEW CARD COMPONENT
  * 
@@ -105,7 +111,7 @@ export function renderOrdersPreviewCard(container, props) {
                             <p class="text-white text-sm font-bold">${labels.orders.order_id(selectedOrder.id)}</p>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="size-1.5 rounded-full ${colorSet.dot} ${pulseClass}"></span>
-                                <p class="${colorSet.text} text-[10px] font-bold uppercase tracking-wider">${selectedOrder.statusLabel}</p>
+                                <p class="${colorSet.text} text-[10px] font-bold uppercase tracking-wider">${formatStatusLabel(selectedOrder.statusLabel)}</p>
                             </div>
                         </div>
                     </div>
@@ -135,7 +141,7 @@ export function renderOrdersPreviewCard(container, props) {
                             <p class="text-white text-sm font-bold">${labels.orders.order_id(selectedOrder.id)}</p>
                             <div class="flex items-center gap-1.5 mt-0.5">
                                 <span class="size-1.5 rounded-full ${colorSet.dot} ${pulseClass}"></span>
-                                <p class="${colorSet.text} text-[10px] font-bold uppercase tracking-wider">${selectedOrder.statusLabel}</p>
+                                <p class="${colorSet.text} text-[10px] font-bold uppercase tracking-wider">${formatStatusLabel(selectedOrder.statusLabel)}</p>
                             </div>
                         </div>
                     </div>
