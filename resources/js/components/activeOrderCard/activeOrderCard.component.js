@@ -86,7 +86,7 @@ export function buildActiveOrderCardHTML(props, callbacks) {
                         <span class="px-4 py-1.5 rounded-full ${badgeClass} text-[11px] font-bold uppercase tracking-widest">
                             ${statusLabel}
                         </span>
-                        <span class="text-[10px] font-medium text-slate-400">${formatTimeSlot(time_slot)}</span>
+                        <span class="text-[12px] font-medium text-slate-400">${formatTimeSlot(time_slot)}</span>
                     </div>
                     <div class="w-full aspect-square rounded-[2rem] overflow-hidden bg-slate-800 mb-6 shadow-2xl ring-4 ring-white/5">
                         <img alt="Order Item" class="w-full h-full object-cover" src="./img/panino.png" />
@@ -133,9 +133,11 @@ function formatTimeSlot(timeSlot) {
         const parts = timeSlot.split(':');
         let hours = parseInt(parts[0], 10);
         const minutes = parts[1];
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        return `${hours}:${minutes} ${ampm}`;
+        // const ampm = hours >= 12 ? 'PM' : 'AM';
+        // hours = hours % 12 || 12;
+        // return `${hours}:${minutes} ${ampm}`;
+        return `${hours}:${minutes}`;
+
     } catch {
         return timeSlot;
     }
