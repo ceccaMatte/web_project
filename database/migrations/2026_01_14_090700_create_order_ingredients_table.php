@@ -6,30 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * La tabella order_ingredients rappresenta lo snapshot
-     * degli ingredienti di un ordine nel momento della conferma.
-     */
     public function up(): void
     {
         Schema::create('order_ingredients', function (Blueprint $table) {
-
             $table->id();
-
-            // Ordine di appartenenza
-            // Se l'ordine viene eliminato, anche lo snapshot sparisce
             $table->foreignId('order_id')
                   ->constrained()
                   ->cascadeOnDelete();
-
-            // Nome dell'ingrediente al momento dell'ordine
-            // IMPORTANTE: questo è uno SNAPSHOT, non una relazione live
-            // Se l'ingrediente viene rinominato o eliminato in futuro,
-            // questo valore resta immutato per preservare lo storico
+            // Snapshot of ingredient data for the order
             $table->string('name');
-
-            // Categoria dell'ingrediente al momento dell'ordine
-            // Anche la categoria è uno snapshot
             $table->enum('category', [
                 'bread',
                 'meat',
@@ -38,10 +23,6 @@ return new class extends Migration
                 'sauce',
                 'other'
             ]);
-
-            // NON esiste un timestamp su questa tabella
-            // perché usa i timestamp dell'ordine padre
-
         });
     }
 

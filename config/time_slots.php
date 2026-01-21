@@ -10,11 +10,6 @@
  */
 
 return [
-    /**
-     * Durata in minuti di ogni slot temporale.
-     * 
-     * Valore fisso: 15 minuti
-     * Non modificabile a runtime per mantenere coerenza del sistema.
-     */
+    // Slot duration fixed to 15 minutes
     'duration_minutes' => 15,
 ];
