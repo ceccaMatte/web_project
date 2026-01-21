@@ -71,7 +71,7 @@
                 <p class="text-xs text-slate-500 uppercase tracking-wider">{{ $user['role'] }}</p>
             </div>
         </div>
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" data-action="logout">
             @csrf
             <button type="submit" class="flex items-center gap-2 w-full px-4 py-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors">
                 <span class="material-symbols-outlined text-lg">logout</span>

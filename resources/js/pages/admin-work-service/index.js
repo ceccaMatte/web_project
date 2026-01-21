@@ -27,6 +27,7 @@
  */
 
 import { workServiceView } from './adminWorkService.view.js';
+import { logoutUser } from '../home/home.api.js';
 import { workServiceState, mutateLoading } from './adminWorkService.state.js';
 import { hydrateUserFromDOM, hydrateSchedulerFromDOM, refreshWorkServiceState, pollRefresh } from './adminWorkService.hydration.js';
 import { closeRecapModal, changeStatus } from './adminWorkService.actions.js';
@@ -271,6 +272,25 @@ function registerGlobalEventDelegation() {
         if (action === 'close-sidebar') {
             event.preventDefault();
             closeSidebar();
+            return;
+        }
+
+        // Logout (client-side flow similar to Orders page)
+        if (action === 'logout') {
+            event.preventDefault();
+            (async () => {
+                try {
+                    const response = await logoutUser();
+                    if (response && response.success) {
+                        // Optionally update client state here
+                        window.location.href = '/';
+                    } else {
+                        console.error('[AdminWorkService] Logout failed', response);
+                    }
+                } catch (err) {
+                    console.error('[AdminWorkService] Logout request error', err);
+                }
+            })();
             return;
         }
 
