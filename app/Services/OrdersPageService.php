@@ -64,51 +64,9 @@ class OrdersPageService
      */
     private function buildSchedulerSection(): array
     {
-        $today = now();
-        $startOfWeek = $today->copy()->startOfWeek(); // Lunedì
-        $endOfWeek = $today->copy()->endOfWeek(); // Domenica
-
-        // Carichiamo tutti i working_days della settimana
-        $workingDays = WorkingDay::where('day', '>=', $startOfWeek->toDateString())
-            ->where('day', '<=', $endOfWeek->toDateString())
-            ->get()
-            ->keyBy(function ($workingDay) {
-                return $workingDay->day->toDateString();
-            });
-
-        $weekDays = [];
-        $currentDay = $startOfWeek->copy();
-
-        while ($currentDay <= $endOfWeek) {
-            $dateString = $currentDay->toDateString();
-            $workingDay = $workingDays->get($dateString);
-
-            $weekDays[] = [
-                'id' => $dateString,
-                'weekday' => strtoupper($currentDay->format('D')),
-                'dayNumber' => $currentDay->format('j'),
-                'isToday' => $currentDay->isToday(),
-                'isActive' => $workingDay !== null,
-                'isDisabled' => $workingDay === null || ($currentDay->isPast() && !$currentDay->isToday()),
-                'isSelected' => $currentDay->isToday(),
-            ];
-
-            $currentDay->addDay();
-        }
-
-        // Trova il primo giorno attivo (non disabled) per la selezione di default
-        // Preferisci oggi se attivo, altrimenti il primo futuro attivo
-        $todayActive = collect($weekDays)->firstWhere(function ($day) {
-            return $day['isToday'] && $day['isActive'];
-        });
-        $firstActiveDay = $todayActive ?: collect($weekDays)->firstWhere('isActive');
-        $selectedDayId = $firstActiveDay ? $firstActiveDay['id'] : $today->toDateString();
-
-        return [
-            'selectedDayId' => $selectedDayId,
-            'monthLabel' => $today->format('F Y'),
-            'weekDays' => $weekDays,
-        ];
+        // Delegate allo SchedulerService (shared logic)
+        $scheduler = app(SchedulerService::class)->buildWeekScheduler();
+        return $scheduler;
     }
 
     /**

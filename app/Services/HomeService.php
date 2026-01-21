@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\TimeSlot;
 use App\Models\WorkingDay;
+use App\Services\SchedulerService;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -139,56 +140,16 @@ class HomeService
      *
      * @return array
      */
+    private SchedulerService $schedulerService;
+
+    public function __construct(SchedulerService $schedulerService)
+    {
+        $this->schedulerService = $schedulerService;
+    }
+
     private function buildSchedulerSection(): array
     {
-        $today = now();
-        $startOfWeek = $today->copy()->startOfWeek(); // Lunedì
-        $endOfWeek = $today->copy()->endOfWeek(); // Domenica
-
-        // Carichiamo tutti i working_days della settimana
-        $workingDays = WorkingDay::where('day', '>=', $startOfWeek->toDateString())
-            ->where('day', '<=', $endOfWeek->toDateString())
-            ->get()
-            ->keyBy(function ($workingDay) {
-                return $workingDay->day->toDateString();
-            });
-
-        $weekDays = [];
-        $currentDay = $startOfWeek->copy();
-
-        while ($currentDay <= $endOfWeek) {
-            $dateString = $currentDay->toDateString();
-            $workingDay = $workingDays->get($dateString);
-
-            $weekDays[] = [
-                'id' => $dateString,
-                'weekday' => strtoupper($currentDay->format('D')),
-                'dayNumber' => $currentDay->format('j'),
-                'isToday' => $currentDay->isToday(),
-                // Considera attivo SOLO se esiste il working_day E il suo flag is_active è true
-                'isActive' => $workingDay !== null && (bool) ($workingDay->is_active ?? false),
-                // Disabled se non esiste il working_day, o il working_day esiste ma è stato disattivato,
-                // oppure se la data è nel passato (escluso oggi)
-                'isDisabled' => $workingDay === null || !((bool) ($workingDay->is_active ?? false)) || ($currentDay->isPast() && !$currentDay->isToday()),
-                'isSelected' => $currentDay->isToday(), // Sempre oggi selezionato
-            ];
-
-            $currentDay->addDay();
-        }
-
-        // Trova il primo giorno attivo (non disabled) per la selezione di default
-        // Preferisci oggi se attivo, altrimenti il primo futuro attivo
-        $todayActive = collect($weekDays)->firstWhere(function ($day) {
-            return $day['isToday'] && $day['isActive'];
-        });
-        $firstActiveDay = $todayActive ?: collect($weekDays)->firstWhere('isActive');
-        $selectedDayId = $firstActiveDay ? $firstActiveDay['id'] : $today->toDateString();
-
-        return [
-            'selectedDayId' => $selectedDayId,
-            'monthLabel' => $today->format('F Y'),
-            'weekDays' => $weekDays,
-        ];
+        return $this->schedulerService->buildWeekScheduler();
     }
 
     /**

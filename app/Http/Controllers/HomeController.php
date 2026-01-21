@@ -179,42 +179,8 @@ class HomeController extends Controller
      */
     private function getWeekDaysData(?array $todayWorkingDay, array $futureWorkingDays): array
     {
-        $today = today();
-        $days = [];
-        
-        // Simula giorni attivi (TODO: usare $futureWorkingDays reali)
-        // Per ora: lun-ven attivi, weekend no
-        $activeDays = [
-            $today->copy()->format('Y-m-d'), // Oggi
-            $today->copy()->addDays(1)->format('Y-m-d'),
-            $today->copy()->addDays(2)->format('Y-m-d'),
-            $today->copy()->addDays(4)->format('Y-m-d'), // Salta weekend
-        ];
-
-        for ($i = 0; $i < 7; $i++) {
-            $date = $today->copy()->addDays($i);
-            $dateString = $date->format('Y-m-d');
-            $isToday = $i === 0;
-            $isPast = $date->isPast() && !$isToday;
-            $isActive = in_array($dateString, $activeDays) && !$isPast;
-            $isDisabled = $isPast || !$isActive;
-
-            $days[] = [
-                'id' => $dateString,
-                'weekday' => strtoupper($date->format('D')),
-                'dayNumber' => $date->format('d'),
-                'isToday' => $isToday,
-                'isActive' => $isActive,
-                'isDisabled' => $isDisabled,
-                'isSelected' => $isToday, // Default: today è selezionato
-            ];
-        }
-
-        return [
-            'monthLabel' => $today->format('F Y'),
-            'days' => $days,
-            'selectedDayId' => $today->format('Y-m-d'), // Default selection
-        ];
+        // Delegate to shared SchedulerService so server-render and API use same logic
+        return app(\App\Services\SchedulerService::class)->buildWeekScheduler();
     }
 
     /**
@@ -236,7 +202,7 @@ class HomeController extends Controller
      */
     public function apiIndex()
     {
-        $homeService = new HomeService();
+        $homeService = app(HomeService::class);
         $payload = $homeService->buildHomePayload();
 
         return response()->json($payload);

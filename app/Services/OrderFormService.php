@@ -6,6 +6,7 @@ use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\TimeSlot;
 use App\Models\WorkingDay;
+use App\Services\SchedulerService;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -23,6 +24,12 @@ use Illuminate\Support\Facades\Auth;
  */
 class OrderFormService
 {
+    private SchedulerService $schedulerService;
+
+    public function __construct(SchedulerService $schedulerService)
+    {
+        $this->schedulerService = $schedulerService;
+    }
     /**
      * Costruisce payload per CREATE mode.
      * 
@@ -238,42 +245,6 @@ class OrderFormService
      */
     private function buildSchedulerSection(string $selectedDate): array
     {
-        $today = now();
-        $startOfWeek = $today->copy()->startOfWeek(); // Lunedì
-        $endOfWeek = $today->copy()->endOfWeek(); // Domenica
-
-        // Carichiamo tutti i working_days della settimana
-        $workingDays = WorkingDay::where('day', '>=', $startOfWeek->toDateString())
-            ->where('day', '<=', $endOfWeek->toDateString())
-            ->get()
-            ->keyBy(function ($workingDay) {
-                return $workingDay->day->toDateString();
-            });
-
-        $weekDays = [];
-        $currentDay = $startOfWeek->copy();
-
-        while ($currentDay <= $endOfWeek) {
-            $dateString = $currentDay->toDateString();
-            $workingDay = $workingDays->get($dateString);
-
-            $weekDays[] = [
-                'id' => $dateString,
-                'weekday' => strtoupper($currentDay->format('D')),
-                'dayNumber' => $currentDay->format('j'),
-                'isToday' => $currentDay->isToday(),
-                'isActive' => $workingDay !== null,
-                'isDisabled' => $workingDay === null || ($currentDay->isPast() && !$currentDay->isToday()),
-                'isSelected' => $dateString === $selectedDate,
-            ];
-
-            $currentDay->addDay();
-        }
-
-        return [
-            'selectedDayId' => $selectedDate,
-            'monthLabel' => $today->format('F Y'),
-            'weekDays' => $weekDays,
-        ];
+        return $this->schedulerService->buildWeekScheduler($selectedDate);
     }
 }
