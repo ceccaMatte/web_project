@@ -1,25 +1,4 @@
-/**
- * ORDERS STATE - Single Source of Truth
- * 
- * RESPONSABILITÀ:
- * - Definisce struttura ordersState (SOLO dati, MAI riferimenti DOM)
- * - Fornisce helper per mutation sicure dello stato
- * 
- * ARCHITETTURA:
- * - Centralizza lo stato della pagina Orders
- * - Esportato e importato da orders/index.js, orders.hydration.js, orders.actions.js
- * - I componenti NON importano questo modulo (ricevono props)
- * 
- * UTILIZZO:
- * import { ordersState, mutateSelectedDay, mutateExpandedOrders } from './orders.state.js';
- */
-
-/**
- * STATO GLOBALE PAGINA ORDERS (SSOT)
- * 
- * Contiene SOLO dati primitivi e serializzabili.
- * MAI riferimenti DOM, funzioni, o oggetti complessi.
- */
+// Orders state (SSOT)
 export const ordersState = {
     /**
      * User state
@@ -128,29 +107,12 @@ export const ordersState = {
 // MUTATION HELPERS
 // ============================================================================
 
-/**
- * Aggiorna user state
- * 
- * @param {Object} userData - Partial<ordersState.user>
- */
 export function mutateUser(userData) {
     ordersState.user = { ...ordersState.user, ...userData };
 }
-
-/**
- * Aggiorna stato sidebar
- * 
- * @param {boolean} isOpen
- */
 export function mutateSidebar(isOpen) {
     ordersState.sidebarOpen = Boolean(isOpen);
 }
-
-/**
- * Aggiorna scheduler state
- * 
- * @param {Object} schedulerData - { selectedDayId?, monthLabel?, weekDays? }
- */
 export function mutateScheduler(schedulerData) {
     if (schedulerData.selectedDayId !== undefined) {
         ordersState.selectedDayId = schedulerData.selectedDayId;
@@ -162,68 +124,31 @@ export function mutateScheduler(schedulerData) {
         ordersState.weekDays = schedulerData.weekDays;
     }
 }
-
-/**
- * Aggiorna giorno selezionato e proprietà isSelected nei weekDays
- * 
- * @param {string} dayId - ID giorno nel formato YYYY-MM-DD
- */
 export function mutateSelectedDay(dayId) {
     ordersState.selectedDayId = dayId;
     
-    // Aggiorna isSelected nei weekDays
     ordersState.weekDays = ordersState.weekDays.map(day => ({
         ...day,
         isSelected: day.id === dayId,
     }));
 }
-
-/**
- * Aggiorna ordini attivi
- * 
- * @param {Array} orders - Array di ordini attivi
- */
 export function mutateActiveOrders(orders) {
     ordersState.activeOrders = Array.isArray(orders) ? orders : [];
 }
-
-/**
- * Aggiorna ordini recenti
- * 
- * @param {Array} orders - Array di ordini recenti
- */
 export function mutateRecentOrders(orders) {
     ordersState.recentOrders = Array.isArray(orders) ? orders : [];
 }
-
-/**
- * Toggle espansione di un ordine (show more / show less)
- * 
- * @param {number} orderId - ID dell'ordine da espandere/collassare
- */
 export function toggleExpandedOrder(orderId) {
     const index = ordersState.expandedOrderIds.indexOf(orderId);
     if (index === -1) {
-        // Non presente: aggiungi (espandi)
         ordersState.expandedOrderIds = [...ordersState.expandedOrderIds, orderId];
     } else {
-        // Presente: rimuovi (collassa)
         ordersState.expandedOrderIds = ordersState.expandedOrderIds.filter(id => id !== orderId);
     }
 }
-
-/**
- * Toggle filtro preferiti
- */
 export function toggleFavoritesFilter() {
     ordersState.showOnlyFavorites = !ordersState.showOnlyFavorites;
 }
-
-/**
- * Naviga nel carousel degli ordini attivi
- * 
- * @param {'prev' | 'next'} direction - Direzione navigazione
- */
 export function navigateCarousel(direction) {
     const count = ordersState.activeOrders.length;
     if (count <= 1) return;
@@ -235,29 +160,16 @@ export function navigateCarousel(direction) {
     }
 }
 
-/**
- * Resetta indice carousel a 0
- * Chiamato quando cambia giorno selezionato.
- */
 export function resetCarouselIndex() {
     ordersState.activeCarouselIndex = 0;
 }
-
-/**
- * Aggiorna stato preferito di un ordine specifico
- * 
- * @param {number} orderId - ID dell'ordine
- * @param {boolean} isFavorite - Nuovo stato preferito
- */
 export function mutateOrderFavorite(orderId, isFavorite) {
-    // Aggiorna in activeOrders
     ordersState.activeOrders = ordersState.activeOrders.map(order => 
         order.id === orderId 
             ? { ...order, is_favorite: isFavorite }
             : order
     );
     
-    // Aggiorna in recentOrders
     ordersState.recentOrders = ordersState.recentOrders.map(order => 
         order.id === orderId 
             ? { ...order, is_favorite: isFavorite }
@@ -265,27 +177,12 @@ export function mutateOrderFavorite(orderId, isFavorite) {
     );
 }
 
-/**
- * Imposta stato loading
- * 
- * @param {boolean} isLoading
- */
 export function mutateLoading(isLoading) {
     ordersState.loading = Boolean(isLoading);
 }
-
-/**
- * Imposta errore
- * 
- * @param {string|null} errorMessage
- */
 export function mutateError(errorMessage) {
     ordersState.error = errorMessage;
 }
-
-/**
- * Reset completo dello stato (utile per test)
- */
 export function resetOrdersState() {
     ordersState.user = { authenticated: false, enabled: false, name: null };
     ordersState.sidebarOpen = false;

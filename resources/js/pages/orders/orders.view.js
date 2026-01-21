@@ -1,37 +1,8 @@
-/**
- * ORDERS VIEW - DOM References Layer
- * 
- * RESPONSABILITÀ:
- * - Cachare riferimenti DOM per performance
- * - Fornire mounting points per i componenti
- * - Validare esistenza elementi DOM necessari
- * 
- * ARCHITETTURA:
- * - SOLO riferimenti DOM, NESSUN dato applicativo
- * - Inizializzato una volta al caricamento pagina
- * - Usato da orders.render.js per passare container ai componenti
- * 
- * UTILIZZO:
- * import { ordersView } from './orders.view.js';
- * ordersView.init(); // Inizializza refs
- * const container = ordersView.refs.activeOrdersSection; // Ottieni container
- */
+// Cached DOM refs for Orders page
 
 import { qs } from '../../utils/dom.js';
 
-/**
- * ORDERS VIEW OBJECT
- * 
- * Contiene SOLO riferimenti DOM (cached).
- * MAI dati applicativi o logica business.
- */
 export const ordersView = {
-    /**
-     * Riferimenti DOM (cached)
-     * 
-     * Popolati da init(), usati da orders.render.js per
-     * passare container ai componenti.
-     */
     refs: {
         // TopBar
         topBar: null,
@@ -59,16 +30,7 @@ export const ordersView = {
         recentOrdersList: null,
     },
 
-    /**
-     * Inizializza tutti i riferimenti DOM
-     * 
-     * Chiamato una sola volta da orders/index.js al caricamento pagina.
-     * Valida esistenza elementi critici e logga warning se mancanti.
-     * 
-     * IMPORTANTE: Chiamare prima di qualsiasi render.
-     */
     init() {
-        console.log('[OrdersView] Initializing DOM refs...');
 
         // TopBar
         this.refs.topBar = qs('[data-top-bar]');
@@ -95,20 +57,9 @@ export const ordersView = {
         this.refs.favoritesToggle = qs('[data-favorites-toggle]');
         this.refs.recentOrdersList = qs('[data-recent-orders-list]');
 
-        // Validazione elementi critici
         this._validateRefs();
-
-        console.log('[OrdersView] DOM refs initialized');
     },
 
-    /**
-     * Valida esistenza elementi DOM critici
-     * 
-     * Logga warning per elementi mancanti (non bloccante).
-     * Aiuta debug durante sviluppo.
-     * 
-     * @private
-     */
     _validateRefs() {
         const criticalRefs = [
             'topBar',
@@ -126,16 +77,8 @@ export const ordersView = {
         });
     },
 
-    /**
-     * Reset refs (per cleanup o testing)
-     * 
-     * Non usato in produzione, utile per test.
-     */
     reset() {
-        Object.keys(this.refs).forEach(key => {
-            this.refs[key] = null;
-        });
-        console.log('[OrdersView] DOM refs reset');
+        Object.keys(this.refs).forEach(key => { this.refs[key] = null; });
     },
 };
 

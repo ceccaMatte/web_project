@@ -1,24 +1,4 @@
-/**
- * ORDERS RENDER ORCHESTRATOR
- * 
- * RESPONSABILITÀ:
- * - Orchestra render di tutti i componenti Orders page
- * - Passa container, props e callbacks ai componenti
- * - Legge da ordersState, NON lo modifica
- * - NON contiene markup HTML - solo orchestrazione
- * 
- * ARCHITETTURA:
- * - Funzione renderOrdersPage() chiamata dopo hydration o mutation state
- * - Importa tutti i component renderers
- * - Calcola props da state e le passa ai componenti
- * - Passa callbacks da orders.actions.js
- * 
- * UTILIZZO:
- * import { renderOrdersPage } from './orders.render.js';
- * 
- * // Dopo hydration o state change:
- * renderOrdersPage();
- */
+// Render orchestrator for Orders page
 
 import { ordersState } from './orders.state.js';
 import { ordersView } from './orders.view.js';
@@ -116,7 +96,6 @@ const statusColors = {
  * Ogni render rimpiazza il contenuto precedente.
  */
 export function renderOrdersPage() {
-    console.log('[RenderOrders] Rendering complete orders UI...');
 
     // 1. TopBar (con hamburger + sidebar toggle)
     renderTopBarComponent();
@@ -136,16 +115,12 @@ export function renderOrdersPage() {
     // 6. Recent Orders Section
     renderRecentOrdersSection();
 
-    console.log('[RenderOrders] Complete orders UI rendered successfully');
 }
 
 // ============================================================================
 // HEADER RENDER
 // ============================================================================
 
-/**
- * Render ordersHeader component
- */
 export function renderHeader() {
     renderOrdersHeader(
         ordersView.refs.header,
@@ -162,9 +137,6 @@ export function renderHeader() {
 // SIDEBAR RENDER
 // ============================================================================
 
-/**
- * Render TopBar component (hamburger + sidebar toggle)
- */
 export function renderTopBarComponent() {
     renderTopBar(
         ordersView.refs.topBar,
@@ -178,9 +150,6 @@ export function renderTopBarComponent() {
     );
 }
 
-/**
- * Render Sidebar component
- */
 export function renderSidebarComponent() {
     renderSidebar(
         ordersView.refs.sidebar,
@@ -195,9 +164,6 @@ export function renderSidebarComponent() {
     );
 }
 
-/**
- * Render solo Sidebar (per azioni isolate)
- */
 export function renderSidebarAndTopbar() {
     renderSidebarComponent();
     renderHeader();
@@ -207,18 +173,6 @@ export function renderSidebarAndTopbar() {
 // SCHEDULER RENDER
 // ============================================================================
 
-/**
- * Aggiorna isSelected nei weekDays in base al selectedDayId corrente
- * 
- * RESPONSABILITÀ:
- * - Assicura che solo il giorno selezionato abbia isSelected = true
- * - Usato prima di renderizzare lo scheduler per preservare la selezione
- * - RISOLVE il bug dove il refresh/polling resettava la selezione a "today"
- * 
- * @param {Array} weekDays - Array weekDays da state
- * @param {string} selectedDayId - ID del giorno attualmente selezionato (es. "2026-01-16")
- * @returns {Array} - weekDays aggiornato con isSelected corretto
- */
 function updateSchedulerSelection(weekDays, selectedDayId) {
     if (!selectedDayId || !weekDays || weekDays.length === 0) {
         return weekDays;
@@ -230,14 +184,8 @@ function updateSchedulerSelection(weekDays, selectedDayId) {
     }));
 }
 
-/**
- * Render Week Scheduler component
- * 
- * IMPORTANTE: Preserva la selezione del giorno durante i refresh/polling
- * aggiornando isSelected in base a ordersState.selectedDayId
- */
 export function renderScheduler() {
-    // Aggiorna isSelected con il selectedDayId corrente (NON usare quello del backend)
+    // preserve selectedDayId selection
     const weekDaysWithSelection = updateSchedulerSelection(
         ordersState.weekDays,
         ordersState.selectedDayId
@@ -259,11 +207,6 @@ export function renderScheduler() {
 // ACTIVE ORDERS SECTION RENDER
 // ============================================================================
 
-/**
- * Render sezione Active Orders
- * 
- * Calcola props da state e chiama il componente.
- */
 export function renderActiveOrdersSection() {
     const container = ordersView.refs.activeOrdersContainer;
     
@@ -305,19 +248,12 @@ export function renderActiveOrdersSection() {
     };
 
     renderActiveOrdersSectionComponent(container, props, callbacks);
-
-    console.log(`[RenderOrders] Active orders rendered: ${activeOrders.length}`);
 }
 
 // ============================================================================
 // RECENT ORDERS SECTION RENDER
 // ============================================================================
 
-/**
- * Render sezione Recent Orders
- * 
- * Raggruppa ordini per giorno e passa al componente.
- */
 export function renderRecentOrdersSection() {
     const container = ordersView.refs.recentOrdersSection;
     
@@ -364,20 +300,12 @@ export function renderRecentOrdersSection() {
     };
 
     renderRecentOrdersSectionComponent(container, props, callbacks);
-
-    console.log(`[RenderOrders] Recent orders rendered: ${ordersToShow.length}`);
 }
 
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 
-/**
- * Raggruppa ordini per giorno
- * 
- * @param {Array} orders - Array di ordini
- * @returns {Array<{dayLabel, orders}>} - Ordini raggruppati per giorno
- */
 function groupOrdersByDay(orders) {
     if (!orders || orders.length === 0) return [];
 
@@ -402,12 +330,6 @@ function groupOrdersByDay(orders) {
     });
 }
 
-/**
- * Formatta label giorno (es. "TUE 12")
- * 
- * @param {string} dateStr - Data in formato YYYY-MM-DD
- * @returns {string} - Label formattata
- */
 function formatDayLabel(dateStr) {
     if (!dateStr) return '';
     

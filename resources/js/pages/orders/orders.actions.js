@@ -1,136 +1,55 @@
-/**
- * ORDERS ACTIONS LAYER
- * 
- * RESPONSABILITÀ:
- * - Gestisce azioni utente sulla pagina Orders
- * - Modifica ordersState in risposta ad eventi
- * - Trigger render mirati o completi
- * 
- * ARCHITETTURA:
- * - Ogni action è una funzione che modifica state + rende
- * - Importato da componenti come callbacks
- * - Può chiamare API per fetch dati aggiuntivi
- * 
- * UTILIZZO:
- * import { selectDay, toggleExpand, navigateToCreate } from './orders.actions.js';
- * 
- * // Da component callback:
- * onDaySelected: (dayId) => selectDay(dayId)
- */
+// Actions for Orders page
 
 import { ordersState, mutateSidebar, mutateSelectedDay, mutateActiveOrders, toggleExpandedOrder, toggleFavoritesFilter, mutateOrderFavorite, navigateCarousel, resetCarouselIndex, mutateUser } from './orders.state.js';
 import { ordersView } from './orders.view.js';
 import { fetchActiveOrders, toggleFavorite as toggleFavoriteApi } from './orders.api.js';
 import { logoutUser } from '../../pages/home/home.api.js';
 
-// ============================================================================
-// SIDEBAR ACTIONS
-// ============================================================================
-
-/**
- * Apri sidebar
- * 
- * WORKFLOW:
- * 1. Aggiorna ordersState.sidebarOpen = true
- * 2. Re-render sidebar + topbar
- */
 export function openSidebar() {
-    console.log('[Actions] Opening sidebar');
-    
     mutateSidebar(true);
     
-    // Re-render immediato
+    // re-render
     import('./orders.render.js').then(({ renderSidebarAndTopbar }) => {
         renderSidebarAndTopbar();
     });
 }
 
-/**
- * Chiudi sidebar
- * 
- * WORKFLOW:
- * 1. Aggiorna ordersState.sidebarOpen = false
- * 2. Re-render sidebar + topbar
- */
 export function closeSidebar() {
-    console.log('[Actions] Closing sidebar');
-    
     mutateSidebar(false);
     
-    // Re-render immediato
+    // re-render
     import('./orders.render.js').then(({ renderSidebarAndTopbar }) => {
         renderSidebarAndTopbar();
     });
 }
 
-// ============================================================================
-// SCHEDULER ACTIONS
-// ============================================================================
-
-/**
- * Seleziona giorno nello scheduler
- * 
- * WORKFLOW:
- * 1. Aggiorna ordersState.selectedDayId
- * 2. Aggiorna weekDays.isSelected
- * 3. Reset carousel index a 0
- * 4. Fetch ordini attivi per quel giorno da API
- * 5. Aggiorna ordersState.activeOrders
- * 6. Re-render scheduler + active orders
- * 
- * @param {string} dayId - ID giorno (YYYY-MM-DD)
- */
 export async function selectDay(dayId) {
-    console.log(`[Actions] Selecting day: ${dayId}`);
-    
     if (!dayId) {
         console.warn('[Actions] selectDay: dayId is required');
         return;
     }
 
-    // 1. Aggiorna state (feedback visivo immediato)
     mutateSelectedDay(dayId);
-    
-    // 2. Reset carousel index quando cambia giorno
+    // reset carousel index
     resetCarouselIndex();
-
-    // 3. Re-render scheduler (immediato per feedback visivo)
     const { renderScheduler } = await import('./orders.render.js');
     renderScheduler();
 
-    // 4. Fetch ordini attivi per il giorno selezionato
+    // fetch active orders for selected day
     try {
-        console.debug(`[Actions] Fetching active orders for ${dayId}...`);
         const activeOrders = await fetchActiveOrders(dayId);
-        
-        // 5. Aggiorna state
         mutateActiveOrders(activeOrders);
-        
-        // 6. Re-render active orders section
         const { renderActiveOrdersSection } = await import('./orders.render.js');
         renderActiveOrdersSection();
-        
     } catch (error) {
-        console.error('[Actions] Failed to fetch active orders:', error);
-        // Mostra empty state in caso di errore
+        console.error('Failed to fetch active orders:', error);
         mutateActiveOrders([]);
         const { renderActiveOrdersSection } = await import('./orders.render.js');
         renderActiveOrdersSection();
     }
 }
 
-// ============================================================================
-// CAROUSEL ACTIONS
-// ============================================================================
-
-/**
- * Naviga nel carousel degli ordini attivi
- * 
- * @param {'prev' | 'next'} direction - Direzione navigazione
- */
 export function navigateActiveOrdersCarousel(direction) {
-    console.log(`[Actions] Navigate carousel: ${direction}`);
-    
     navigateCarousel(direction);
     
     import('./orders.render.js').then(({ renderActiveOrdersSection }) => {
@@ -138,79 +57,35 @@ export function navigateActiveOrdersCarousel(direction) {
     });
 }
 
-// ============================================================================
-// ORDER CARD ACTIONS
-// ============================================================================
-
-/**
- * Toggle espansione card ordine (show more / show less)
- * 
- * WORKFLOW:
- * 1. Toggle orderId in expandedOrderIds
- * 2. Re-render solo la card interessata
- * 
- * @param {number} orderId - ID dell'ordine da espandere/collassare
- */
 export function toggleOrderExpand(orderId) {
-    console.log(`[Actions] Toggle expand for order: ${orderId}`);
-    
     toggleExpandedOrder(orderId);
     
-    // Re-render sections che contengono ordini
+    // re-render affected sections
     import('./orders.render.js').then(({ renderActiveOrdersSection, renderRecentOrdersSection }) => {
         renderActiveOrdersSection();
         renderRecentOrdersSection();
     });
 }
 
-/**
- * Toggle preferito per un ordine
- * 
- * WORKFLOW:
- * 1. Chiama API per toggle preferito
- * 2. Aggiorna ordersState con nuovo stato
- * 3. Re-render card interessata
- * 
- * @param {number} orderId - ID dell'ordine
- * @param {number} configId - ID della configurazione ingredienti
- */
 export async function toggleOrderFavorite(orderId, configId) {
-    console.log(`[Actions] Toggle favorite for order: ${orderId}, config: ${configId}`);
-    
     if (!configId) {
         console.warn('[Actions] toggleOrderFavorite: configId is required');
         return;
     }
 
     try {
-        // 1. Chiama API
         const result = await toggleFavoriteApi(configId);
-        
-        // 2. Aggiorna state
         mutateOrderFavorite(orderId, result.is_favorite);
-        
-        // 3. Re-render
         import('./orders.render.js').then(({ renderActiveOrdersSection, renderRecentOrdersSection }) => {
             renderActiveOrdersSection();
             renderRecentOrdersSection();
         });
-        
     } catch (error) {
-        console.error('[Actions] Failed to toggle favorite:', error);
-        // TODO: Mostrare messaggio errore all'utente
+        console.error('Failed to toggle favorite:', error);
     }
 }
 
-/**
- * Toggle filtro preferiti nella sezione Recent Orders
- * 
- * WORKFLOW:
- * 1. Toggle ordersState.showOnlyFavorites
- * 2. Re-render sezione recent orders
- */
 export function toggleFavoritesOnly() {
-    console.log('[Actions] Toggle favorites filter');
-    
     toggleFavoritesFilter();
     
     import('./orders.render.js').then(({ renderRecentOrdersSection }) => {
@@ -218,19 +93,8 @@ export function toggleFavoritesOnly() {
     });
 }
 
-// ============================================================================
-// NAVIGATION ACTIONS
-// ============================================================================
-
-/**
- * Naviga alla pagina di creazione ordine
- * 
- * @param {number|null} configId - ID configurazione ingredienti (opzionale, per reorder)
- */
 export function navigateToCreate(configId = null) {
-    console.log('[Actions] Navigate to create order');
-    
-    // Se abbiamo configId, passa via URL per prepopolare ingredienti
+    // redirect to create (optionally with config)
     if (configId) {
         window.location.href = `/orders/create?config=${configId}`;
     } else {
@@ -238,14 +102,7 @@ export function navigateToCreate(configId = null) {
     }
 }
 
-/**
- * Naviga alla pagina di modifica ordine
- * 
- * @param {number} orderId - ID dell'ordine da modificare
- */
 export function navigateToModify(orderId) {
-    console.log(`[Actions] Navigate to modify order: ${orderId}`);
-    
     if (!orderId) {
         console.warn('[Actions] navigateToModify: orderId is required');
         return;
@@ -254,65 +111,25 @@ export function navigateToModify(orderId) {
     window.location.href = `/orders/${orderId}/edit`;
 }
 
-/**
- * Torna alla Home page
- */
 export function goBack() {
-    console.log('[Actions] Navigate back to home');
-    
     window.location.href = '/';
 }
 
-/**
- * Gestisce logout utente
- * 
- * WORKFLOW:
- * 1. Chiama API POST /logout
- * 2. Aggiorna ordersState.user.authenticated = false
- * 3. Naviga manualmente a / (NO redirect automatico)
- * 
- * VINCOLI:
- * - Nessun redirect automatico backend
- * - Controllo completo lato client
- * - Navigazione solo dopo conferma logout OK
- */
 export async function logout() {
-    console.log('[Actions] Logging out user...');
-
     try {
-        // 1. Chiamata POST /logout
         const response = await logoutUser();
-
-        // 2. Se OK, aggiorna state
         if (response.success) {
-            console.log('[Actions] Logout successful, updating state...');
-            
-            mutateUser({
-                authenticated: false,
-                enabled: false,
-                name: null,
-            });
-
-            // 3. Naviga manualmente a home
-            console.log('[Actions] Navigating to home after logout');
+            mutateUser({ authenticated: false, enabled: false, name: null });
             window.location.href = '/';
         } else {
-            console.error('[Actions] Logout failed:', response);
+            console.error('Logout failed:', response);
         }
     } catch (error) {
-        console.error('[Actions] Logout request failed:', error);
-        // TODO: Mostra messaggio errore all'utente
+        console.error('Logout request failed:', error);
     }
 }
 
-/**
- * Reorder: naviga a create con ingredienti precompilati da un ordine esistente
- * 
- * @param {number} orderId - ID dell'ordine da cui copiare gli ingredienti
- */
 export function reorder(orderId) {
-    console.log(`[Actions] Reorder from order: ${orderId}`);
-    
     if (orderId) {
         window.location.href = `/orders/create?reorder=${orderId}`;
     } else {
@@ -320,9 +137,6 @@ export function reorder(orderId) {
     }
 }
 
-/**
- * Export default per import aggregato
- */
 export default {
     openSidebar,
     closeSidebar,
