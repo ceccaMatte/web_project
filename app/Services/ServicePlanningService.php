@@ -332,6 +332,7 @@ class ServicePlanningService
             // Working day esistente - AGGIORNAMENTO
             $oldStart = substr($workingDay->start_time, 0, 5);
             $oldEnd = substr($workingDay->end_time, 0, 5);
+            $oldMaxOrders = $workingDay->max_orders;
 
             // Controlla se orari sono cambiati
             if ($oldStart !== $startTime || $oldEnd !== $endTime) {
@@ -363,6 +364,23 @@ class ServicePlanningService
                 'max_time' => $globalConstraints['maxPendingTime'] ?? config('service_planning.default_max_pending_time'),
                 'location' => $globalConstraints['location'] ?? config('service_planning.default_location'),
             ]);
+
+            // Controlla se max_orders è stato ridotto
+            $newMaxOrders = $globalConstraints['maxOrdersPerSlot'];
+            if ($newMaxOrders < $oldMaxOrders) {
+                Log::info('[ServicePlanningService] max_orders ridotto', [
+                    'date' => $dateStr,
+                    'old' => $oldMaxOrders,
+                    'new' => $newMaxOrders,
+                ]);
+                
+                // Gestisci riduzione capienza (ordini in eccesso da REJECTED)
+                $this->handleMaxOrdersReduction(
+                    $workingDay,
+                    $newMaxOrders,
+                    $report
+                );
+            }
 
             $report['daysUpdated']++;
 
@@ -483,6 +501,71 @@ class ServicePlanningService
             // Elimina il time slot
             $slot->delete();
             $report['timeSlotsDeleted']++;
+        }
+    }
+
+    /**
+     * Gestisce la riduzione del parametro max_orders
+     * Marca come REJECTED gli ordini che eccedono la nuova capienza
+     * 
+     * REGOLA BUSINESS VINCOLANTE:
+     * Per ogni time slot del working day:
+     * 1. Recupera tutti gli ordini (pending/confirmed)
+     * 2. Ordina per daily_number ASC
+     * 3. Mantiene solo i primi max_orders
+     * 4. Tutti gli altri vengono marcati come REJECTED
+     * 
+     * @param WorkingDay $workingDay
+     * @param int $newMaxOrders Nuova capienza massima per slot
+     * @param array &$report Report delle operazioni
+     * @return void
+     */
+    private function handleMaxOrdersReduction(
+        WorkingDay $workingDay,
+        int $newMaxOrders,
+        array &$report
+    ): void {
+        // Recupera tutti i time slots del working day
+        $timeSlots = TimeSlot::where('working_day_id', $workingDay->id)->get();
+
+        foreach ($timeSlots as $slot) {
+            // Recupera tutti gli ordini attivi (pending/confirmed) per questo slot
+            // Ordinati per daily_number ASC (ordine di prenotazione)
+            $orders = Order::where('time_slot_id', $slot->id)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->orderBy('daily_number', 'ASC')
+                ->get();
+
+            // Se il numero di ordini è <= alla nuova capienza, tutto ok
+            if ($orders->count() <= $newMaxOrders) {
+                continue;
+            }
+
+            // Altrimenti, rigetta tutti gli ordini oltre la nuova capienza
+            $ordersToReject = $orders->slice($newMaxOrders);
+
+            $orderIds = $ordersToReject->pluck('id')->toArray();
+            
+            if (!empty($orderIds)) {
+                // Use raw query for better transaction handling
+                $affected = DB::table('orders')
+                    ->whereIn('id', $orderIds)
+                    ->update([
+                        'status' => 'rejected',
+                        'updated_at' => now(),
+                    ]);
+                
+                $report['ordersRejected'] += $affected;
+                
+                foreach ($ordersToReject as $order) {
+                    Log::info('[ServicePlanningService] Ordine REJECTED per riduzione max_orders', [
+                        'orderId' => $order->id,
+                        'slotId' => $slot->id,
+                        'dailyNumber' => $order->daily_number,
+                        'newMaxOrders' => $newMaxOrders,
+                    ]);
+                }
+            }
         }
     }
 

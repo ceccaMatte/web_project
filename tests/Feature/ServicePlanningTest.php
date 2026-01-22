@@ -558,6 +558,377 @@ class ServicePlanningTest extends TestCase
         $this->assertNull(Order::find($order->id), 'Order should be cascade-deleted with time slot');
     }
 
+    /** @test */
+    public function save_week_configuration_rejects_orders_when_max_orders_reduced()
+    {
+        $weekStart = Carbon::today()->addWeeks(2)->startOfWeek(Carbon::MONDAY);
+        
+        // Create working day with max_orders = 10
+        $workingDay = WorkingDay::factory()->create([
+            'day' => $weekStart->format('Y-m-d'),
+            'is_active' => true,
+            'start_time' => '12:00',
+            'end_time' => '14:00',
+            'max_orders' => 10,
+        ]);
+        
+        // Create a time slot
+        $timeSlot = TimeSlot::factory()->create([
+            'working_day_id' => $workingDay->id,
+            'start_time' => '12:00',
+            'end_time' => '12:15',
+        ]);
+        
+        $user = User::factory()->create();
+        
+        // Create 9 orders with daily_numbers 1-9
+        $orders = [];
+        for ($i = 1; $i <= 9; $i++) {
+            $orders[] = Order::create([
+                'user_id' => $user->id,
+                'time_slot_id' => $timeSlot->id,
+                'working_day_id' => $workingDay->id,
+                'daily_number' => $i,
+                'status' => 'pending',
+            ]);
+        }
+
+        // Reduce max_orders from 10 to 5
+        $globalConstraints = [
+            'maxOrdersPerSlot' => 5,
+            'maxIngredientsPerOrder' => 6,
+        ];
+        
+        $days = [[
+            'date' => $weekStart->format('Y-m-d'),
+            'dayName' => 'Monday',
+            'isActive' => true,
+            'startTime' => '12:00',
+            'stopTime' => '14:00',
+        ]];
+
+        $result = $this->service->saveWeekConfiguration($weekStart->format('Y-m-d'), $globalConstraints, $days);
+
+        $this->assertTrue($result['saved']);
+        
+        // 4 orders should be rejected (6, 7, 8, 9)
+        $this->assertEquals(4, $result['report']['ordersRejected']);
+        
+        // Fetch each order by ID and verify status
+        foreach ($orders as $i => $order) {
+            $freshOrder = Order::find($order->id);
+            $dailyNumber = $i + 1;
+            
+            if ($dailyNumber <= 5) {
+                $this->assertEquals('pending', $freshOrder->status, "Order with daily_number {$dailyNumber} should remain pending");
+            } else {
+                $this->assertEquals('rejected', $freshOrder->status, "Order with daily_number {$dailyNumber} should be rejected");
+            }
+        }
+    }
+
+    /** @test */
+    public function save_week_configuration_does_not_reject_orders_when_max_orders_increased()
+    {
+        $weekStart = Carbon::today()->addWeeks(2)->startOfWeek(Carbon::MONDAY);
+        
+        // Create working day with max_orders = 5
+        $workingDay = WorkingDay::factory()->create([
+            'day' => $weekStart->format('Y-m-d'),
+            'is_active' => true,
+            'start_time' => '12:00',
+            'end_time' => '14:00',
+            'max_orders' => 5,
+        ]);
+        
+        // Create a time slot
+        $timeSlot = TimeSlot::factory()->create([
+            'working_day_id' => $workingDay->id,
+            'start_time' => '12:00',
+            'end_time' => '12:15',
+        ]);
+        
+        $user = User::factory()->create();
+        
+        // Create 4 orders with 'pending' status (not confirmed)
+        $orders = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $orders[] = Order::create([
+                'user_id' => $user->id,
+                'time_slot_id' => $timeSlot->id,
+                'working_day_id' => $workingDay->id,
+                'daily_number' => $i,
+                'status' => 'pending', // Use pending, not confirmed
+            ]);
+        }
+
+        // Increase max_orders from 5 to 15
+        $globalConstraints = [
+            'maxOrdersPerSlot' => 15,
+            'maxIngredientsPerOrder' => 6,
+        ];
+        
+        $days = [[
+            'date' => $weekStart->format('Y-m-d'),
+            'dayName' => 'Monday',
+            'isActive' => true,
+            'startTime' => '12:00',
+            'stopTime' => '14:00',
+        ]];
+
+        $result = $this->service->saveWeekConfiguration($weekStart->format('Y-m-d'), $globalConstraints, $days);
+
+        $this->assertTrue($result['saved']);
+        
+        // No orders should be rejected when capacity increases
+        $this->assertEquals(0, $result['report']['ordersRejected']);
+        
+        // Fetch orders fresh from database and verify all remain pending
+        $freshOrders = Order::where('time_slot_id', $timeSlot->id)
+            ->orderBy('daily_number')
+            ->get();
+        
+        foreach ($freshOrders as $order) {
+            $this->assertEquals('pending', $order->status); // Should be pending, not confirmed
+        }
+    }
+
+    /** @test */
+    public function save_week_configuration_rejects_orders_based_on_daily_number_not_id()
+    {
+        $weekStart = Carbon::today()->addWeeks(2)->startOfWeek(Carbon::MONDAY);
+        
+        // Create working day with max_orders = 10
+        $workingDay = WorkingDay::factory()->create([
+            'day' => $weekStart->format('Y-m-d'),
+            'is_active' => true,
+            'start_time' => '12:00',
+            'end_time' => '14:00',
+            'max_orders' => 10,
+        ]);
+        
+        // Create a time slot
+        $timeSlot = TimeSlot::factory()->create([
+            'working_day_id' => $workingDay->id,
+            'start_time' => '12:00',
+            'end_time' => '12:15',
+        ]);
+        
+        $user = User::factory()->create();
+        
+        // Create orders with specific daily_numbers in random order
+        // This ensures we test daily_number sorting, not ID or created_at
+        $order1 = Order::create([
+            'user_id' => $user->id,
+            'time_slot_id' => $timeSlot->id,
+            'working_day_id' => $workingDay->id,
+            'daily_number' => 3,
+            'status' => 'pending',
+        ]);
+        
+        $order2 = Order::create([
+            'user_id' => $user->id,
+            'time_slot_id' => $timeSlot->id,
+            'working_day_id' => $workingDay->id,
+            'daily_number' => 1,
+            'status' => 'pending',
+        ]);
+        
+        $order3 = Order::create([
+            'user_id' => $user->id,
+            'time_slot_id' => $timeSlot->id,
+            'working_day_id' => $workingDay->id,
+            'daily_number' => 2,
+            'status' => 'pending',
+        ]);
+
+        // Reduce max_orders to 2
+        $globalConstraints = [
+            'maxOrdersPerSlot' => 2,
+            'maxIngredientsPerOrder' => 6,
+        ];
+        
+        $days = [[
+            'date' => $weekStart->format('Y-m-d'),
+            'dayName' => 'Monday',
+            'isActive' => true,
+            'startTime' => '12:00',
+            'stopTime' => '14:00',
+        ]];
+
+        $result = $this->service->saveWeekConfiguration($weekStart->format('Y-m-d'), $globalConstraints, $days);
+
+        $this->assertTrue($result['saved']);
+        $this->assertEquals(1, $result['report']['ordersRejected']);
+        
+        // Verify orders by daily_number
+        $order1->refresh(); // daily_number = 3 → should be REJECTED
+        $order2->refresh(); // daily_number = 1 → should remain PENDING
+        $order3->refresh(); // daily_number = 2 → should remain PENDING
+        
+        $this->assertEquals('pending', $order2->status, 'Order with daily_number 1 should remain pending');
+        $this->assertEquals('pending', $order3->status, 'Order with daily_number 2 should remain pending');
+        $this->assertEquals('rejected', $order1->status, 'Order with daily_number 3 should be rejected');
+    }
+
+    /** @test */
+    public function save_week_configuration_does_not_touch_already_rejected_orders()
+    {
+        $weekStart = Carbon::today()->addWeeks(2)->startOfWeek(Carbon::MONDAY);
+        
+        // Create working day with max_orders = 10
+        $workingDay = WorkingDay::factory()->create([
+            'day' => $weekStart->format('Y-m-d'),
+            'is_active' => true,
+            'start_time' => '12:00',
+            'end_time' => '14:00',
+            'max_orders' => 10,
+        ]);
+        
+        // Create a time slot
+        $timeSlot = TimeSlot::factory()->create([
+            'working_day_id' => $workingDay->id,
+            'start_time' => '12:00',
+            'end_time' => '12:15',
+        ]);
+        
+        $user = User::factory()->create();
+        
+        // Create only 2 active orders (pending + confirmed)
+        $pendingOrder = Order::create([
+            'user_id' => $user->id,
+            'time_slot_id' => $timeSlot->id,
+            'working_day_id' => $workingDay->id,
+            'daily_number' => 1,
+            'status' => 'pending',
+        ]);
+        
+        $confirmedOrder = Order::create([
+            'user_id' => $user->id,
+            'time_slot_id' => $timeSlot->id,
+            'working_day_id' => $workingDay->id,
+            'daily_number' => 2,
+            'status' => 'confirmed',
+        ]);
+
+        // Reduce max_orders to 1 (will keep first, reject second)
+        $globalConstraints = [
+            'maxOrdersPerSlot' => 1,
+            'maxIngredientsPerOrder' => 6,
+        ];
+        
+        $days = [[
+            'date' => $weekStart->format('Y-m-d'),
+            'dayName' => 'Monday',
+            'isActive' => true,
+            'startTime' => '12:00',
+            'stopTime' => '14:00',
+        ]];
+
+        $result = $this->service->saveWeekConfiguration($weekStart->format('Y-m-d'), $globalConstraints, $days);
+
+        $this->assertTrue($result['saved']);
+        
+        // We have 2 orders that count (pending + confirmed)
+        // max_orders = 1, so 1 order should be rejected (the confirmed one with daily_number 2)
+        $this->assertEquals(1, $result['report']['ordersRejected']);
+        
+        // Fetch orders fresh from database
+        $freshPending = Order::find($pendingOrder->id);
+        $freshConfirmed = Order::find($confirmedOrder->id);
+        
+        $this->assertEquals('pending', $freshPending->status); // Stays pending (first in line, daily_number 1)
+        $this->assertEquals('rejected', $freshConfirmed->status); // Gets rejected (exceeds capacity, daily_number 2)
+    }
+
+    /** @test */
+    public function save_week_configuration_handles_multiple_time_slots_correctly()
+    {
+        $weekStart = Carbon::today()->addWeeks(2)->startOfWeek(Carbon::MONDAY);
+        
+        // Create working day with max_orders = 10
+        $workingDay = WorkingDay::factory()->create([
+            'day' => $weekStart->format('Y-m-d'),
+            'is_active' => true,
+            'start_time' => '12:00',
+            'end_time' => '14:00',
+            'max_orders' => 10,
+        ]);
+        
+        // Create two time slots
+        $timeSlot1 = TimeSlot::factory()->create([
+            'working_day_id' => $workingDay->id,
+            'start_time' => '12:00',
+            'end_time' => '12:15',
+        ]);
+        
+        $timeSlot2 = TimeSlot::factory()->create([
+            'working_day_id' => $workingDay->id,
+            'start_time' => '12:15',
+            'end_time' => '12:30',
+        ]);
+        
+        $user = User::factory()->create();
+        
+        // Create 4 orders in first slot (daily_numbers 1-4)
+        for ($i = 1; $i <= 4; $i++) {
+            Order::create([
+                'user_id' => $user->id,
+                'time_slot_id' => $timeSlot1->id,
+                'working_day_id' => $workingDay->id,
+                'daily_number' => $i,
+                'status' => 'pending',
+            ]);
+        }
+        
+        // Create 3 orders in second slot (daily_numbers 5-7)
+        for ($i = 5; $i <= 7; $i++) {
+            Order::create([
+                'user_id' => $user->id,
+                'time_slot_id' => $timeSlot2->id,
+                'working_day_id' => $workingDay->id,
+                'daily_number' => $i,
+                'status' => 'pending',
+            ]);
+        }
+
+        // Reduce max_orders to 2 per slot
+        $globalConstraints = [
+            'maxOrdersPerSlot' => 2,
+            'maxIngredientsPerOrder' => 6,
+        ];
+        
+        $days = [[
+            'date' => $weekStart->format('Y-m-d'),
+            'dayName' => 'Monday',
+            'isActive' => true,
+            'startTime' => '12:00',
+            'stopTime' => '14:00',
+        ]];
+
+        $result = $this->service->saveWeekConfiguration($weekStart->format('Y-m-d'), $globalConstraints, $days);
+
+        $this->assertTrue($result['saved']);
+        
+        // Slot 1: 4 orders → keep 2, reject 2
+        // Slot 2: 3 orders → keep 2, reject 1
+        // Total rejected: 3
+        $this->assertEquals(3, $result['report']['ordersRejected']);
+        
+        // Verify slot 1 orders
+        $slot1Orders = Order::where('time_slot_id', $timeSlot1->id)->orderBy('daily_number')->get();
+        $this->assertEquals('pending', $slot1Orders[0]->status); // daily_number 1
+        $this->assertEquals('pending', $slot1Orders[1]->status); // daily_number 2
+        $this->assertEquals('rejected', $slot1Orders[2]->status); // daily_number 3
+        $this->assertEquals('rejected', $slot1Orders[3]->status); // daily_number 4
+        
+        // Verify slot 2 orders
+        $slot2Orders = Order::where('time_slot_id', $timeSlot2->id)->orderBy('daily_number')->get();
+        $this->assertEquals('pending', $slot2Orders[0]->status); // daily_number 5
+        $this->assertEquals('pending', $slot2Orders[1]->status); // daily_number 6
+        $this->assertEquals('rejected', $slot2Orders[2]->status); // daily_number 7
+    }
+
     // ========================================
     // saveWeekConfiguration() Tests - Time Normalization
     // ========================================
