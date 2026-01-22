@@ -77,14 +77,14 @@ export async function registerUser(nickname, email, password) {
                 password_confirmation: password, // Laravel richiede conferma
             }),
         });
-        
+
         const data = await response.json();
-        
-    } catch (error) {
+
         if (response.status === 422 && data.errors) return { success: false, errors: parseValidationErrors(data.errors) };
         if (response.ok) return { success: true, redirect: data.redirect || '/' };
         console.error('Registration failed:', response.status);
         return { success: false, message: data.message || 'Registration failed' };
+
     } catch (error) {
         console.error('Network error:', error);
         return { success: false, message: 'Network error. Please check your connection.' };
