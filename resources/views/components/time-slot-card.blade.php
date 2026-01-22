@@ -53,7 +53,7 @@
         </div>
 
         @if($isFullyBooked || $isDisabled)
-            <button type="button" class="w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed" disabled aria-disabled="true" aria-label="{{ $ariaLabel }}">{{ $labels['waitlist'] }}</button>
+            <button type="button" class=" w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed grid place-items-center" disabled aria-disabled="true" aria-label="{{ $ariaLabel }}">{{ $labels['waitlist'] }}</button>
         @elseif($href)
             <a href="{{ $href }}" class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg text-center active:scale-95 transition-transform shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark" aria-label="{{ $ariaLabel }}">{{ $buttonLabel }}</a>
         @else

@@ -42,7 +42,7 @@ export function renderTimeSlotCard(slot, variant = 'home', onSlotClick = null) {
     if (isFullyBooked) {
         slotsBadgeColor = 'text-rose-500';
         cardOpacity = 'opacity-60';
-        ctaClasses = 'w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed';
+        ctaClasses = ' grid place-items-center w-full py-2 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed';
     } else if (isLowSlots) {
         slotsBadgeColor = 'text-amber-500';
     }
