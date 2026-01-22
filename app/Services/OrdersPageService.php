@@ -93,7 +93,7 @@ class OrdersPageService
         // Recupera ordini attivi dell'utente per questo working_day
         $orders = Order::where('user_id', $user->id)
             ->where('working_day_id', $workingDay->id)
-            ->whereNotIn('status', ['picked_up', 'rejected'])
+            ->whereNotIn('status', ['picked_up'])
             ->with(['timeSlot', 'ingredients'])
             ->orderBy('created_at', 'desc')
             ->get();
