@@ -7,38 +7,44 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * Seeder per la creazione degli utenti del sistema.
+ * 
+ * UTENTI CREATI:
+ * - 5 utenti normali (role="user") per simulare i clienti del paninaro
+ * - 1 utente amministratore (role="admin") per la gestione del sistema
+ * 
+ * Password HASH: "password" (Hash::make)
+ * Tutti abilitati: enabled=true
+ */
 class UserSeeder extends Seeder
 {
     use WithoutModelEvents;
 
     public function run(): void
     {
-        // Test users
-        User::create([
-            'name' => 'Mario Rossi',
-            'nickname' => 'Mario',
-            'email' => 'mario@example.com',
-            'password' => Hash::make('password'),
-            'enabled' => true,
-        ]);
+        /**
+         * Crea i 5 utenti normali.
+         * Email: user{1-5}@test.it
+         * Nickname: User {1-5}
+         */
+        for ($i = 1; $i <= 5; $i++) {
+            User::create([
+                'name' => "User $i",
+                'nickname' => "User $i",
+                'email' => "user{$i}@test.it",
+                'password' => Hash::make('password'),
+                'role' => 'user',
+                'enabled' => true,
+            ]);
+        }
 
-        User::create([
-            'name' => 'Giulia Bianchi',
-            'nickname' => 'Giulia',
-            'email' => 'giulia@example.com',
-            'password' => Hash::make('password'),
-            'enabled' => true,
-        ]);
-
-        User::create([
-            'name' => 'Luca Verdi',
-            'nickname' => 'Luca',
-            'email' => 'luca@example.com',
-            'password' => Hash::make('password'),
-            'enabled' => false, // Utente disabilitato
-        ]);
-
-        // Admin
+        /**
+         * Crea l'utente amministratore.
+         * Email: admin@test.it
+         * Nickname: Admin
+         * Role: admin (accesso alle funzioni di gestione)
+         */
         User::create([
             'name' => 'Admin User',
             'nickname' => 'Admin',
