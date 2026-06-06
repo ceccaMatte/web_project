@@ -111,7 +111,7 @@ class WorkingDaySeeder extends Seeder
                     'location' => $config['default_location'],
                     'start_time' => $startTime,
                     'end_time' => $endTime,
-                    'max_orders' => 100, // Non vincolante a livello di working_day, il vero limite è per slot
+                    'max_orders' => 10, // Massimo 10 ordini per slot
                     'max_time' => 30, // Minuti per modificare un ordine
                     'is_active' => !$isSuspended, // false se sospeso
                 ]);

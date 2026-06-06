@@ -47,7 +47,7 @@ class ServicePlanningService
             
             // Max orders per slot limits
             'minMaxOrdersPerSlot' => config('service_planning.min_max_orders_per_slot', 1),
-            'maxMaxOrdersPerSlot' => config('service_planning.max_max_orders_per_slot', 99),
+            'maxMaxOrdersPerSlot' => config('service_planning.max_max_orders_per_slot', 50),
             'defaultMaxOrdersPerSlot' => config('service_planning.default_max_orders_per_slot', 10),
             
             // Max ingredients per order limits  

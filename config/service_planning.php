@@ -31,7 +31,7 @@ return [
     |
     */
     'min_max_orders_per_slot' => 1,
-    'max_max_orders_per_slot' => 99,
+    'max_max_orders_per_slot' => 50,
 
     /*
     |--------------------------------------------------------------------------
