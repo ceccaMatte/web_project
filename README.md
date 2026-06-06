@@ -120,18 +120,20 @@ Il seeding principale crea:
 - ordini di esempio
 - panini preferiti
 
-## Credenziali di accesso demo
+## Login utenti demo
 
-Dopo il seed puoi accedere con questi utenti:
+Dopo il seed puoi accedere con questi utenti. Tutte le password demo sono `password`.
 
-| Ruolo | Email | Password |
-| --- | --- | --- |
-| Utente | `user1@test.it` | `password` |
-| Utente | `user2@test.it` | `password` |
-| Utente | `user3@test.it` | `password` |
-| Utente | `user4@test.it` | `password` |
-| Utente | `user5@test.it` | `password` |
-| Admin | `admin@test.it` | `password` |
+| Ruolo | Nome/Nickname | Email | Password |
+| --- | --- | --- | --- |
+| Utente | User 1 | `user1@test.it` | `password` |
+| Utente | User 2 | `user2@test.it` | `password` |
+| Utente | User 3 | `user3@test.it` | `password` |
+| Utente | User 4 | `user4@test.it` | `password` |
+| Utente | User 5 | `user5@test.it` | `password` |
+| Admin | Admin | `admin@test.it` | `password` |
+
+L'utente admin puo accedere alle pagine di gestione come `/admin/work-service` e `/admin/service-planning`.
 
 ## Avvio del progetto in sviluppo
 
@@ -339,4 +341,3 @@ Poi apri:
 ```text
 http://127.0.0.1:8000
 ```
-
