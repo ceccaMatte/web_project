@@ -131,7 +131,8 @@ class HomeController extends Controller
         }
 
         // 2. Recupera working day per quella data con time slots
-        $workingDay = \App\Models\WorkingDay::where('day', $dateString)
+        $workingDay = \App\Models\WorkingDay::whereDate('day', $dateString)
+            ->where('is_active', true)
             ->with(['timeSlots' => function ($query) {
                 $query->orderBy('start_time', 'asc');
             }])
@@ -214,7 +215,9 @@ class HomeController extends Controller
         $today = today()->format('Y-m-d');
 
         // 2. Dati TODAY per truck card (SEMPRE today, mai selectedDate)
-        $todayWorkingDay = \App\Models\WorkingDay::where('day', $today)->first();
+        $todayWorkingDay = \App\Models\WorkingDay::whereDate('day', $today)
+            ->where('is_active', true)
+            ->first();
         $todayData = [
             'is_active' => (bool) $todayWorkingDay,
             'location' => $todayWorkingDay->location ?? null,
@@ -235,7 +238,8 @@ class HomeController extends Controller
 
         // 4. Time slots per selectedDate (può essere diverso da today)
         $selectedDaySlots = [];
-        $workingDay = \App\Models\WorkingDay::where('day', $selectedDate)
+        $workingDay = \App\Models\WorkingDay::whereDate('day', $selectedDate)
+            ->where('is_active', true)
             ->with(['timeSlots' => function ($query) {
                 $query->orderBy('start_time', 'asc');
             }])
@@ -265,4 +269,3 @@ class HomeController extends Controller
         ]);
     }
 }
-

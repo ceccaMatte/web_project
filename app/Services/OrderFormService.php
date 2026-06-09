@@ -162,7 +162,8 @@ class OrderFormService
         // Time slots sono collegati a working_day tramite working_day_id
         // Dobbiamo fare il join con working_days per filtrare per data
         $slots = TimeSlot::whereHas('workingDay', function ($query) use ($date) {
-                $query->where('day', $date);
+                $query->whereDate('day', $date)
+                    ->where('is_active', true);
             })
             ->with('workingDay')
             ->orderBy('start_time')
@@ -182,6 +183,8 @@ class OrderFormService
                 'timeLabel' => $slot->start_time, // start_time è già string
                 'slotsLeft' => $slotsLeft,
                 'available' => $slotsLeft > 0,
+                'href' => "/orders/create?slot={$slot->id}",
+                'isDisabled' => $slotsLeft <= 0,
             ];
         })->toArray();
     }

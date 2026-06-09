@@ -29,12 +29,6 @@ use Illuminate\Support\Facades\Auth;
  */
 class HomeService
 {
-    // Queue time weighting constants (minutes per order)
-    private const TIME_PREV_ORDER_CONFIRMED = 2; // minutes per confirmed order in previous slots
-    private const TIME_PREV_ORDER_READY = 0.5;     // minutes per ready order in previous slots
-    private const TIME_NOW_ORDER_CONFIRMED = 3;  // minutes per confirmed order in current slot
-    private const TIME_NOW_ORDER_READY = 0.5;      // minutes per ready order in current slot
-
     /**
      * Costruisce il payload completo per la Home API.
      *
@@ -103,7 +97,9 @@ class HomeService
     {
         // Cerchiamo il working_day di oggi
         $today = now()->toDateString();
-        $workingDay = WorkingDay::whereDate('day', $today)->first();
+        $workingDay = WorkingDay::whereDate('day', $today)
+            ->where('is_active', true)
+            ->first();
 
         if (!$workingDay) {
             // Nessun servizio oggi
@@ -116,73 +112,15 @@ class HomeService
             ];
         }
 
-        // Servizio attivo: calcoliamo queue_time usando la nuova formula
-        // Formula: prev_confirmed * TIME_PREV_ORDER_CONFIRMED
-        //        + prev_ready * TIME_PREV_ORDER_READY
-        //        + now_confirmed * TIME_NOW_ORDER_CONFIRMED
-        //        + now_ready * TIME_NOW_ORDER_READY
-
-        $nowTime = now()->format('H:i:s');
-
-        // Trova lo slot corrente (start_time <= now < end_time)
-        $currentSlot = TimeSlot::where('working_day_id', $workingDay->id)
-            ->where('start_time', '<=', $nowTime)
-            ->where('end_time', '>', $nowTime)
-            ->first();
-
-        if ($currentSlot) {
-            $currentStart = $currentSlot->start_time;
-            $prevSlotIds = TimeSlot::where('working_day_id', $workingDay->id)
-                ->where('start_time', '<', $currentStart)
-                ->pluck('id')
-                ->toArray();
-            $currentSlotId = $currentSlot->id;
-        } else {
-            // Fallback: consideriamo tutti gli slot con start_time < now come "precedenti"
-            $prevSlotIds = TimeSlot::where('working_day_id', $workingDay->id)
-                ->where('start_time', '<', $nowTime)
-                ->pluck('id')
-                ->toArray();
-            $currentSlotId = null;
-        }
-
-        $prevConfirmed = 0;
-        $prevReady = 0;
-        $nowConfirmed = 0;
-        $nowReady = 0;
-
-        if (!empty($prevSlotIds)) {
-            $prevConfirmed = Order::whereIn('time_slot_id', $prevSlotIds)
-                ->where('status', 'confirmed')
-                ->count();
-
-            $prevReady = Order::whereIn('time_slot_id', $prevSlotIds)
-                ->where('status', 'ready')
-                ->count();
-        }
-
-        if ($currentSlotId) {
-            $nowConfirmed = Order::where('time_slot_id', $currentSlotId)
-                ->where('status', 'confirmed')
-                ->count();
-
-            $nowReady = Order::where('time_slot_id', $currentSlotId)
-                ->where('status', 'ready')
-                ->count();
-        }
-
-        $queueTime = (
-            $prevConfirmed * self::TIME_PREV_ORDER_CONFIRMED
-            + $prevReady * self::TIME_PREV_ORDER_READY
-            + $nowConfirmed * self::TIME_NOW_ORDER_CONFIRMED
-            + $nowReady * self::TIME_NOW_ORDER_READY
-        );
+        $queueTime = Order::where('working_day_id', $workingDay->id)
+            ->where('status', 'confirmed')
+            ->count();
 
         return [
             'status' => 'active',
             'location' => $workingDay->location,
-            'startTime' => config('services.truck.default_start_time', '11:00'),
-            'endTime' => config('services.truck.default_end_time', '14:00'),
+            'startTime' => substr($workingDay->start_time, 0, 5),
+            'endTime' => substr($workingDay->end_time, 0, 5),
             'queueTime' => (int) $queueTime,
         ];
     }
@@ -298,6 +236,7 @@ class HomeService
     {
         $tomorrow = now()->addDay()->toDateString();
         $workingDay = WorkingDay::whereDate('day', $tomorrow)
+            ->where('is_active', true)
             ->first();
 
         if (!$workingDay) {
