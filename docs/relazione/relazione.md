@@ -28,3 +28,61 @@ Il sistema deve permettere al gestore di bloccare alcuni clienti che si comporta
 
 Infine, il proprietario desidera consultare alcune statistiche sull’uso del servizio, come gli orari di punta, gli ingredienti più richiesti, i clienti più assidui o meno assidui e l’andamento degli ordini nei diversi giorni o settimane. Tali informazioni dovrebbero aiutare a pianificare meglio il lavoro e a capire quali alimenti risultano maggiormente richiesti.
 
+
+
+## Estrazione dei concetti principali
+
+A seguito della lettura dell’intervista, si individuano i principali concetti del dominio applicativo analizzando i sostantivi e gli oggetti rilevanti citati dal cliente. In questa fase vengono inoltre eliminati sinonimi e termini utilizzati con significato equivalente, associando a ciascun concetto un unico termine di riferimento.
+
+
+| Termine                   | Breve descrizione                                                                        | Eventuali sinonimi                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Cliente                   | Persona che utilizza la piattaforma per prenotare panini e consultare i propri ordini.   | Studente, professore, personale dell’istituto, utente |
+| Amministratore            | Utente che gestisce il servizio, gli ordini e le configurazioni del food truck.          | Proprietario, gestore, amministratore                 |
+| Food truck                | Punto di servizio presso cui vengono preparati e consegnati i panini.                    | Truck                                                 |
+| Panino                    | Prodotto ordinato dal cliente e composto selezionando ingredienti disponibili.           | Prodotto ordinato                                     |
+| Ingrediente               | Alimento utilizzabile nella composizione di un panino.                                   | Alimento                                              |
+| Categoria ingrediente     | Raggruppamento logico degli ingredienti utilizzato per applicare regole di composizione. | Categoria di alimenti, tipo di alimento               |
+| Ordine                    | Prenotazione effettuata da un cliente per il ritiro di un panino.                        | Prenotazione, richiesta                               |                                 | Stato del panino                                      |
+| Fascia oraria             | Intervallo temporale prenotabile per il ritiro di un ordine.                             | Turno, slot                                           |
+| Giorno di servizio        | Giorno in cui il food truck accetta prenotazioni.                                        | Giornata attiva                                       |
+| Posizione                 | Luogo in cui il food truck opera in uno specifico giorno di servizio.                    | Luogo, sede                                           |
+
+### Specifiche ristrutturate
+
+A seguito della lettura e comprensione dei requisiti, si procede redigendo un testo che ne riassuma i concetti principali eliminando le ambiguità precedentemente rilevate.
+
+Il sistema **Campus Truck** gestisce le prenotazioni dei panini presso un unico **food truck**. Gli utenti registrati al sistema sono distinti in **clienti** e **amministratore**. Per ogni utente vengono memorizzati nickname, email, password e ruolo. Per i clienti viene inoltre memorizzato l’eventuale stato di blocco. Un cliente bloccato può accedere alla piattaforma e consultare i propri dati, ma non può effettuare nuovi ordini.
+
+Il **cliente** può comporre un **panino** selezionando gli **ingredienti** disponibili. Un panino è definito dall’insieme degli ingredienti che lo compongono e non possiede né un nome né un prezzo. Il pagamento non viene gestito dal sistema. Il cliente può salvare panini composti in precedenza, modificarli, eliminarli e riutilizzarli per effettuare nuovi ordini.
+
+Gli **ingredienti** sono organizzati in **categorie di ingredienti**. Ogni ingrediente appartiene a una sola categoria. Per la categoria del pane vale il vincolo che in ogni panino deve essere scelto uno e un solo ingrediente; per le altre categorie la scelta è libera. Non sono previste quantità multiple dello stesso ingrediente nello stesso panino: un ingrediente può essere presente oppure assente.
+
+Per ogni ingrediente vengono memorizzati il nome, la categoria di appartenenza e lo stato di disponibilità. Un ingrediente non disponibile rimane presente nel sistema, ma non può essere selezionato nella composizione di nuovi panini. L’amministratore può inserire nuovi ingredienti e aggiornare la disponibilità di quelli già presenti.
+
+Un **ordine** rappresenta la prenotazione di un solo panino da parte di un solo cliente. Ogni ordine è associato a una specifica **fascia oraria** di ritiro. Un cliente può effettuare più ordini nello stesso giorno e anche nella stessa fascia oraria, ma ogni ordine contiene sempre un solo panino.
+
+Le **fasce orarie** hanno durata fissa di 15 minuti e appartengono a un **giorno di servizio**. Ogni fascia oraria possiede una capacità massima, cioè il numero massimo di ordini accettabili. Quando tale limite viene raggiunto, il sistema non consente ulteriori prenotazioni per quella fascia.
+
+L’**amministratore** configura i giorni in cui il servizio è attivo, la posizione testuale del food truck, la capacità massima delle fasce orarie e il limite temporale entro cui un ordine può essere modificato o annullato. Se un giorno non è attivo, non è possibile effettuare ordini per quel giorno.
+
+Ogni ordine possiede uno **stato** che descrive il suo avanzamento. Gli stati previsti sono: pending, confirmed, ready, picked_up e rejected. Un ordine in stato pending può ancora essere modificato o annullato dal cliente entro il limite temporale stabilito. Un ordine confirmed non può più essere modificato. Un ordine ready indica che il panino è pronto per il ritiro. Un ordine picked_up indica che il panino è stato ritirato. Un ordine rejected indica che la prenotazione è stata rifiutata dall’amministratore.
+
+Il cliente può visualizzare lo stato dei propri ordini, consultare lo storico delle prenotazioni effettuate e riordinare un panino già ordinato in passato. L’amministratore può visualizzare tutti gli ordini, aggiornarne lo stato, rifiutarli, bloccare o sbloccare clienti e consultare statistiche sull’utilizzo del servizio.
+
+Le statistiche richieste riguardano gli ingredienti più utilizzati, i clienti più o meno frequenti e l’andamento degli ordini per giorno o settimana. Tali informazioni vengono ricavate dagli ordini memorizzati nel sistema.
+
+Segue un elenco delle principali azioni richieste:
+
+1. Creare un nuovo cliente.
+2. Effettuare operazioni CRUD sui panini salvati.
+3. Aggiungere un nuovo ingrediente.
+4. Segnare un ingrediente come esaurito o nuovamente disponibile.
+5. Visualizzare lo storico degli ordini di un cliente.
+6. Filtrare i panini preferiti.
+7. Riordinare un ordine a partire dallo storico.
+8. Impostare i giorni in cui il servizio viene erogato.
+9. Impostare la capacità massima delle fasce orarie.
+10. Bloccare o sbloccare un utente.
+11. Cambiare lo stato di un ordine o rifiutarlo.
+12. Estrarre statistiche sui clienti più o meno frequenti, sugli ingredienti più utilizzati e sull’andamento degli ordini.
