@@ -1,0 +1,6 @@
+# Tipi di chiavi
+un database è formato da un insieme di tabello ogniuna della quale rappresenta un `entità` o una `relazione` nel dominio applicativo. in ogni tabella ci sono delle colonne speciali delle `chiavi` che servono ad identificare in maniera univoca ogni riga della tabella. queste chiavi possono essere `chiavi primarie o primary key (PK)`, `chiavi secondarie o (Alternative)` oppure `chiavi imoprtate o Foreign Key (FK)`
+bene adesso spieghiamo cosa sono.
+1) `chiavi primarie o primary key (PK)` è una colonna che identifica in maniera univoca una entry del db. ogni tabella **deve** aver euna chiave prima per essere valida altrimenti il DBMS non potrebbe assicurasi che no vengano aggiunti campi duplicati
+1) `chiavi secondarie` sono colonne che potevano essere chiavi oprimarie ma che non sono state scelte per lo scopo es un tablle che ha sia codice fiscale che numeor di telefono entrambe sarebbero candidati validi ad essere chiavi primarie ma dato una tabella può avere e deve avere  **SOLO** una chiave primaria allora le colonne che potrebbero essere chiavi primarie ma non vengonoo scelte diventano chiavi secondarie
+1) `chiavi imoprtate o Foreign Key (FK)` sono chiavi primaire di altre tabelle imoprtate in una tabella es eervono per mettere in relazioni tabelle distinte evitando duplicati

@@ -1,0 +1,23 @@
+Titolo: Applicazione per la prenotazione di panini
+L'obbiettivo è la relizzazione di una web-app per permettere agli studenti di prenotare il proprio
+panino. 
+ogni utente sia loggatto che non potrà accederre al sito. gli utenti non loggati potranno solo
+verificare se il servizio del paninare è disponibile e la fila l'attesa stimata, mentre gi utenti loggati
+(inserendo user, mail e password) potranno ordinare i panini, monitorare lo stato dell'ordine e avere 
+una lista dei loro panini preferiti.
+per ogni ordine un tente può segliere gli ingredienti e in che fascia oraria ordinarlo (le facsie orarie sono
+divise in slot da 15min), inoltre gli utenti hanno l apossibilità di modificare il porprio ordine fino a
+30min della propria facsia oraria. 
+
+le funzioanlità principali per gli utenti sono
+1. la registrazione inserendo i proprio dati
+2. la prenotazione di un panino
+3. la modifica di un ordine
+4. la possibilità di riordinare ordini passati
+5. salvare i propri ordini preferiti e filtrare lo storico degli ordini per quelli preferiti
+
+l'amminstratore potrà
+1. monitorare la fase di preparazione degli ordini dividendo gli ordini in facse orarie e in stato di avanzamneto dell'ordine
+se pendente (ovvero l'utente può ancora modificarlo), ready (panino preparato) piked_up (ordine ritiato dall'utente) 
+2. in più potrà programmare i giorni lavorativi. per ogni giorno potrà dire facsia oraria di inizio e fine lavoro, 
+quanti panini accettare per facsia oraria e impostare il luogo dove farà il servizio
