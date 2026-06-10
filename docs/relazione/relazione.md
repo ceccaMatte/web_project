@@ -86,3 +86,67 @@ Segue un elenco delle principali azioni richieste:
 10. Bloccare o sbloccare un utente.
 11. Cambiare lo stato di un ordine o rifiutarlo.
 12. Estrarre statistiche sui clienti più o meno frequenti, sugli ingredienti più utilizzati e sull’andamento degli ordini.
+
+## Progettazione concettuale
+
+### Schema scheletro
+
+Dopo aver analizzato il dominio applicativo, si procede alla progettazione dello schema E/R. Per rendere più chiara la modellazione, il dominio è stato inizialmente suddiviso in tre viste parziali, ciascuna relativa a un aspetto specifico del sistema:
+
+* gestione degli utenti e dei ruoli;
+* composizione degli ordini e gestione degli ingredienti;
+* prenotazione degli ordini e pianificazione del servizio.
+
+Questa suddivisione permette di analizzare separatamente le principali aree del dominio per poi integrarle nello schema concettuale finale.
+
+---
+
+### Vista utenti e ruoli
+
+La prima vista riguarda la gestione degli utenti della piattaforma. Poiché clienti e amministratori condividono le stesse informazioni di autenticazione, è stata introdotta una generica entità **UTENTE**, identificata da una chiave primaria artificiale si sarebbe potuta utilizzare la mail per sicurezza di è scelto di creare un attributo ad hoc.
+
+L’entità **UTENTE** viene specializzata nelle entità **CLIENTE** e **AMMINISTRATORE** mediante una generalizzazione totale ed esclusiva: ogni utente appartiene a una sola delle due categorie.
+
+Nell’entità **CLIENTE** è stato introdotto l’attributo `abilitato` per modellare il vincolo applicativo secondo cui solo i clienti autorizzati possono effettuare nuovi ordini. Tale vincolo non è esprimibile direttamente tramite le cardinalità dello schema E/R e viene quindi rappresentato attraverso questo attributo.
+
+*Figura 1 - Schema E/R parziale per la gestione degli utenti e dei ruoli.*
+
+---
+
+### Vista composizione degli ordini e ingredienti
+
+La seconda vista riguarda la composizione degli ordini. Poiché ogni ordine corrisponde sempre a un singolo panino, non è stata introdotta un'entità autonoma **PANINO**. La composizione viene invece rappresentata direttamente tramite gli ingredienti associati all'ordine.
+
+Per questo motivo è stata introdotta l'entità **INGREDIENTE_ORDINE**, che consente di storicizzare la composizione del panino al momento della prenotazione. In particolare, gli attributi `nomeSnapshot` e `categoriaSnapshot` permettono di conservare le informazioni originali dell'ingrediente anche nel caso in cui il catalogo venga modificato successivamente.
+
+Allo stesso tempo, **INGREDIENTE_ORDINE** mantiene un collegamento all'entità **INGREDIENTE**, consentendo di risalire all'ingrediente attualmente presente nel catalogo e supportando funzionalità come il riordino di panini già acquistati.
+
+Gli ingredienti sono organizzati tramite l'entità **CATEGORIA_INGREDIENTE**. Gli attributi `minScelte` e `maxScelte` sono stati introdotti per rappresentare i vincoli di composizione del panino. Ad esempio, il requisito secondo cui deve essere selezionato esattamente un tipo di pane viene modellato imponendo per la relativa categoria un minimo e un massimo pari a uno.
+
+*Figura 2 - Schema E/R parziale per la composizione degli ordini e la gestione degli ingredienti.*
+
+---
+
+### Vista prenotazioni e pianificazione del servizio
+
+La terza vista riguarda la prenotazione degli ordini e la pianificazione temporale del servizio.
+
+L’entità **ORDINE** rappresenta una prenotazione effettuata da un cliente ed è identificata da una chiave primaria artificiale. È stato inoltre introdotto l’attributo `preferito`, che consente di rappresentare i panini salvati dal cliente senza dover modellare una specifica entità dedicata ai preferiti: un ordine già presente nello storico può semplicemente essere marcato come tale.
+
+La pianificazione temporale è stata modellata attraverso le entità **FASCIA_ORARIA** e **GIORNO_SERVIZIO**. Questa scelta consente di separare la definizione delle finestre di ritiro dalla gestione delle singole giornate operative del food truck, rendendo più flessibile la configurazione del servizio.
+
+Le informazioni relative all'orario complessivo di un giorno di servizio sono considerate derivabili dalle fasce orarie associate e non richiedono quindi una modellazione autonoma.
+
+*Figura 3 - Schema E/R parziale per la prenotazione degli ordini e la pianificazione del servizio.*
+
+---
+
+### Integrazione delle viste
+
+Le tre viste vengono integrate nello schema concettuale finale attraverso le entità condivise tra i diversi sottodomini.
+
+L’entità **CLIENTE** collega la gestione degli utenti con quella degli ordini, mentre l’entità **ORDINE** costituisce il punto di raccordo tra la composizione del panino e la pianificazione del ritiro.
+
+L’integrazione non ha richiesto la risoluzione di conflitti tra le viste, poiché i concetti comuni sono stati uniformati durante la fase di analisi dei requisiti. Lo schema finale è quindi ottenuto dall’unione delle tre viste mantenendo le relazioni individuate nelle singole fasi di progettazione.
+
+*Figura 4 - Schema E/R concettuale finale.*
