@@ -74,18 +74,18 @@ Le statistiche richieste riguardano gli ingredienti più utilizzati, i clienti p
 
 Segue un elenco delle principali azioni richieste:
 
+Segue un elenco delle principali azioni richieste:
+
 1. Creare un nuovo cliente.
-2. Effettuare operazioni CRUD sui panini salvati.
-3. Aggiungere un nuovo ingrediente.
-4. Segnare un ingrediente come esaurito o nuovamente disponibile.
+2. Inserire un nuovo ordine per una fascia oraria disponibile.
+3. Modificare o annullare un ordine ancora modificabile.
+4. Cambiare lo stato di avanzamento di un ordine o rifiutarlo.
 5. Visualizzare lo storico degli ordini di un cliente.
-6. Filtrare i panini preferiti.
-7. Riordinare un ordine a partire dallo storico.
-8. Impostare i giorni in cui il servizio viene erogato.
-9. Impostare la capacità massima delle fasce orarie.
-10. Bloccare o sbloccare un utente.
-11. Cambiare lo stato di un ordine o rifiutarlo.
-12. Estrarre statistiche sui clienti più o meno frequenti, sugli ingredienti più utilizzati e sull’andamento degli ordini.
+6. Riordinare un ordine a partire dallo storico.
+7. Aggiornare la disponibilità di un ingrediente per uno specifico giorno di servizio.
+8. Impostare i giorni in cui il servizio viene erogato e configurare le relative fasce orarie.
+9. Estrarre statistiche sui clienti più o meno frequenti, sugli ingredienti più utilizzati e sull’andamento degli ordini.
+
 
 ## Progettazione concettuale
 
@@ -157,26 +157,26 @@ In questa sezione viene stimato il volume dei dati relativi alle principali enti
 
 Si assume che il food truck sia attivo per circa 300 giorni all’anno, con una media di 14 fasce orarie giornaliere. Si ipotizza inoltre una media di circa 70 ordini al giorno e una composizione media di 5 ingredienti per ordine. Il catalogo degli ingredienti è stimato in circa 40 elementi, suddivisi in 6 categorie.
 
-| Concetto                  | Costrutto |  Volume |
-| ------------------------- | :-------: | ------: |
-| UTENTE                    |     E     |     801 |
-| CLIENTE                   |     E     |     800 |
-| AMMINISTRATORE            |     E     |       1 |
-| ORDINE                    |     E     |  21.000 |
-| EFFETTUA                  |     R     |  21.000 |
-| FASCIA_ORARIA             |     E     |   4.200 |
-| PRENOTATO_IN              |     R     |  21.000 |
-| GIORNO_SERVIZIO           |     E     |     300 |
-| APPARTIENE_A              |     R     |   4.200 |
-| INGREDIENTE_ORDINE        |     E     | 105.000 |
-| FORMATO_DA                |     R     | 105.000 |
-| INGREDIENTE               |     E     |      40 |
-| RIFERISCE                 |     R     | 105.000 |
-| CATEGORIA_INGREDIENTE     |     E     |       6 |
-| APPARTIENE                |     R     |      40 |
-| DISPONIBILITA_INGREDIENTE |     E     |  12.000 |
-| HA                        |     R     |  12.000 |
-| DEFINISCE                 |     R     |  12.000 |
+| Concetto                  | Costrutto | Volume  |
+| ------------------------- | --------- | ------- |
+| UTENTE                    | E         | 801     |
+| CLIENTE                   | E         | 800     |
+| AMMINISTRATORE            | E         | 1       |
+| ORDINE                    | E         | 21.000  |
+| FASCIA_ORARIA             | E         | 4.200   |
+| GIORNO_SERVIZIO           | E         | 300     |
+| INGREDIENTE_ORDINE        | E         | 105.000 |
+| INGREDIENTE               | E         | 40      |
+| CATEGORIA_INGREDIENTE     | E         | 6       |
+| DISPONIBILITA_INGREDIENTE | E         | 12.000  |
+| EFFETTUA                  | R         | 21.000  |
+| PRENOTATO_IN              | R         | 21.000  |
+| APPARTIENE_A              | R         | 4.200   |
+| FORMATO_DA                | R         | 105.000 |
+| RIFERISCE                 | R         | 105.000 |
+| APPARTIENE                | R         | 40      |
+| HA                        | R         | 12.000  |
+| DEFINISCE                 | R         | 12.000  |
 
 I volumi sono stati calcolati sulla base delle seguenti ipotesi:
 
@@ -185,3 +185,405 @@ I volumi sono stati calcolati sulla base delle seguenti ipotesi:
 * il numero di fasce orarie annue è pari a 300 giorni per 14 fasce orarie giornaliere, quindi circa 4.200 fasce;
 * il numero di ingredienti d’ordine è pari a 21.000 ordini per 5 ingredienti medi per ordine, quindi circa 105.000 occorrenze;
 * il numero di disponibilità ingrediente è pari a 300 giorni per 40 ingredienti presenti nel catalogo, quindi circa 12.000 occorrenze.
+### Descrizione delle operazioni principali e stima della loro frequenza
+
+Le operazioni considerate sono state selezionate tra quelle individuate nella fase di analisi, privilegiando quelle più rappresentative del dominio applicativo e quelle che comportano gli accessi più significativi alla base di dati.
+
+| Codice | Operazione                                                                                                            |        Frequenza |
+| -----: | --------------------------------------------------------------------------------------------------------------------- | ---------------: |
+|      1 | Creare un nuovo cliente                                                                                               |      3 al giorno |
+|      2 | Inserire un nuovo ordine per una fascia oraria disponibile                                                            |     70 al giorno |
+|      3 | Modificare o annullare un ordine ancora modificabile                                                                  |     10 al giorno |
+|      4 | Cambiare lo stato di avanzamento di un ordine o rifiutarlo                                                            |    158 al giorno |
+|      5 | Visualizzare lo storico degli ordini di un cliente                                                                    |    123 al giorno |
+|      6 | Riordinare un ordine a partire dallo storico                                                                          |     49 al giorno |
+|      7 | Aggiornare la disponibilità di un ingrediente per un giorno di servizio                                               | 4 alla settimana |
+|      8 | Impostare i giorni in cui il servizio viene erogato e configurare le fasce orarie                                     | 1 alla settimana |
+|      9 | Estrarre statistiche sui clienti più o meno frequenti, sugli ingredienti più utilizzati e sull’andamento degli ordini |      1 al giorno |
+
+
+### Schemi di navigazione e tabelle degli accessi
+
+Sono riportate in seguito le tabelle degli accessi relative alle principali operazioni individuate. Dove l’operazione non risulti immediata, viene indicato anche il relativo schema di navigazione.
+Ai fini del calcolo del costo, si considerano di peso doppio gli accessi in scrittura rispetto a quelli in lettura.
+
+---
+
+#### OP 1 - Creare un nuovo cliente
+
+L’operazione consiste nella registrazione di un nuovo cliente all’interno della piattaforma. Vengono create una nuova istanza di **UTENTE** e la relativa specializzazione **CLIENTE**.
+
+| Concetto | Costrutto | Accessi | Tipo |
+| -------- | --------- | ------- | ---- |
+| UTENTE   | E         | 1       | S    |
+| CLIENTE  | E         | 1       | S    |
+
+**Totale per esecuzione: 2S = 2 × 2 = 4**
+**Costo giornaliero: 4 × 3 = 12**
+
+---
+
+#### OP 2 - Inserire un nuovo ordine per una fascia oraria disponibile
+
+Prima di inserire un nuovo ordine è necessario verificare che il cliente sia abilitato, che il giorno di servizio sia attivo, che la fascia oraria non abbia superato la capacità massima e che gli ingredienti scelti siano disponibili per quel giorno. Successivamente viene creato il nuovo ordine.
+
+Schema di navigazione:
+
+```text
+CLIENTE → EFFETTUA → ORDINE
+ORDINE → PRENOTATO_IN → FASCIA_ORARIA → APPARTIENE_A → GIORNO_SERVIZIO
+ORDINE → FORMATO_DA → INGREDIENTE_ORDINE → RIFERISCE → INGREDIENTE
+INGREDIENTE → HA → DISPONIBILITA_INGREDIENTE ← DEFINISCE ← GIORNO_SERVIZIO
+INGREDIENTE → APPARTIENE → CATEGORIA_INGREDIENTE
+```
+
+##### OP 2.1 - Verifica preliminare di cliente, giorno di servizio e disponibilità della fascia oraria
+
+Si considera una media di 5 ordini già presenti nella fascia oraria selezionata.
+
+| Concetto        | Costrutto | Accessi | Tipo |
+| --------------- | --------- | ------- | ---- |
+| CLIENTE         | E         | 1       | L    |
+| FASCIA_ORARIA   | E         | 1       | L    |
+| APPARTIENE_A    | R         | 1       | L    |
+| GIORNO_SERVIZIO | E         | 1       | L    |
+| PRENOTATO_IN    | R         | 5       | L    |
+| ORDINE          | E         | 5       | L    |
+
+**Costo parziale: 14L = 14**
+
+##### OP 2.2 - Verifica della disponibilità degli ingredienti
+
+Si considera una media di 5 ingredienti per ordine.
+
+| Concetto                  | Costrutto | Accessi | Tipo |
+| ------------------------- | --------- | ------- | ---- |
+| INGREDIENTE               | E         | 5       | L    |
+| APPARTIENE                | R         | 5       | L    |
+| CATEGORIA_INGREDIENTE     | E         | 5       | L    |
+| HA                        | R         | 5       | L    |
+| DEFINISCE                 | R         | 5       | L    |
+| DISPONIBILITA_INGREDIENTE | E         | 5       | L    |
+
+**Costo parziale: 30L = 30**
+
+##### OP 2.3 - Creazione del nuovo ordine
+
+| Concetto           | Costrutto | Accessi | Tipo |
+| ------------------ | --------- | ------- | ---- |
+| ORDINE             | E         | 1       | S    |
+| EFFETTUA           | R         | 1       | S    |
+| PRENOTATO_IN       | R         | 1       | S    |
+| INGREDIENTE_ORDINE | E         | 5       | S    |
+| FORMATO_DA         | R         | 5       | S    |
+| RIFERISCE          | R         | 5       | S    |
+
+**Costo parziale: 18S = 36**
+
+##### Riepilogo OP 2
+
+| Sottosezione | Costo |
+| ------------ | ----- |
+| OP 2.1       | 14    |
+| OP 2.2       | 30    |
+| OP 2.3       | 36    |
+
+**Totale per esecuzione: 18S + 44L = (18 × 2) + 44 = 80**
+**Costo giornaliero: 80 × 70 = 5600**
+
+---
+
+#### OP 3 - Modificare o annullare un ordine ancora modificabile
+
+Per modificare o annullare un ordine occorre verificare che l’ordine sia ancora modificabile, controllare il limite temporale associato alla fascia oraria e, nel caso di modifica della composizione, aggiornare gli ingredienti associati all’ordine.
+
+Schema di navigazione:
+
+```text
+ORDINE → PRENOTATO_IN → FASCIA_ORARIA → APPARTIENE_A → GIORNO_SERVIZIO
+ORDINE → FORMATO_DA → INGREDIENTE_ORDINE → RIFERISCE → INGREDIENTE
+INGREDIENTE → HA → DISPONIBILITA_INGREDIENTE ← DEFINISCE ← GIORNO_SERVIZIO
+```
+
+##### OP 3.1 - Recupero dell'ordine e verifica della possibilità di modifica
+
+| Concetto        | Costrutto | Accessi | Tipo |
+| --------------- | --------- | ------- | ---- |
+| ORDINE          | E         | 1       | L    |
+| PRENOTATO_IN    | R         | 1       | L    |
+| FASCIA_ORARIA   | E         | 1       | L    |
+| APPARTIENE_A    | R         | 1       | L    |
+| GIORNO_SERVIZIO | E         | 1       | L    |
+
+**Costo parziale: 5L = 5**
+
+##### OP 3.2 - Verifica della nuova composizione
+
+| Concetto                  | Costrutto | Accessi | Tipo |
+| ------------------------- | --------- | ------- | ---- |
+| FORMATO_DA                | R         | 5       | L    |
+| INGREDIENTE_ORDINE        | E         | 5       | L    |
+| INGREDIENTE               | E         | 5       | L    |
+| APPARTIENE                | R         | 5       | L    |
+| CATEGORIA_INGREDIENTE     | E         | 5       | L    |
+| HA                        | R         | 5       | L    |
+| DEFINISCE                 | R         | 5       | L    |
+| DISPONIBILITA_INGREDIENTE | E         | 5       | L    |
+
+**Costo parziale: 40L = 40**
+
+##### OP 3.3 - Aggiornamento dell'ordine
+
+| Concetto           | Costrutto | Accessi | Tipo |
+| ------------------ | --------- | ------- | ---- |
+| ORDINE             | E         | 1       | S    |
+| INGREDIENTE_ORDINE | E         | 5       | S    |
+| FORMATO_DA         | R         | 5       | S    |
+| RIFERISCE          | R         | 5       | S    |
+
+**Costo parziale: 16S = 32**
+
+##### Riepilogo OP 3
+
+| Sottosezione | Costo |
+| ------------ | ----- |
+| OP 3.1       | 5     |
+| OP 3.2       | 40    |
+| OP 3.3       | 32    |
+
+**Totale per esecuzione: 16S + 45L = (16 × 2) + 45 = 77**
+**Costo giornaliero: 77 × 10 = 770**
+
+---
+
+#### OP 4 - Cambiare lo stato di avanzamento di un ordine o rifiutarlo
+
+L’operazione viene eseguita dall’amministratore e consiste nell’aggiornamento dello stato corrente di un ordine. Nel caso di rifiuto, lo stato viene impostato a `rejected`.
+
+| Concetto | Costrutto | Accessi | Tipo |
+| -------- | --------- | ------- | ---- |
+| ORDINE   | E         | 1       | L    |
+| ORDINE   | E         | 1       | S    |
+
+**Totale per esecuzione: 1S + 1L = (1 × 2) + 1 = 3**
+**Costo giornaliero: 3 × 158 = 474**
+
+---
+
+#### OP 5 - Visualizzare lo storico degli ordini di un cliente
+
+L’operazione consiste nella visualizzazione dello storico degli ordini effettuati da un cliente. Per stimare il costo si considera che un cliente effettui mediamente 2 ordini a settimana; considerando gli ultimi quattro mesi (circa 16 settimane), lo storico consultato contiene mediamente **32 ordini**. Per ogni ordine vengono mostrate anche la fascia oraria, il giorno di servizio e la composizione storicizzata del panino.
+
+Schema di navigazione:
+
+```text
+CLIENTE → EFFETTUA → ORDINE
+ORDINE → PRENOTATO_IN → FASCIA_ORARIA → APPARTIENE_A → GIORNO_SERVIZIO
+ORDINE → FORMATO_DA → INGREDIENTE_ORDINE
+```
+
+| Concetto           | Costrutto | Accessi | Tipo |
+| ------------------ | --------- | ------- | ---- |
+| CLIENTE            | E         | 1       | L    |
+| EFFETTUA           | R         | 32      | L    |
+| ORDINE             | E         | 32      | L    |
+| PRENOTATO_IN       | R         | 32      | L    |
+| FASCIA_ORARIA      | E         | 32      | L    |
+| APPARTIENE_A       | R         | 32      | L    |
+| GIORNO_SERVIZIO    | E         | 32      | L    |
+| FORMATO_DA         | R         | 160     | L    |
+| INGREDIENTE_ORDINE | E         | 160     | L    |
+
+**Totale per esecuzione: 513L = 513**
+**Costo giornaliero: 513 × 123 = 63099**
+
+---
+
+#### OP 6 - Riordinare un ordine a partire dallo storico
+
+Per riordinare un ordine passato è necessario recuperare la composizione storicizzata, verificare che gli ingredienti siano ancora disponibili, controllare la disponibilità della fascia oraria scelta e infine creare un nuovo ordine.
+
+Schema di navigazione:
+
+```text
+ORDINE storico → FORMATO_DA → INGREDIENTE_ORDINE → RIFERISCE → INGREDIENTE
+INGREDIENTE → HA → DISPONIBILITA_INGREDIENTE ← DEFINISCE ← GIORNO_SERVIZIO
+FASCIA_ORARIA → APPARTIENE_A → GIORNO_SERVIZIO
+FASCIA_ORARIA ← PRENOTATO_IN ← ORDINE
+CLIENTE → EFFETTUA → nuovo ORDINE
+```
+
+##### OP 6.1 - Recupero della composizione storicizzata
+
+| Concetto           | Costrutto | Accessi | Tipo |
+| ------------------ | --------- | ------- | ---- |
+| ORDINE             | E         | 1       | L    |
+| FORMATO_DA         | R         | 5       | L    |
+| INGREDIENTE_ORDINE | E         | 5       | L    |
+| RIFERISCE          | R         | 5       | L    |
+
+**Costo parziale: 16L = 16**
+
+##### OP 6.2 - Verifica della disponibilità degli ingredienti
+
+| Concetto                  | Costrutto | Accessi | Tipo |
+| ------------------------- | --------- | ------- | ---- |
+| INGREDIENTE               | E         | 5       | L    |
+| APPARTIENE                | R         | 5       | L    |
+| CATEGORIA_INGREDIENTE     | E         | 5       | L    |
+| HA                        | R         | 5       | L    |
+| DEFINISCE                 | R         | 5       | L    |
+| DISPONIBILITA_INGREDIENTE | E         | 5       | L    |
+
+**Costo parziale: 30L = 30**
+
+##### OP 6.3 - Verifica della fascia oraria scelta
+
+| Concetto        | Costrutto | Accessi | Tipo |
+| --------------- | --------- | ------- | ---- |
+| CLIENTE         | E         | 1       | L    |
+| FASCIA_ORARIA   | E         | 1       | L    |
+| APPARTIENE_A    | R         | 1       | L    |
+| GIORNO_SERVIZIO | E         | 1       | L    |
+| PRENOTATO_IN    | R         | 5       | L    |
+| ORDINE          | E         | 5       | L    |
+
+**Costo parziale: 14L = 14**
+
+##### OP 6.4 - Creazione del nuovo ordine
+
+| Concetto           | Costrutto | Accessi | Tipo |
+| ------------------ | --------- | ------- | ---- |
+| ORDINE             | E         | 1       | S    |
+| EFFETTUA           | R         | 1       | S    |
+| PRENOTATO_IN       | R         | 1       | S    |
+| INGREDIENTE_ORDINE | E         | 5       | S    |
+| FORMATO_DA         | R         | 5       | S    |
+| RIFERISCE          | R         | 5       | S    |
+
+**Costo parziale: 18S = 36**
+
+##### Riepilogo OP 6
+
+| Sottosezione | Costo |
+| ------------ | ----- |
+| OP 6.1       | 16    |
+| OP 6.2       | 30    |
+| OP 6.3       | 14    |
+| OP 6.4       | 36    |
+
+**Totale per esecuzione: 18S + 60L = (18 × 2) + 60 = 96**
+**Costo giornaliero: 96 × 49 = 4704**
+
+---
+
+#### OP 7 - Aggiornare la disponibilità di un ingrediente per un giorno di servizio
+
+L’operazione consente all’amministratore di indicare se un ingrediente è disponibile o non disponibile in uno specifico giorno di servizio. La disponibilità viene gestita tramite l’entità **DISPONIBILITA_INGREDIENTE**, associata sia a **INGREDIENTE** sia a **GIORNO_SERVIZIO**.
+
+Schema di navigazione:
+
+```text
+INGREDIENTE → HA → DISPONIBILITA_INGREDIENTE ← DEFINISCE ← GIORNO_SERVIZIO
+```
+
+| Concetto                  | Costrutto | Accessi | Tipo |
+| ------------------------- | --------- | ------- | ---- |
+| INGREDIENTE               | E         | 1       | L    |
+| GIORNO_SERVIZIO           | E         | 1       | L    |
+| HA                        | R         | 1       | L    |
+| DEFINISCE                 | R         | 1       | L    |
+| DISPONIBILITA_INGREDIENTE | E         | 1       | L    |
+| DISPONIBILITA_INGREDIENTE | E         | 1       | S    |
+
+**Totale per esecuzione: 1S + 5L = (1 × 2) + 5 = 7**
+**Costo settimanale: 7 × 4 = 28**
+
+---
+
+#### OP 8 - Impostare i giorni in cui il servizio viene erogato e configurare le fasce orarie
+
+L’operazione consente all’amministratore di configurare una settimana di servizio. Si considera la creazione di 7 giorni di servizio, 14 fasce orarie per ciascun giorno e la creazione delle disponibilità degli ingredienti per ciascun giorno, inizializzate sulla base del catalogo.
+
+Schema di navigazione:
+
+```text
+GIORNO_SERVIZIO → APPARTIENE_A ← FASCIA_ORARIA
+GIORNO_SERVIZIO → DEFINISCE → DISPONIBILITA_INGREDIENTE ← HA ← INGREDIENTE
+```
+
+| Concetto                  | Costrutto | Accessi | Tipo |
+| ------------------------- | --------- | ------- | ---- |
+| GIORNO_SERVIZIO           | E         | 7       | S    |
+| FASCIA_ORARIA             | E         | 98      | S    |
+| APPARTIENE_A              | R         | 98      | S    |
+| DISPONIBILITA_INGREDIENTE | E         | 280     | S    |
+| HA                        | R         | 280     | S    |
+| DEFINISCE                 | R         | 280     | S    |
+
+**Totale per esecuzione: 1043S = 1043 × 2 = 2086**
+**Costo settimanale: 2086 × 1 = 2086**
+
+---
+
+
+#### OP 9 - Estrarre statistiche sui clienti più o meno frequenti, sugli ingredienti più utilizzati e sull’andamento degli ordini
+
+L’operazione consente all’amministratore di ottenere informazioni aggregate sull’utilizzo del servizio. Si considera l’estrazione giornaliera di statistiche riferite all’ultimo mese di attività. Considerando circa 21.000 ordini annui, si stimano circa **1.750 ordini mensili** e circa **8.750 ingredienti d’ordine mensili** (5 ingredienti medi per ordine).
+
+Schema di navigazione:
+
+```text
+CLIENTE → EFFETTUA → ORDINE
+ORDINE → FORMATO_DA → INGREDIENTE_ORDINE
+ORDINE → PRENOTATO_IN → FASCIA_ORARIA → APPARTIENE_A → GIORNO_SERVIZIO
+```
+
+##### OP 9.1 - Statistiche sui clienti più o meno frequenti
+
+| Concetto | Costrutto | Accessi | Tipo |
+| -------- | --------- | ------- | ---- |
+| ORDINE   | E         | 1750    | L    |
+| EFFETTUA | R         | 1750    | L    |
+| CLIENTE  | E         | 800     | L    |
+
+**Costo parziale: 4300L = 4300**
+
+##### OP 9.2 - Statistiche sugli ingredienti più utilizzati
+
+Per individuare gli ingredienti maggiormente utilizzati è necessario analizzare tutti gli ingredienti associati agli ordini del periodo considerato.
+
+| Concetto           | Costrutto | Accessi | Tipo |
+| ------------------ | --------- | ------- | ---- |
+| ORDINE             | E         | 1750    | L    |
+| FORMATO_DA         | R         | 8750    | L    |
+| INGREDIENTE_ORDINE | E         | 8750    | L    |
+| RIFERISCE          | R         | 8750    | L    |
+| INGREDIENTE        | E         | 8750    | L    |
+
+**Costo parziale: 36750L = 36750**
+
+##### OP 9.3 - Statistiche sull’andamento degli ordini
+
+Per analizzare l’andamento degli ordini nel tempo è necessario raggruppare gli ordini per giorno di servizio e fascia oraria.
+
+| Concetto        | Costrutto | Accessi | Tipo |
+| --------------- | --------- | ------- | ---- |
+| ORDINE          | E         | 1750    | L    |
+| PRENOTATO_IN    | R         | 1750    | L    |
+| FASCIA_ORARIA   | E         | 350     | L    |
+| APPARTIENE_A    | R         | 350     | L    |
+| GIORNO_SERVIZIO | E         | 25      | L    |
+
+**Costo parziale: 4225L = 4225**
+
+##### Riepilogo OP 9
+
+| Sottosezione | Costo |
+| ------------ | ----- |
+| OP 9.1       | 4300  |
+| OP 9.2       | 36750 |
+| OP 9.3       | 4225  |
+
+**Totale per esecuzione: 45275L = 45275**
+**Costo giornaliero: 45275 × 1 = 45275**
