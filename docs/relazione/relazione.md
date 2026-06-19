@@ -150,3 +150,38 @@ L’entità **CLIENTE** collega la gestione degli utenti con quella degli ordini
 L’integrazione non ha richiesto la risoluzione di conflitti tra le viste, poiché i concetti comuni sono stati uniformati durante la fase di analisi dei requisiti. Lo schema finale è quindi ottenuto dall’unione delle tre viste mantenendo le relazioni individuate nelle singole fasi di progettazione.
 
 *Figura 4 - Schema E/R concettuale finale.*
+
+### Stima del volume dei dati
+
+In questa sezione viene stimato il volume dei dati relativi alle principali entità e associazioni dello schema E/R. Le stime sono riferite a un anno di utilizzo del sistema.
+
+Si assume che il food truck sia attivo per circa 300 giorni all’anno, con una media di 14 fasce orarie giornaliere. Si ipotizza inoltre una media di circa 70 ordini al giorno e una composizione media di 5 ingredienti per ordine. Il catalogo degli ingredienti è stimato in circa 40 elementi, suddivisi in 6 categorie.
+
+| Concetto                  | Costrutto |  Volume |
+| ------------------------- | :-------: | ------: |
+| UTENTE                    |     E     |     801 |
+| CLIENTE                   |     E     |     800 |
+| AMMINISTRATORE            |     E     |       1 |
+| ORDINE                    |     E     |  21.000 |
+| EFFETTUA                  |     R     |  21.000 |
+| FASCIA_ORARIA             |     E     |   4.200 |
+| PRENOTATO_IN              |     R     |  21.000 |
+| GIORNO_SERVIZIO           |     E     |     300 |
+| APPARTIENE_A              |     R     |   4.200 |
+| INGREDIENTE_ORDINE        |     E     | 105.000 |
+| FORMATO_DA                |     R     | 105.000 |
+| INGREDIENTE               |     E     |      40 |
+| RIFERISCE                 |     R     | 105.000 |
+| CATEGORIA_INGREDIENTE     |     E     |       6 |
+| APPARTIENE                |     R     |      40 |
+| DISPONIBILITA_INGREDIENTE |     E     |  12.000 |
+| HA                        |     R     |  12.000 |
+| DEFINISCE                 |     R     |  12.000 |
+
+I volumi sono stati calcolati sulla base delle seguenti ipotesi:
+
+* il numero di utenti è pari a circa 800 clienti registrati più un amministratore;
+* il numero di ordini annui è pari a 300 giorni di servizio per 70 ordini medi giornalieri, quindi circa 21.000 ordini;
+* il numero di fasce orarie annue è pari a 300 giorni per 14 fasce orarie giornaliere, quindi circa 4.200 fasce;
+* il numero di ingredienti d’ordine è pari a 21.000 ordini per 5 ingredienti medi per ordine, quindi circa 105.000 occorrenze;
+* il numero di disponibilità ingrediente è pari a 300 giorni per 40 ingredienti presenti nel catalogo, quindi circa 12.000 occorrenze.
