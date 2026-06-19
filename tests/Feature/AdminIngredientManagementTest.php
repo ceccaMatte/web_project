@@ -73,6 +73,17 @@ class AdminIngredientManagementTest extends TestCase
                 'daily_available' => true,
                 'override_available' => true,
             ]);
+
+        $createdIngredient = Ingredient::where('code', 'VEG_RUC_TEST')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->deleteJson("/api/admin/ingredients/{$createdIngredient->id}")
+            ->assertOk()
+            ->assertJsonPath('message', 'Ingrediente eliminato.');
+
+        $this->assertDatabaseMissing('ingredients', [
+            'id' => $createdIngredient->id,
+        ]);
     }
 
     public function test_daily_unavailable_ingredient_cannot_be_ordered(): void

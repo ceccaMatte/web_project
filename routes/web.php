@@ -168,6 +168,9 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
     Route::patch('/api/admin/ingredients/{ingredient}', [AdminIngredientController::class, 'update'])
         ->name('api.admin.ingredients.update');
 
+    Route::delete('/api/admin/ingredients/{ingredient}', [AdminIngredientController::class, 'destroy'])
+        ->name('api.admin.ingredients.destroy');
+
     Route::patch('/api/admin/ingredients/{ingredient}/availability', [AdminIngredientController::class, 'updateAvailability'])
         ->name('api.admin.ingredients.availability');
 

@@ -29,14 +29,32 @@
         </button>
     </header>
 
-    <main class="max-w-6xl mx-auto p-4 space-y-4">
-        <section class="bg-card-dark border border-border-dark rounded-2xl p-4">
-            <div class="grid md:grid-cols-[1fr_1fr_140px] gap-3">
-                <input type="date" data-stats-from class="bg-input-bg border border-border-dark rounded-xl px-3 py-3 text-sm text-white">
-                <input type="date" data-stats-to class="bg-input-bg border border-border-dark rounded-xl px-3 py-3 text-sm text-white">
-                <button type="button" data-action="refresh-statistics" class="rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-3">Refresh</button>
+    <main class="max-w-6xl mx-auto p-4 md:p-6 space-y-5">
+        <section class="bg-card-dark border border-border-dark rounded-2xl overflow-hidden">
+            <div class="p-4 border-b border-border-dark flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-white text-sm font-bold">Analytics dashboard</h2>
+                    <p class="text-xs text-slate-500 mt-1">Orders, customers, slots and ingredient demand.</p>
+                </div>
+                <div class="hidden sm:flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                    <span class="material-symbols-outlined text-[22px]">query_stats</span>
+                </div>
             </div>
-            <p data-statistics-status class="mt-3 text-xs text-slate-500">Loading...</p>
+            <div class="p-4 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <label class="block">
+                    <span class="block mb-2 text-[10px] font-bold uppercase text-slate-500">From</span>
+                    <input type="date" data-stats-from class="w-full bg-input-bg border border-border-dark rounded-xl px-3 py-3 text-sm font-semibold text-white outline-none focus:border-primary/70">
+                </label>
+                <label class="block">
+                    <span class="block mb-2 text-[10px] font-bold uppercase text-slate-500">To</span>
+                    <input type="date" data-stats-to class="w-full bg-input-bg border border-border-dark rounded-xl px-3 py-3 text-sm font-semibold text-white outline-none focus:border-primary/70">
+                </label>
+                <button type="button" data-action="refresh-statistics" class="rounded-xl bg-primary text-white text-xs font-bold uppercase px-5 py-3 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">refresh</span>
+                    Refresh
+                </button>
+            </div>
+            <p data-statistics-status class="px-4 pb-4 text-xs text-slate-500">Loading...</p>
         </section>
 
         <div data-statistics-content class="space-y-4"></div>

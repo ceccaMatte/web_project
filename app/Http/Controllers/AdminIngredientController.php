@@ -55,16 +55,6 @@ class AdminIngredientController extends Controller
             ])
             ->values();
 
-        $workingDays = WorkingDay::orderByDesc('day')
-            ->limit(60)
-            ->get()
-            ->map(fn (WorkingDay $day) => [
-                'id' => $day->id,
-                'date' => $day->day->toDateString(),
-                'label' => $day->day->format('d/m/Y') . ' - ' . $day->location,
-                'is_active' => $day->is_active,
-            ]);
-
         return response()->json([
             'selected_date' => $selectedDate,
             'working_day' => $workingDay ? [
@@ -74,7 +64,6 @@ class AdminIngredientController extends Controller
                 'is_active' => $workingDay->is_active,
             ] : null,
             'categories' => self::CATEGORIES,
-            'working_days' => $workingDays,
             'ingredients' => $ingredients,
         ]);
     }
@@ -83,7 +72,24 @@ class AdminIngredientController extends Controller
     {
         $validated = $request->validate($this->rules());
 
-        $ingredient = Ingredient::create($validated);
+        $ingredient = Ingredient::create([
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'category' => $validated['category'],
+            'is_available' => $validated['is_available'] ?? false,
+        ]);
+
+        if (isset($validated['working_day_id'])) {
+            IngredientAvailability::updateOrCreate(
+                [
+                    'ingredient_id' => $ingredient->id,
+                    'working_day_id' => $validated['working_day_id'],
+                ],
+                [
+                    'is_available' => $validated['daily_available'] ?? true,
+                ]
+            );
+        }
 
         return response()->json([
             'ingredient' => $ingredient,
@@ -94,10 +100,36 @@ class AdminIngredientController extends Controller
     {
         $validated = $request->validate($this->rules($ingredient));
 
-        $ingredient->update($validated);
+        $ingredient->update([
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'category' => $validated['category'],
+            'is_available' => $validated['is_available'] ?? $ingredient->is_available,
+        ]);
+
+        if (isset($validated['working_day_id'])) {
+            IngredientAvailability::updateOrCreate(
+                [
+                    'ingredient_id' => $ingredient->id,
+                    'working_day_id' => $validated['working_day_id'],
+                ],
+                [
+                    'is_available' => $validated['daily_available'] ?? true,
+                ]
+            );
+        }
 
         return response()->json([
             'ingredient' => $ingredient->fresh(),
+        ]);
+    }
+
+    public function destroy(Ingredient $ingredient): JsonResponse
+    {
+        $ingredient->delete();
+
+        return response()->json([
+            'message' => 'Ingrediente eliminato.',
         ]);
     }
 
@@ -136,7 +168,9 @@ class AdminIngredientController extends Controller
                 Rule::unique('ingredients', 'code')->ignore($ingredient?->id),
             ],
             'category' => ['required', Rule::in(self::CATEGORIES)],
-            'is_available' => ['required', 'boolean'],
+            'is_available' => ['sometimes', 'boolean'],
+            'working_day_id' => ['nullable', 'integer', 'exists:working_days,id'],
+            'daily_available' => ['sometimes', 'boolean'],
         ];
     }
 }
