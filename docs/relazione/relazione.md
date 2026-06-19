@@ -587,3 +587,812 @@ Per analizzare l’andamento degli ordini nel tempo è necessario raggruppare gl
 
 **Totale per esecuzione: 45275L = 45275**
 **Costo giornaliero: 45275 × 1 = 45275**
+
+
+### Raffinamento dello schema
+
+#### Eliminazione delle gerarchie
+
+Nello schema E/R è presente una gerarchia tra l’entità generale **UTENTE** e le entità specializzate **CLIENTE** e **AMMINISTRATORE**. La generalizzazione è totale ed esclusiva, poiché ogni utente registrato appartiene a una sola delle due categorie.
+
+Per eliminare tale gerarchia si sceglie di adottare l’approccio del collasso verso l’alto, mantenendo un’unica entità **UTENTE** e introducendo l’attributo `ruolo`, utilizzato per distinguere i clienti dagli amministratori.
+
+Questa scelta è motivata dal fatto che **CLIENTE** e **AMMINISTRATORE** condividono gli stessi attributi principali di autenticazione, cioè nickname, email e password. L’unico attributo specifico del cliente è `abilitato`, utilizzato per indicare se il cliente può effettuare nuovi ordini. Tale attributo viene mantenuto in **UTENTE**: per gli utenti con ruolo amministratore non assume significato applicativo.
+
+La gerarchia viene quindi sostituita dalla seguente entità:
+
+```text
+UTENTE(idUtente, nickname, email, password, ruolo, abilitato)
+```
+
+Rimane il vincolo applicativo secondo cui solo gli utenti con `ruolo = cliente` possono effettuare ordini.
+
+---
+
+#### Scelta delle chiavi primarie
+
+Per le principali entità dello schema si sceglie di utilizzare chiavi primarie artificiali, in modo da evitare dipendenze da attributi potenzialmente modificabili nel tempo, come email, nickname o nome dell’ingrediente.
+
+Le chiavi primarie scelte sono le seguenti:
+
+* **UTENTE**: `idUtente`
+* **ORDINE**: `idOrdine`
+* **INGREDIENTE_ORDINE**: `idIngredienteOrdine`
+* **INGREDIENTE**: `idIngrediente`
+* **CATEGORIA_INGREDIENTE**: `idCategoria`
+* **FASCIA_ORARIA**: `idFasciaOraria`
+* **GIORNO_SERVIZIO**: `idGiornoServizio`
+
+Per l’entità **DISPONIBILITA_INGREDIENTE** si sceglie invece una chiave composta, formata dalla coppia:
+
+```text
+(idIngrediente, idGiornoServizio)
+```
+
+Questa scelta rappresenta direttamente il vincolo secondo cui, per uno stesso ingrediente e uno stesso giorno di servizio, può esistere una sola informazione di disponibilità.
+
+---
+
+#### Eliminazione degli identificatori esterni e importazione delle chiavi
+
+Le associazioni presenti nello schema E/R vengono eliminate importando le chiavi delle entità coinvolte nelle relazioni corrispondenti.
+
+In particolare:
+
+* **EFFETTUA**, tra **CLIENTE** e **ORDINE**, viene eliminata importando `idUtente` in **ORDINE**. Dopo il collasso della gerarchia, il cliente è rappresentato da un utente con `ruolo = cliente`.
+
+```text
+ORDINE(..., idUtente)
+```
+
+* **PRENOTATO_IN**, tra **ORDINE** e **FASCIA_ORARIA**, viene eliminata importando `idFasciaOraria` in **ORDINE**.
+
+```text
+ORDINE(..., idFasciaOraria)
+```
+
+* **APPARTIENE_A**, tra **FASCIA_ORARIA** e **GIORNO_SERVIZIO**, viene eliminata importando `idGiornoServizio` in **FASCIA_ORARIA**.
+
+```text
+FASCIA_ORARIA(..., idGiornoServizio)
+```
+
+* **FORMATO_DA**, tra **ORDINE** e **INGREDIENTE_ORDINE**, viene eliminata importando `idOrdine` in **INGREDIENTE_ORDINE**.
+
+```text
+INGREDIENTE_ORDINE(..., idOrdine)
+```
+
+* **RIFERISCE**, tra **INGREDIENTE_ORDINE** e **INGREDIENTE**, viene eliminata importando `idIngrediente` in **INGREDIENTE_ORDINE**.
+
+```text
+INGREDIENTE_ORDINE(..., idIngrediente)
+```
+
+* **APPARTIENE**, tra **INGREDIENTE** e **CATEGORIA_INGREDIENTE**, viene eliminata importando `idCategoria` in **INGREDIENTE**.
+
+```text
+INGREDIENTE(..., idCategoria)
+```
+
+* Le associazioni **HA** e **DEFINISCE**, che collegano **INGREDIENTE**, **GIORNO_SERVIZIO** e **DISPONIBILITA_INGREDIENTE**, vengono eliminate importando `idIngrediente` e `idGiornoServizio` in **DISPONIBILITA_INGREDIENTE**.
+
+```text
+DISPONIBILITA_INGREDIENTE(idIngrediente, idGiornoServizio, disponibile)
+```
+
+La coppia `(idIngrediente, idGiornoServizio)` identifica univocamente una disponibilità.
+
+---
+
+#### Vincoli applicativi non rappresentati direttamente nello schema relazionale
+
+Alcuni vincoli del dominio non sono esprimibili direttamente tramite la sola struttura delle relazioni e devono quindi essere gestiti tramite vincoli applicativi o controlli nella base di dati.
+
+In particolare:
+
+* solo gli utenti con `ruolo = cliente` possono effettuare ordini;
+* un cliente non abilitato non può inserire nuovi ordini;
+* un ordine può essere modificato o annullato solo se si trova in uno stato modificabile e se non è stato superato il limite temporale definito dal giorno di servizio;
+* una fascia oraria non può superare la capacità massima impostata per il relativo giorno di servizio;
+* un ingrediente non disponibile in uno specifico giorno di servizio non può essere utilizzato per nuovi ordini in quel giorno;
+* ogni ordine deve contenere esattamente un ingrediente appartenente alla categoria del pane;
+* lo stesso ingrediente non può comparire più di una volta nello stesso ordine;
+
+### Analisi delle ridondanze
+
+Nello schema E/R è presente una possibile ridondanza relativa agli attributi `oraInizio` e `oraFine` dell’entità **GIORNO_SERVIZIO**. Tali attributi non rappresentano informazioni autonome, poiché possono essere ricavati dalle fasce orarie appartenenti allo stesso giorno di servizio:
+
+```text
+oraInizio = MIN(FASCIA_ORARIA.oraInizio)
+oraFine = MAX(FASCIA_ORARIA.oraFine)
+```
+
+Si valuta quindi se convenga mantenere tali attributi ridondanti in **GIORNO_SERVIZIO** oppure eliminarli e calcolarli a partire dalle fasce orarie.
+
+Per la valutazione si considera l’operazione di visualizzazione dell’orario complessivo di un giorno di servizio, operazione che può essere eseguita quando il cliente consulta i giorni disponibili per effettuare una prenotazione. Si assume che ogni giorno di servizio contenga mediamente 14 fasce orarie.
+
+---
+
+#### Caso con ridondanza
+
+Se `oraInizio` e `oraFine` sono memorizzati direttamente in **GIORNO_SERVIZIO**, per ottenere l’orario complessivo del servizio è sufficiente leggere il giorno di servizio.
+
+| Concetto        | Costrutto | Accessi | Tipo |
+| --------------- | :-------: | ------: | :--: |
+| GIORNO_SERVIZIO |     E     |       1 |   L  |
+
+**Totale per esecuzione: 1L = 1**
+
+Assumendo che tale informazione venga consultata 70 volte al giorno, in corrispondenza dell’inserimento degli ordini, il costo giornaliero è:
+
+```text
+1 × 70 = 70
+```
+
+---
+
+#### Caso senza ridondanza
+
+Se `oraInizio` e `oraFine` non sono memorizzati in **GIORNO_SERVIZIO**, è necessario leggere le fasce orarie associate al giorno e calcolare il minimo valore di `oraInizio` e il massimo valore di `oraFine`.
+
+| Concetto        | Costrutto | Accessi | Tipo |
+| --------------- | :-------: | ------: | :--: |
+| GIORNO_SERVIZIO |     E     |       1 |   L  |
+| APPARTIENE_A    |     R     |      14 |   L  |
+| FASCIA_ORARIA   |     E     |      14 |   L  |
+
+**Totale per esecuzione: 29L = 29**
+
+Assumendo la stessa frequenza di 70 consultazioni al giorno, il costo giornaliero è:
+
+```text
+29 × 70 = 2030
+```
+
+---
+
+#### Costo di mantenimento della ridondanza
+
+Il mantenimento della ridondanza richiede che, ogni volta che vengono create o modificate le fasce orarie di un giorno, gli attributi `oraInizio` e `oraFine` del relativo **GIORNO_SERVIZIO** siano aggiornati in modo coerente.
+
+Si considera l’operazione settimanale di configurazione del servizio, nella quale vengono creati 7 giorni di servizio e 14 fasce orarie per ciascun giorno.
+
+| Concetto        | Costrutto | Accessi | Tipo |
+| --------------- | :-------: | ------: | :--: |
+| GIORNO_SERVIZIO |     E     |       7 |   S  |
+| FASCIA_ORARIA   |     E     |      98 |   S  |
+| APPARTIENE_A    |     R     |      98 |   S  |
+
+**Totale senza ridondanza: 203S = 406**
+
+Con la ridondanza, oltre alla creazione dei giorni e delle fasce, è necessario garantire anche l’aggiornamento degli attributi ridondanti `oraInizio` e `oraFine`. Poiché tali valori vengono impostati contestualmente alla creazione del giorno di servizio, non si introduce un accesso aggiuntivo nella fase di creazione iniziale. Tuttavia, in caso di modifica successiva delle fasce orarie, diventa necessario aggiornare anche **GIORNO_SERVIZIO**, introducendo una scrittura aggiuntiva e un possibile rischio di incoerenza.
+
+---
+
+#### Valutazione finale
+
+Dal solo punto di vista degli accessi in lettura, mantenere `oraInizio` e `oraFine` in **GIORNO_SERVIZIO** riduce il costo dell’operazione di visualizzazione dell’orario complessivo del servizio, passando da 29 letture a una sola lettura.
+
+Tuttavia, nel sistema **Campus Truck** il cliente non consulta soltanto l’orario complessivo del giorno, ma deve visualizzare le singole fasce orarie disponibili per poter scegliere lo slot di ritiro. Di conseguenza, le fasce orarie devono comunque essere lette nella maggior parte delle operazioni di prenotazione. Il vantaggio della ridondanza risulta quindi limitato.
+
+Si sceglie pertanto di **non mantenere** gli attributi `oraInizio` e `oraFine` come dati memorizzati in **GIORNO_SERVIZIO**, ma di considerarli attributi derivati dalle fasce orarie associate. Questa scelta evita ridondanza e possibili problemi di incoerenza, senza penalizzare in modo significativo le operazioni principali del sistema.
+
+### Traduzione di entità e associazioni in relazioni
+
+A seguito del raffinamento dello schema E/R, le entità e le associazioni vengono tradotte nelle seguenti relazioni.
+Gli attributi che fanno riferimento ad altre relazioni sono indicati specificando la relazione referenziata.
+
+```text
+utenti(
+    idUtente,
+    nickname,
+    email,
+    password,
+    ruolo,
+    abilitato*
+)
+UNIQUE(email)
+```
+
+La relazione `utenti` deriva dal collasso verso l’alto della gerarchia tra `UTENTE`, `CLIENTE` e `AMMINISTRATORE`. L’attributo `ruolo` distingue clienti e amministratori, mentre `abilitato` viene utilizzato per indicare se un cliente può effettuare nuovi ordini.
+
+```text
+giorni_servizio(
+    idGiornoServizio,
+    data,
+    posizione,
+    attivo,
+    capacitaMassima,
+    limiteModificaMinuti
+)
+UNIQUE(data)
+```
+
+Gli attributi `oraInizio` e `oraFine` non vengono memorizzati, poiché derivabili dalle fasce orarie associate al giorno di servizio.
+
+```text
+fasce_orarie(
+    idFasciaOraria,
+    idGiornoServizio: giorni_servizio,
+    oraInizio,
+    oraFine
+)
+UNIQUE(idGiornoServizio, oraInizio)
+```
+
+L’associazione `APPARTIENE_A` tra `FASCIA_ORARIA` e `GIORNO_SERVIZIO` viene tradotta importando `idGiornoServizio` in `fasce_orarie`.
+
+```text
+ordini(
+    idOrdine,
+    idUtente: utenti,
+    idFasciaOraria: fasce_orarie,
+    numeroGiornaliero,
+    statoCorrente,
+    dataCreazione,
+    preferito
+)
+```
+
+Le associazioni `EFFETTUA` e `PRENOTATO_IN` vengono tradotte importando rispettivamente `idUtente` e `idFasciaOraria` nella relazione `ordini`.
+
+```text
+categorie_ingredienti(
+    idCategoria,
+    nome,
+    minScelte,
+    maxScelte
+)
+UNIQUE(nome)
+```
+
+La relazione `categorie_ingredienti` rappresenta le categorie logiche degli ingredienti e permette di modellare i vincoli di composizione del panino, come il vincolo secondo cui deve essere scelto uno e un solo tipo di pane.
+
+```text
+ingredienti(
+    idIngrediente,
+    idCategoria: categorie_ingredienti,
+    nome,
+    codice
+)
+UNIQUE(codice)
+```
+
+L’associazione `APPARTIENE` tra `INGREDIENTE` e `CATEGORIA_INGREDIENTE` viene tradotta importando `idCategoria` nella relazione `ingredienti`.
+
+```text
+ingredienti_ordine(
+    idIngredienteOrdine,
+    idOrdine: ordini,
+    idIngrediente: ingredienti,
+    nomeSnapshot,
+    categoriaSnapshot
+)
+UNIQUE(idOrdine, idIngrediente)
+```
+
+La relazione `ingredienti_ordine` rappresenta gli ingredienti effettivamente scelti all’interno di un ordine.
+L’associazione `FORMATO_DA` viene tradotta importando `idOrdine`, mentre l’associazione `RIFERISCE` viene tradotta importando `idIngrediente`.
+
+Gli attributi `nomeSnapshot` e `categoriaSnapshot` permettono di conservare le informazioni dell’ingrediente al momento dell’ordine, anche nel caso in cui il catalogo venga modificato successivamente.
+
+```text
+disponibilita_ingredienti(
+    idIngrediente: ingredienti,
+    idGiornoServizio: giorni_servizio,
+    disponibile
+)
+```
+
+La relazione `disponibilita_ingredienti` deriva dalle associazioni `HA` e `DEFINISCE`, che collegano `INGREDIENTE`, `DISPONIBILITA_INGREDIENTE` e `GIORNO_SERVIZIO`.
+
+La chiave primaria della relazione è composta dalla coppia:
+
+```text
+(idIngrediente, idGiornoServizio)
+```
+
+in modo da garantire che per ogni ingrediente e per ogni giorno di servizio esista al massimo una sola informazione di disponibilità.
+
+### Traduzione delle operazioni in query SQL
+
+Di seguito vengono riportate le principali query SQL associate alle operazioni individuate.
+Si utilizzano parametri indicati con `?`, che verranno valorizzati dall’applicazione al momento dell’esecuzione.
+
+---
+
+#### OP 1 - Creare un nuovo cliente
+
+Per registrare un nuovo cliente viene inserito un nuovo record nella relazione `utenti`, impostando il ruolo a `cliente` e l’attributo `abilitato` a vero.
+
+```sql
+INSERT INTO utenti (nickname, email, password, ruolo, abilitato)
+VALUES (?, ?, ?, 'cliente', TRUE);
+```
+
+---
+
+#### OP 2 - Inserire un nuovo ordine per una fascia oraria disponibile
+
+Prima di inserire un nuovo ordine è necessario verificare che il cliente sia abilitato, che la fascia oraria scelta appartenga a un giorno di servizio attivo e che non sia stata raggiunta la capacità massima prevista.
+
+```sql
+SELECT U.idUtente
+FROM utenti U
+WHERE U.idUtente = ?
+  AND U.ruolo = 'cliente'
+  AND U.abilitato = TRUE;
+```
+
+Successivamente si controlla che la fascia oraria scelta sia disponibile.
+
+```sql
+SELECT F.idFasciaOraria
+FROM fasce_orarie F
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+LEFT JOIN ordini O
+  ON O.idFasciaOraria = F.idFasciaOraria
+WHERE F.idFasciaOraria = ?
+  AND G.attivo = TRUE
+GROUP BY F.idFasciaOraria, G.capacitaMassima
+HAVING COUNT(O.idOrdine) < G.capacitaMassima;
+```
+
+Si verifica poi che gli ingredienti scelti siano disponibili nel giorno di servizio relativo alla fascia oraria.
+
+```sql
+SELECT I.idIngrediente
+FROM ingredienti I
+JOIN disponibilita_ingredienti D
+  ON I.idIngrediente = D.idIngrediente
+JOIN fasce_orarie F
+  ON D.idGiornoServizio = F.idGiornoServizio
+WHERE F.idFasciaOraria = ?
+  AND I.idIngrediente IN (?, ?, ?, ?, ?)
+  AND D.disponibile = TRUE;
+```
+
+A livello applicativo si verifica inoltre che il numero di ingredienti restituiti coincida con il numero di ingredienti scelti dal cliente.
+
+Per controllare i vincoli sulle categorie, ad esempio il vincolo secondo cui deve essere scelto uno e un solo tipo di pane, si può verificare che il numero di ingredienti scelti per ogni categoria rispetti i valori `minScelte` e `maxScelte`.
+
+```sql
+SELECT C.idCategoria, C.nome, C.minScelte, C.maxScelte,
+       COUNT(I.idIngrediente) AS numeroScelte
+FROM categorie_ingredienti C
+LEFT JOIN ingredienti I
+  ON I.idCategoria = C.idCategoria
+ AND I.idIngrediente IN (?, ?, ?, ?, ?)
+GROUP BY C.idCategoria, C.nome, C.minScelte, C.maxScelte;
+```
+
+Appurata la validità dell’ordine, si procede con l’inserimento.
+Il numero giornaliero viene calcolato considerando gli ordini già associati allo stesso giorno di servizio.
+
+```sql
+INSERT INTO ordini (
+    idUtente,
+    idFasciaOraria,
+    numeroGiornaliero,
+    statoCorrente,
+    dataCreazione,
+    preferito
+)
+SELECT
+    ?,
+    ?,
+    COALESCE(MAX(O.numeroGiornaliero), 0) + 1,
+    'pending',
+    NOW(),
+    FALSE
+FROM fasce_orarie F
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+LEFT JOIN fasce_orarie F2
+  ON F2.idGiornoServizio = G.idGiornoServizio
+LEFT JOIN ordini O
+  ON O.idFasciaOraria = F2.idFasciaOraria
+WHERE F.idFasciaOraria = ?;
+```
+
+Dopo aver creato l’ordine, si inseriscono gli ingredienti associati, copiando anche il nome e la categoria al momento dell’ordine.
+
+```sql
+INSERT INTO ingredienti_ordine (
+    idOrdine,
+    idIngrediente,
+    nomeSnapshot,
+    categoriaSnapshot
+)
+SELECT
+    LAST_INSERT_ID(),
+    I.idIngrediente,
+    I.nome,
+    C.nome
+FROM ingredienti I
+JOIN categorie_ingredienti C
+  ON I.idCategoria = C.idCategoria
+WHERE I.idIngrediente IN (?, ?, ?, ?, ?);
+```
+
+---
+
+#### OP 3 - Modificare o annullare un ordine ancora modificabile
+
+Prima di modificare o annullare un ordine è necessario verificare che l’ordine appartenga al cliente, che sia ancora nello stato `pending` e che non sia stato superato il limite temporale di modifica.
+
+```sql
+SELECT O.idOrdine
+FROM ordini O
+JOIN fasce_orarie F
+  ON O.idFasciaOraria = F.idFasciaOraria
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+WHERE O.idOrdine = ?
+  AND O.idUtente = ?
+  AND O.statoCorrente = 'pending'
+  AND NOW() < TIMESTAMP(G.data, F.oraInizio) - INTERVAL G.limiteModificaMinuti MINUTE;
+```
+
+Se il cliente intende annullare l’ordine, si eliminano prima gli ingredienti associati e poi l’ordine.
+
+```sql
+DELETE FROM ingredienti_ordine
+WHERE idOrdine = ?;
+```
+
+```sql
+DELETE FROM ordini
+WHERE idOrdine = ?;
+```
+
+Se invece il cliente intende modificare la composizione del panino, si eliminano gli ingredienti precedenti.
+
+```sql
+DELETE FROM ingredienti_ordine
+WHERE idOrdine = ?;
+```
+
+Dopo aver verificato la disponibilità dei nuovi ingredienti con una query analoga a quella usata nell’OP 2, si inserisce la nuova composizione.
+
+```sql
+INSERT INTO ingredienti_ordine (
+    idOrdine,
+    idIngrediente,
+    nomeSnapshot,
+    categoriaSnapshot
+)
+SELECT
+    ?,
+    I.idIngrediente,
+    I.nome,
+    C.nome
+FROM ingredienti I
+JOIN categorie_ingredienti C
+  ON I.idCategoria = C.idCategoria
+WHERE I.idIngrediente IN (?, ?, ?, ?, ?);
+```
+
+---
+
+#### OP 4 - Cambiare lo stato di avanzamento di un ordine o rifiutarlo
+
+L’amministratore può aggiornare lo stato corrente di un ordine impostandolo a uno degli stati previsti: `pending`, `confirmed`, `ready`, `picked_up`, `rejected`.
+
+```sql
+UPDATE ordini
+SET statoCorrente = ?
+WHERE idOrdine = ?;
+```
+
+Per rifiutare un ordine, viene impostato lo stato `rejected`.
+
+```sql
+UPDATE ordini
+SET statoCorrente = 'rejected'
+WHERE idOrdine = ?;
+```
+
+---
+
+#### OP 5 - Visualizzare lo storico degli ordini di un cliente
+
+Per visualizzare lo storico degli ordini di un cliente si recuperano gli ordini effettuati, la fascia oraria di ritiro, il giorno di servizio e gli ingredienti storicizzati associati.
+
+```sql
+SELECT
+    O.idOrdine,
+    O.numeroGiornaliero,
+    O.statoCorrente,
+    O.dataCreazione,
+    O.preferito,
+    G.data,
+    G.posizione,
+    F.oraInizio,
+    F.oraFine,
+    IO.nomeSnapshot,
+    IO.categoriaSnapshot
+FROM ordini O
+JOIN fasce_orarie F
+  ON O.idFasciaOraria = F.idFasciaOraria
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+JOIN ingredienti_ordine IO
+  ON O.idOrdine = IO.idOrdine
+WHERE O.idUtente = ?
+ORDER BY O.dataCreazione DESC, O.idOrdine DESC;
+```
+
+Per limitare la visualizzazione agli ultimi ordini si può aggiungere:
+
+```sql
+LIMIT ?;
+```
+
+---
+
+#### OP 6 - Riordinare un ordine a partire dallo storico
+
+Per riordinare un ordine già effettuato, si recupera prima la composizione storicizzata dell’ordine.
+
+```sql
+SELECT
+    IO.idIngrediente,
+    IO.nomeSnapshot,
+    IO.categoriaSnapshot
+FROM ingredienti_ordine IO
+WHERE IO.idOrdine = ?;
+```
+
+Si verifica poi che gli ingredienti siano ancora disponibili nel giorno di servizio relativo alla nuova fascia oraria scelta.
+
+```sql
+SELECT I.idIngrediente
+FROM ingredienti I
+JOIN disponibilita_ingredienti D
+  ON I.idIngrediente = D.idIngrediente
+JOIN fasce_orarie F
+  ON D.idGiornoServizio = F.idGiornoServizio
+WHERE F.idFasciaOraria = ?
+  AND I.idIngrediente IN (
+      SELECT idIngrediente
+      FROM ingredienti_ordine
+      WHERE idOrdine = ?
+  )
+  AND D.disponibile = TRUE;
+```
+
+Si verifica anche la disponibilità della fascia oraria, come nell’inserimento di un nuovo ordine.
+
+```sql
+SELECT F.idFasciaOraria
+FROM fasce_orarie F
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+LEFT JOIN ordini O
+  ON O.idFasciaOraria = F.idFasciaOraria
+WHERE F.idFasciaOraria = ?
+  AND G.attivo = TRUE
+GROUP BY F.idFasciaOraria, G.capacitaMassima
+HAVING COUNT(O.idOrdine) < G.capacitaMassima;
+```
+
+Se i controlli hanno esito positivo, si crea il nuovo ordine.
+
+```sql
+INSERT INTO ordini (
+    idUtente,
+    idFasciaOraria,
+    numeroGiornaliero,
+    statoCorrente,
+    dataCreazione,
+    preferito
+)
+SELECT
+    ?,
+    ?,
+    COALESCE(MAX(O.numeroGiornaliero), 0) + 1,
+    'pending',
+    NOW(),
+    FALSE
+FROM fasce_orarie F
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+LEFT JOIN fasce_orarie F2
+  ON F2.idGiornoServizio = G.idGiornoServizio
+LEFT JOIN ordini O
+  ON O.idFasciaOraria = F2.idFasciaOraria
+WHERE F.idFasciaOraria = ?;
+```
+
+Infine si copiano nel nuovo ordine gli ingredienti presenti nell’ordine storico, aggiornando gli snapshot con i dati correnti dell’ingrediente.
+
+```sql
+INSERT INTO ingredienti_ordine (
+    idOrdine,
+    idIngrediente,
+    nomeSnapshot,
+    categoriaSnapshot
+)
+SELECT
+    LAST_INSERT_ID(),
+    I.idIngrediente,
+    I.nome,
+    C.nome
+FROM ingredienti_ordine IO
+JOIN ingredienti I
+  ON IO.idIngrediente = I.idIngrediente
+JOIN categorie_ingredienti C
+  ON I.idCategoria = C.idCategoria
+WHERE IO.idOrdine = ?;
+```
+
+---
+
+#### OP 7 - Aggiornare la disponibilità di un ingrediente per un giorno di servizio
+
+Per aggiornare la disponibilità di un ingrediente in uno specifico giorno di servizio si aggiorna la relazione `disponibilita_ingredienti`.
+
+```sql
+UPDATE disponibilita_ingredienti
+SET disponibile = ?
+WHERE idIngrediente = ?
+  AND idGiornoServizio = ?;
+```
+
+Nel caso in cui la riga di disponibilità non sia ancora presente, può essere inserita.
+
+```sql
+INSERT INTO disponibilita_ingredienti (
+    idIngrediente,
+    idGiornoServizio,
+    disponibile
+)
+VALUES (?, ?, ?);
+```
+
+In alternativa, se il DBMS lo supporta, si può usare una singola istruzione con aggiornamento in caso di duplicato.
+
+```sql
+INSERT INTO disponibilita_ingredienti (
+    idIngrediente,
+    idGiornoServizio,
+    disponibile
+)
+VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE disponibile = VALUES(disponibile);
+```
+
+---
+
+#### OP 8 - Impostare i giorni in cui il servizio viene erogato e configurare le fasce orarie
+
+Per configurare un nuovo giorno di servizio si inseriscono le informazioni relative alla giornata operativa.
+
+```sql
+INSERT INTO giorni_servizio (
+    data,
+    posizione,
+    attivo,
+    capacitaMassima,
+    limiteModificaMinuti
+)
+VALUES (?, ?, ?, ?, ?);
+```
+
+Successivamente vengono inserite le fasce orarie associate al giorno di servizio.
+La seguente query viene eseguita più volte dall’applicazione, una volta per ciascuna fascia oraria da creare.
+
+```sql
+INSERT INTO fasce_orarie (
+    idGiornoServizio,
+    oraInizio,
+    oraFine
+)
+VALUES (?, ?, ?);
+```
+
+Per inizializzare la disponibilità degli ingredienti nel nuovo giorno di servizio, si possono inserire tutte le coppie ingrediente-giorno.
+
+```sql
+INSERT INTO disponibilita_ingredienti (
+    idIngrediente,
+    idGiornoServizio,
+    disponibile
+)
+SELECT
+    idIngrediente,
+    ?,
+    TRUE
+FROM ingredienti;
+```
+
+---
+
+#### OP 9 - Estrarre statistiche sui clienti più o meno frequenti, sugli ingredienti più utilizzati e sull’andamento degli ordini
+
+Per individuare i clienti più frequenti si contano gli ordini effettuati da ciascun cliente nel periodo considerato.
+
+```sql
+SELECT
+    U.idUtente,
+    U.nickname,
+    U.email,
+    COUNT(O.idOrdine) AS numeroOrdini
+FROM utenti U
+JOIN ordini O
+  ON U.idUtente = O.idUtente
+WHERE U.ruolo = 'cliente'
+  AND O.dataCreazione BETWEEN ? AND ?
+GROUP BY U.idUtente, U.nickname, U.email
+ORDER BY numeroOrdini DESC;
+```
+
+Per individuare i clienti meno frequenti si può usare una `LEFT JOIN`, includendo anche i clienti che non hanno effettuato ordini nel periodo considerato.
+
+```sql
+SELECT
+    U.idUtente,
+    U.nickname,
+    U.email,
+    COUNT(O.idOrdine) AS numeroOrdini
+FROM utenti U
+LEFT JOIN ordini O
+  ON U.idUtente = O.idUtente
+ AND O.dataCreazione BETWEEN ? AND ?
+WHERE U.ruolo = 'cliente'
+GROUP BY U.idUtente, U.nickname, U.email
+ORDER BY numeroOrdini ASC;
+```
+
+Per individuare gli ingredienti più utilizzati si contano le occorrenze degli ingredienti d’ordine nel periodo considerato.
+
+```sql
+SELECT
+    IO.idIngrediente,
+    IO.nomeSnapshot,
+    IO.categoriaSnapshot,
+    COUNT(*) AS numeroUtilizzi
+FROM ingredienti_ordine IO
+JOIN ordini O
+  ON IO.idOrdine = O.idOrdine
+WHERE O.dataCreazione BETWEEN ? AND ?
+GROUP BY IO.idIngrediente, IO.nomeSnapshot, IO.categoriaSnapshot
+ORDER BY numeroUtilizzi DESC;
+```
+
+Per analizzare l’andamento degli ordini per giorno si raggruppano gli ordini per data del giorno di servizio.
+
+```sql
+SELECT
+    G.data,
+    COUNT(O.idOrdine) AS numeroOrdini
+FROM ordini O
+JOIN fasce_orarie F
+  ON O.idFasciaOraria = F.idFasciaOraria
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+WHERE G.data BETWEEN ? AND ?
+GROUP BY G.data
+ORDER BY G.data ASC;
+```
+
+Per analizzare l’andamento degli ordini per fascia oraria si raggruppano gli ordini in base allo slot di ritiro.
+
+```sql
+SELECT
+    G.data,
+    F.oraInizio,
+    F.oraFine,
+    COUNT(O.idOrdine) AS numeroOrdini
+FROM ordini O
+JOIN fasce_orarie F
+  ON O.idFasciaOraria = F.idFasciaOraria
+JOIN giorni_servizio G
+  ON F.idGiornoServizio = G.idGiornoServizio
+WHERE G.data BETWEEN ? AND ?
+GROUP BY G.data, F.oraInizio, F.oraFine
+ORDER BY G.data ASC, F.oraInizio ASC;
+```
