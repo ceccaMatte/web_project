@@ -129,6 +129,29 @@
                     data-orders-pipeline
                     class="px-4 py-6 space-y-3 mb-32 lg:mb-0 lg:px-0 lg:py-0"
                 >
+                    {{-- Status Row: Pending --}}
+                    <div
+                        data-status-row="pending"
+                        class="bg-slate-900/30 rounded-2xl p-1"
+                    >
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-amber-400">hourglass_empty</span>
+                            <h3 class="font-semibold text-amber-400">
+                                Pending
+                            </h3>
+                            <span
+                                data-status-count="pending"
+                                class="ml-auto text-sm text-slate-500"
+                            >0</span>
+                        </div>
+                        <div
+                            data-status-orders="pending"
+                            class="flex flex-row gap-4 overflow-x-auto p-1"
+                        >
+                            {{-- Ordini pending popolati da JS --}}
+                        </div>
+                    </div>
+
                     {{-- Status Row: Confirmed --}}
                     <div 
                         data-status-row="confirmed"

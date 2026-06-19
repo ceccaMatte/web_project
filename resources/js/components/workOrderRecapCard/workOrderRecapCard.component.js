@@ -45,9 +45,11 @@ export function buildWorkOrderRecapCardHTML(order, isExpanded = true) {
         
         // Define colors for each status
         const statusColors = {
+            pending: { bg: 'rgba(245, 158, 11, 0.19)', color: 'rgb(245, 158, 11)' },
             confirmed: { bg: 'rgba(59, 130, 246, 0.19)', color: 'rgb(59, 130, 246)' },
             ready: { bg: 'rgba(16, 185, 129, 0.19)', color: 'rgb(16, 185, 129)' },
-            picked_up: { bg: 'rgba(107, 114, 128, 0.19)', color: 'rgb(107, 114, 128)' }
+            picked_up: { bg: 'rgba(107, 114, 128, 0.19)', color: 'rgb(107, 114, 128)' },
+            rejected: { bg: 'rgba(244, 63, 94, 0.19)', color: 'rgb(244, 63, 94)' }
         };
         
         const colors = statusColors[statusKey] || statusColors.confirmed;

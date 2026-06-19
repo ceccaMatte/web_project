@@ -435,8 +435,20 @@ return [
                 [
                     'label' => 'Ingredients',
                     'icon' => 'restaurant_menu',
-                    'route' => null, // Placeholder
-                    'disabled' => true,
+                    'route' => 'admin.ingredients',
+                    'disabled' => false,
+                ],
+                [
+                    'label' => 'Users',
+                    'icon' => 'group',
+                    'route' => 'admin.users',
+                    'disabled' => false,
+                ],
+                [
+                    'label' => 'Statistics',
+                    'icon' => 'monitoring',
+                    'route' => 'admin.statistics',
+                    'disabled' => false,
                 ],
                 [
                     'label' => 'Service Planning',
@@ -556,8 +568,20 @@ return [
                 [
                     'label' => 'Ingredients',
                     'icon' => 'restaurant_menu',
-                    'route' => null,
-                    'disabled' => true,
+                    'route' => 'admin.ingredients',
+                    'disabled' => false,
+                ],
+                [
+                    'label' => 'Users',
+                    'icon' => 'group',
+                    'route' => 'admin.users',
+                    'disabled' => false,
+                ],
+                [
+                    'label' => 'Statistics',
+                    'icon' => 'monitoring',
+                    'route' => 'admin.statistics',
+                    'disabled' => false,
                 ],
                 [
                     'label' => 'Service Planning',

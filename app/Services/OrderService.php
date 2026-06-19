@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Domain\Errors\InvalidOrderStateTransitionError;
+use App\Domain\Errors\IngredientUnavailableError;
 use App\Domain\Errors\OrderNotModifiableError;
+use App\Domain\Errors\ServiceDayUnavailableError;
 use App\Domain\Errors\SlotFullError;
 use App\Domain\Errors\UnauthorizedOrderAccessError;
+use App\Domain\Errors\UserDisabledError;
 use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\TimeSlot;
@@ -59,6 +62,14 @@ use Illuminate\Support\Facades\DB;
  */
 class OrderService
 {
+    private IngredientAvailabilityService $ingredientAvailabilityService;
+
+    public function __construct(?IngredientAvailabilityService $ingredientAvailabilityService = null)
+    {
+        $this->ingredientAvailabilityService = $ingredientAvailabilityService
+            ?? app(IngredientAvailabilityService::class);
+    }
+
     /**
      * Crea un nuovo ordine.
      * 
@@ -88,6 +99,9 @@ class OrderService
     public function createOrder(User $user, int $timeSlotId, array $ingredientIds): Order
     {
         return DB::transaction(function () use ($user, $timeSlotId, $ingredientIds) {
+            if (!$user->enabled) {
+                throw new UserDisabledError();
+            }
             
             // STEP 1: Lock pessimistico sul time slot
             // Questo previene che due richieste simultanee leggano lo stesso conteggio
@@ -97,6 +111,10 @@ class OrderService
             // Eager loading per evitare query N+1
             $timeSlot->load('workingDay');
             $workingDay = $timeSlot->workingDay;
+
+            if (!$workingDay || !$workingDay->is_active) {
+                throw new ServiceDayUnavailableError();
+            }
 
             // STEP 3: Verifica che max_orders esista
             // Se mancano dati di configurazione, non possiamo procedere
@@ -113,6 +131,14 @@ class OrderService
             // STEP 5: Verifica capienza
             if ($existingOrdersCount >= $workingDay->max_orders) {
                 throw new SlotFullError();
+            }
+
+            $unavailableIngredients = $this->ingredientAvailabilityService
+                ->unavailableIngredientsForWorkingDay($ingredientIds, $workingDay);
+
+            if ($unavailableIngredients->isNotEmpty()) {
+                $names = $unavailableIngredients->pluck('name')->implode(', ');
+                throw new IngredientUnavailableError($names);
             }
 
             // STEP 6: Crea l'ordine in stato "pending"
@@ -203,6 +229,17 @@ class OrderService
             // VERIFICA 2: L'ordine è in stato pending?
             if (!$order->isPending()) {
                 throw new OrderNotModifiableError();
+            }
+
+            $order->loadMissing('workingDay');
+            if ($order->workingDay) {
+                $unavailableIngredients = $this->ingredientAvailabilityService
+                    ->unavailableIngredientsForWorkingDay($ingredientIds, $order->workingDay);
+
+                if ($unavailableIngredients->isNotEmpty()) {
+                    $names = $unavailableIngredients->pluck('name')->implode(', ');
+                    throw new IngredientUnavailableError($names);
+                }
             }
 
             // STEP 1: Elimina gli ingredienti esistenti

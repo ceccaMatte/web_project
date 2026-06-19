@@ -36,11 +36,12 @@ export function renderWorkTimeSlotSelector(container, props, callbacks) {
         confirmed: acc.confirmed + (slot.counts?.confirmed || 0),
         ready: acc.ready + (slot.counts?.ready || 0),
         picked_up: acc.picked_up + (slot.counts?.picked_up || 0),
-    }), { pending: 0, confirmed: 0, ready: 0, picked_up: 0 });
+        rejected: acc.rejected + (slot.counts?.rejected || 0),
+    }), { pending: 0, confirmed: 0, ready: 0, picked_up: 0, rejected: 0 });
 
     // Build "All" button with same style as time slot cards
     const isAllSelected = selectedSlotId === 'all' || selectedSlotId === null;
-    const totalOrders = totalCounts.confirmed + totalCounts.ready + totalCounts.picked_up;
+    const totalOrders = totalCounts.pending + totalCounts.confirmed + totalCounts.ready + totalCounts.picked_up;
 
     let allButtonClasses = '';
     let allButtonContent = '';

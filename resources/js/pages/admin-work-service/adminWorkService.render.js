@@ -105,13 +105,21 @@ export function renderTimeSlotSelector() {
  * Render orders pipeline (3 status rows)
  */
 export function renderOrdersPipeline() {
-    const { confirmed, ready, picked_up } = getOrdersByStatus();
+    const { pending, confirmed, ready, picked_up } = getOrdersByStatus();
     const callbacks = getCallbacks();
     
     const selectOrder = callbacks?.selectOrder || (() => {});
     const changeStatus = callbacks?.changeStatus || (() => {});
 
-    // Render each status row
+    renderWorkStatusRow(workServiceView.pendingRow, {
+        status: 'pending',
+        orders: pending,
+        selectedOrderId: workServiceState.selectedOrderId,
+    }, {
+        onSelectOrder: selectOrder,
+        onChangeStatus: changeStatus,
+    });
+
     renderWorkStatusRow(workServiceView.confirmedRow, {
         status: 'confirmed',
         orders: confirmed,

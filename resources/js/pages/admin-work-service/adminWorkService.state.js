@@ -314,6 +314,7 @@ export function getOrdersByStatus() {
     const filtered = getFilteredOrders();
     
     return {
+        pending: filtered.filter(o => o.status === 'pending'),
         confirmed: filtered.filter(o => o.status === 'confirmed'),
         ready: filtered.filter(o => o.status === 'ready'),
         picked_up: filtered.filter(o => o.status === 'picked_up'),

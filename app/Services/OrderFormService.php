@@ -26,8 +26,10 @@ class OrderFormService
 {
     private SchedulerService $schedulerService;
 
-    public function __construct(SchedulerService $schedulerService)
-    {
+    public function __construct(
+        SchedulerService $schedulerService,
+        private IngredientAvailabilityService $ingredientAvailabilityService
+    ) {
         $this->schedulerService = $schedulerService;
     }
     /**
@@ -40,6 +42,7 @@ class OrderFormService
     {
         $user = Auth::user();
         $scheduler = $this->buildSchedulerSection($date);
+        $workingDay = $this->getWorkingDayForDate($date);
         
         return [
             'mode' => 'create',
@@ -47,9 +50,10 @@ class OrderFormService
             'user' => [
                 'authenticated' => true,
                 'name' => $user->name,
+                'enabled' => $user->enabled,
             ],
             'availability' => [
-                'ingredients' => $this->getIngredientsWithAvailability(),
+                'ingredients' => $this->getIngredientsWithAvailability($workingDay),
                 'timeSlots' => $this->getTimeSlotsForDate($date),
             ],
             'scheduler' => $scheduler,
@@ -96,9 +100,10 @@ class OrderFormService
             'user' => [
                 'authenticated' => true,
                 'name' => $user->name,
+                'enabled' => $user->enabled,
             ],
             'availability' => [
-                'ingredients' => $this->getIngredientsWithAvailability(),
+                'ingredients' => $this->getIngredientsWithAvailability($order->workingDay),
                 // In modify, time slots non servono
                 'timeSlots' => [],
             ],
@@ -110,15 +115,15 @@ class OrderFormService
      * 
      * @return array Ingredienti raggruppati per categoria
      */
-    public function getIngredientsWithAvailability(): array
+    public function getIngredientsWithAvailability(?WorkingDay $workingDay = null): array
     {
-        $ingredients = Ingredient::orderBy('category')
-            ->orderBy('name')
-            ->get();
+        $ingredients = $this->ingredientAvailabilityService
+            ->ingredientsWithEffectiveAvailability($workingDay);
         
         $grouped = [];
         
-        foreach ($ingredients as $ingredient) {
+        foreach ($ingredients as $row) {
+            $ingredient = $row['ingredient'];
             $category = $ingredient->category;
             
             if (!isset($grouped[$category])) {
@@ -134,7 +139,9 @@ class OrderFormService
                 'id' => $ingredient->id,
                 'name' => $ingredient->name,
                 'category' => $category,
-                'available' => $ingredient->is_available,
+                'available' => $row['available'],
+                'globalAvailable' => $ingredient->is_available,
+                'overrideAvailable' => $row['override_available'],
             ];
         }
         
@@ -197,8 +204,10 @@ class OrderFormService
      */
     public function getAvailabilityForPolling(?string $date = null): array
     {
+        $workingDay = $date ? $this->getWorkingDayForDate($date) : null;
+
         $result = [
-            'ingredients' => $this->getIngredientsWithAvailability(),
+            'ingredients' => $this->getIngredientsWithAvailability($workingDay),
         ];
         
         if ($date) {
@@ -249,5 +258,10 @@ class OrderFormService
     private function buildSchedulerSection(string $selectedDate): array
     {
         return $this->schedulerService->buildWeekScheduler($selectedDate);
+    }
+
+    private function getWorkingDayForDate(string $date): ?WorkingDay
+    {
+        return WorkingDay::whereDate('day', $date)->first();
     }
 }

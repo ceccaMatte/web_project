@@ -178,6 +178,7 @@ Si assume che il food truck sia attivo per circa 300 giorni all’anno, con una 
 | HA                        | R         | 12.000  |
 | DEFINISCE                 | R         | 12.000  |
 
+```
 I volumi sono stati calcolati sulla base delle seguenti ipotesi:
 
 * il numero di utenti è pari a circa 800 clienti registrati più un amministratore;
@@ -185,6 +186,9 @@ I volumi sono stati calcolati sulla base delle seguenti ipotesi:
 * il numero di fasce orarie annue è pari a 300 giorni per 14 fasce orarie giornaliere, quindi circa 4.200 fasce;
 * il numero di ingredienti d’ordine è pari a 21.000 ordini per 5 ingredienti medi per ordine, quindi circa 105.000 occorrenze;
 * il numero di disponibilità ingrediente è pari a 300 giorni per 40 ingredienti presenti nel catalogo, quindi circa 12.000 occorrenze.
+```
+
+
 ### Descrizione delle operazioni principali e stima della loro frequenza
 
 Le operazioni considerate sono state selezionate tra quelle individuate nella fase di analisi, privilegiando quelle più rappresentative del dominio applicativo e quelle che comportano gli accessi più significativi alla base di dati.
@@ -599,29 +603,11 @@ Per eliminare tale gerarchia si sceglie di adottare l’approccio del collasso v
 
 Questa scelta è motivata dal fatto che **CLIENTE** e **AMMINISTRATORE** condividono gli stessi attributi principali di autenticazione, cioè nickname, email e password. L’unico attributo specifico del cliente è `abilitato`, utilizzato per indicare se il cliente può effettuare nuovi ordini. Tale attributo viene mantenuto in **UTENTE**: per gli utenti con ruolo amministratore non assume significato applicativo.
 
-La gerarchia viene quindi sostituita dalla seguente entità:
-
-```text
-UTENTE(idUtente, nickname, email, password, ruolo, abilitato)
-```
-
-Rimane il vincolo applicativo secondo cui solo gli utenti con `ruolo = cliente` possono effettuare ordini.
-
 ---
 
 #### Scelta delle chiavi primarie
 
 Per le principali entità dello schema si sceglie di utilizzare chiavi primarie artificiali, in modo da evitare dipendenze da attributi potenzialmente modificabili nel tempo, come email, nickname o nome dell’ingrediente.
-
-Le chiavi primarie scelte sono le seguenti:
-
-* **UTENTE**: `idUtente`
-* **ORDINE**: `idOrdine`
-* **INGREDIENTE_ORDINE**: `idIngredienteOrdine`
-* **INGREDIENTE**: `idIngrediente`
-* **CATEGORIA_INGREDIENTE**: `idCategoria`
-* **FASCIA_ORARIA**: `idFasciaOraria`
-* **GIORNO_SERVIZIO**: `idGiornoServizio`
 
 Per l’entità **DISPONIBILITA_INGREDIENTE** si sceglie invece una chiave composta, formata dalla coppia:
 
@@ -641,47 +627,21 @@ In particolare:
 
 * **EFFETTUA**, tra **CLIENTE** e **ORDINE**, viene eliminata importando `idUtente` in **ORDINE**. Dopo il collasso della gerarchia, il cliente è rappresentato da un utente con `ruolo = cliente`.
 
-```text
-ORDINE(..., idUtente)
-```
 
 * **PRENOTATO_IN**, tra **ORDINE** e **FASCIA_ORARIA**, viene eliminata importando `idFasciaOraria` in **ORDINE**.
 
-```text
-ORDINE(..., idFasciaOraria)
-```
 
 * **APPARTIENE_A**, tra **FASCIA_ORARIA** e **GIORNO_SERVIZIO**, viene eliminata importando `idGiornoServizio` in **FASCIA_ORARIA**.
 
-```text
-FASCIA_ORARIA(..., idGiornoServizio)
-```
 
 * **FORMATO_DA**, tra **ORDINE** e **INGREDIENTE_ORDINE**, viene eliminata importando `idOrdine` in **INGREDIENTE_ORDINE**.
 
-```text
-INGREDIENTE_ORDINE(..., idOrdine)
-```
-
 * **RIFERISCE**, tra **INGREDIENTE_ORDINE** e **INGREDIENTE**, viene eliminata importando `idIngrediente` in **INGREDIENTE_ORDINE**.
 
-```text
-INGREDIENTE_ORDINE(..., idIngrediente)
-```
 
 * **APPARTIENE**, tra **INGREDIENTE** e **CATEGORIA_INGREDIENTE**, viene eliminata importando `idCategoria` in **INGREDIENTE**.
 
-```text
-INGREDIENTE(..., idCategoria)
-```
-
-* Le associazioni **HA** e **DEFINISCE**, che collegano **INGREDIENTE**, **GIORNO_SERVIZIO** e **DISPONIBILITA_INGREDIENTE**, vengono eliminate importando `idIngrediente` e `idGiornoServizio` in **DISPONIBILITA_INGREDIENTE**.
-
-```text
-DISPONIBILITA_INGREDIENTE(idIngrediente, idGiornoServizio, disponibile)
-```
-
-La coppia `(idIngrediente, idGiornoServizio)` identifica univocamente una disponibilità.
+* Le associazioni **HA** e **DEFINISCE**, che collegano **INGREDIENTE**, **GIORNO_SERVIZIO** e **DISPONIBILITA_INGREDIENTE**, vengono eliminate importando `idIngrediente` e `idGiornoServizio` in **DISPONIBILITA_INGREDIENTE**. La coppia `(idIngrediente, idGiornoServizio)` identifica univocamente una disponibilità.
 
 ---
 
@@ -752,31 +712,9 @@ Assumendo la stessa frequenza di 70 consultazioni al giorno, il costo giornalier
 
 ---
 
-#### Costo di mantenimento della ridondanza
-
-Il mantenimento della ridondanza richiede che, ogni volta che vengono create o modificate le fasce orarie di un giorno, gli attributi `oraInizio` e `oraFine` del relativo **GIORNO_SERVIZIO** siano aggiornati in modo coerente.
-
-Si considera l’operazione settimanale di configurazione del servizio, nella quale vengono creati 7 giorni di servizio e 14 fasce orarie per ciascun giorno.
-
-| Concetto        | Costrutto | Accessi | Tipo |
-| --------------- | :-------: | ------: | :--: |
-| GIORNO_SERVIZIO |     E     |       7 |   S  |
-| FASCIA_ORARIA   |     E     |      98 |   S  |
-| APPARTIENE_A    |     R     |      98 |   S  |
-
-**Totale senza ridondanza: 203S = 406**
-
-Con la ridondanza, oltre alla creazione dei giorni e delle fasce, è necessario garantire anche l’aggiornamento degli attributi ridondanti `oraInizio` e `oraFine`. Poiché tali valori vengono impostati contestualmente alla creazione del giorno di servizio, non si introduce un accesso aggiuntivo nella fase di creazione iniziale. Tuttavia, in caso di modifica successiva delle fasce orarie, diventa necessario aggiornare anche **GIORNO_SERVIZIO**, introducendo una scrittura aggiuntiva e un possibile rischio di incoerenza.
-
----
-
 #### Valutazione finale
 
-Dal solo punto di vista degli accessi in lettura, mantenere `oraInizio` e `oraFine` in **GIORNO_SERVIZIO** riduce il costo dell’operazione di visualizzazione dell’orario complessivo del servizio, passando da 29 letture a una sola lettura.
-
-Tuttavia, nel sistema **Campus Truck** il cliente non consulta soltanto l’orario complessivo del giorno, ma deve visualizzare le singole fasce orarie disponibili per poter scegliere lo slot di ritiro. Di conseguenza, le fasce orarie devono comunque essere lette nella maggior parte delle operazioni di prenotazione. Il vantaggio della ridondanza risulta quindi limitato.
-
-Si sceglie pertanto di **non mantenere** gli attributi `oraInizio` e `oraFine` come dati memorizzati in **GIORNO_SERVIZIO**, ma di considerarli attributi derivati dalle fasce orarie associate. Questa scelta evita ridondanza e possibili problemi di incoerenza, senza penalizzare in modo significativo le operazioni principali del sistema.
+Dal solo punto di vista degli accessi in lettura, mantenere `oraInizio` e `oraFine` in **GIORNO_SERVIZIO** riduce il costo dell’operazione di visualizzazione dell’orario complessivo del servizio, passando da 29 letture a una sola lettura. Pertanto si sceglie di mantenere la ridondanza 
 
 ### Traduzione di entità e associazioni in relazioni
 
@@ -795,8 +733,6 @@ utenti(
 UNIQUE(email)
 ```
 
-La relazione `utenti` deriva dal collasso verso l’alto della gerarchia tra `UTENTE`, `CLIENTE` e `AMMINISTRATORE`. L’attributo `ruolo` distingue clienti e amministratori, mentre `abilitato` viene utilizzato per indicare se un cliente può effettuare nuovi ordini.
-
 ```text
 giorni_servizio(
     idGiornoServizio,
@@ -804,12 +740,12 @@ giorni_servizio(
     posizione,
     attivo,
     capacitaMassima,
-    limiteModificaMinuti
+    limiteModificaMinuti,
+    oraInizio,
+    oraFine
 )
 UNIQUE(data)
 ```
-
-Gli attributi `oraInizio` e `oraFine` non vengono memorizzati, poiché derivabili dalle fasce orarie associate al giorno di servizio.
 
 ```text
 fasce_orarie(
@@ -820,8 +756,6 @@ fasce_orarie(
 )
 UNIQUE(idGiornoServizio, oraInizio)
 ```
-
-L’associazione `APPARTIENE_A` tra `FASCIA_ORARIA` e `GIORNO_SERVIZIO` viene tradotta importando `idGiornoServizio` in `fasce_orarie`.
 
 ```text
 ordini(
@@ -835,9 +769,9 @@ ordini(
 )
 ```
 
-Le associazioni `EFFETTUA` e `PRENOTATO_IN` vengono tradotte importando rispettivamente `idUtente` e `idFasciaOraria` nella relazione `ordini`.
-
 ```text
+
+La relazione `categorie_ingredienti` rappresenta le categorie logiche degli ingredienti e permette di modellare i vincoli di composizione del panino, come il vincolo secondo cui deve essere scelto uno e un solo tipo di pane.
 categorie_ingredienti(
     idCategoria,
     nome,
@@ -846,8 +780,6 @@ categorie_ingredienti(
 )
 UNIQUE(nome)
 ```
-
-La relazione `categorie_ingredienti` rappresenta le categorie logiche degli ingredienti e permette di modellare i vincoli di composizione del panino, come il vincolo secondo cui deve essere scelto uno e un solo tipo di pane.
 
 ```text
 ingredienti(
@@ -858,8 +790,6 @@ ingredienti(
 )
 UNIQUE(codice)
 ```
-
-L’associazione `APPARTIENE` tra `INGREDIENTE` e `CATEGORIA_INGREDIENTE` viene tradotta importando `idCategoria` nella relazione `ingredienti`.
 
 ```text
 ingredienti_ordine(
@@ -872,11 +802,6 @@ ingredienti_ordine(
 UNIQUE(idOrdine, idIngrediente)
 ```
 
-La relazione `ingredienti_ordine` rappresenta gli ingredienti effettivamente scelti all’interno di un ordine.
-L’associazione `FORMATO_DA` viene tradotta importando `idOrdine`, mentre l’associazione `RIFERISCE` viene tradotta importando `idIngrediente`.
-
-Gli attributi `nomeSnapshot` e `categoriaSnapshot` permettono di conservare le informazioni dell’ingrediente al momento dell’ordine, anche nel caso in cui il catalogo venga modificato successivamente.
-
 ```text
 disponibilita_ingredienti(
     idIngrediente: ingredienti,
@@ -884,16 +809,6 @@ disponibilita_ingredienti(
     disponibile
 )
 ```
-
-La relazione `disponibilita_ingredienti` deriva dalle associazioni `HA` e `DEFINISCE`, che collegano `INGREDIENTE`, `DISPONIBILITA_INGREDIENTE` e `GIORNO_SERVIZIO`.
-
-La chiave primaria della relazione è composta dalla coppia:
-
-```text
-(idIngrediente, idGiornoServizio)
-```
-
-in modo da garantire che per ogni ingrediente e per ogni giorno di servizio esista al massimo una sola informazione di disponibilità.
 
 ### Traduzione delle operazioni in query SQL
 

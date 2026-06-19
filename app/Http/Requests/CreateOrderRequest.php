@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\Ingredient;
+use App\Models\TimeSlot;
+use App\Services\IngredientAvailabilityService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -42,11 +44,22 @@ class CreateOrderRequest extends FormRequest
                 return; // Ferma validazione se ci sono duplicati
             }
 
+            $timeSlot = TimeSlot::with('workingDay')->find($this->input('time_slot_id'));
+
+            if (!$timeSlot || !$timeSlot->workingDay || !$timeSlot->workingDay->is_active) {
+                $validator->errors()->add(
+                    'time_slot_id',
+                    'Il giorno di servizio selezionato non e attivo.'
+                );
+                return;
+            }
+
             // Carica gli ingredienti dal DB
             $ingredients = Ingredient::whereIn('id', $ingredientIds)->get();
 
-            // VERIFICA 2: Tutti gli ingredienti esistono e sono disponibili
-            $unavailableIngredients = $ingredients->filter(fn($i) => !$i->is_available);
+            // VERIFICA 2: Tutti gli ingredienti esistono e sono disponibili per il giorno scelto
+            $unavailableIngredients = app(IngredientAvailabilityService::class)
+                ->unavailableIngredientsForWorkingDay($ingredientIds, $timeSlot->workingDay);
             if ($unavailableIngredients->isNotEmpty()) {
                 $names = $unavailableIngredients->pluck('name')->implode(', ');
                 $validator->errors()->add(
@@ -84,4 +97,3 @@ class CreateOrderRequest extends FormRequest
         ];
     }
 }
-

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\TimeSlot;
 use App\Services\OrderFormService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,21 @@ class OrderFormController extends Controller
     public function create()
     {
         $user = Auth::user();
+        if (!$user->enabled) {
+            abort(403, 'Account bloccato: non puoi creare nuove prenotazioni.');
+        }
+
         $date = request()->query('date', now()->toDateString());
+        $selectedTimeSlotId = null;
+
+        if ($slotId = request()->query('slot')) {
+            $slot = TimeSlot::with('workingDay')->find($slotId);
+            if ($slot && $slot->workingDay) {
+                $date = $slot->workingDay->day->toDateString();
+                $selectedTimeSlotId = $slot->id;
+            }
+        }
+
         $reorderFromId = request()->query('reorder');
         
         // Se reorder, carica ingredienti dall'ordine esistente
@@ -52,10 +67,11 @@ class OrderFormController extends Controller
             'selectedDate' => $date,
             'user' => [
                 'authenticated' => true,
-                'enabled' => $user->is_enabled ?? true,
+                'enabled' => $user->enabled,
                 'name' => $user->name,
             ],
             'reorderIngredients' => $reorderIngredients,
+            'selectedTimeSlotId' => $selectedTimeSlotId,
         ]);
     }
 
@@ -80,7 +96,7 @@ class OrderFormController extends Controller
             'selectedDate' => $order->workingDay->day->toDateString(),
             'user' => [
                 'authenticated' => true,
-                'enabled' => $user->is_enabled ?? true,
+                'enabled' => $user->enabled,
                 'name' => $user->name,
             ],
         ]);
@@ -88,6 +104,13 @@ class OrderFormController extends Controller
 
     public function apiCreate(): JsonResponse
     {
+        if (!request()->user()->enabled) {
+            return response()->json([
+                'code' => 'USER_DISABLED',
+                'message' => 'Account bloccato: non puoi creare nuove prenotazioni.',
+            ], 403);
+        }
+
         $date = request()->query('date', now()->toDateString());
         $payload = $this->orderFormService->buildCreatePayload($date);
         

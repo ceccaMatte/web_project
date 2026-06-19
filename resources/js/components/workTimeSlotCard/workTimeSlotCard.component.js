@@ -35,7 +35,7 @@ export function buildWorkTimeSlotCardHTML(slot) {
     const readyCount = counts?.ready || 0;
     const pickedUpCount = counts?.picked_up || 0;
     const pendingCount = counts?.pending || 0;
-    const totalOrders = confirmedCount + readyCount + pickedUpCount;
+    const totalOrders = pendingCount + confirmedCount + readyCount + pickedUpCount;
 
     // Layout secondo il design specificato
     if (isSelected) {

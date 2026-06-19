@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Ingredient;
+use App\Services\IngredientAvailabilityService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -42,14 +43,22 @@ class UpdateOrderRequest extends FormRequest
             // Carica gli ingredienti dal DB
             $ingredients = Ingredient::whereIn('id', $ingredientIds)->get();
 
-            // VERIFICA 2: Tutti gli ingredienti sono disponibili
-            $unavailableIngredients = $ingredients->filter(fn($i) => !$i->is_available);
-            if ($unavailableIngredients->isNotEmpty()) {
-                $names = $unavailableIngredients->pluck('name')->implode(', ');
-                $validator->errors()->add(
-                    'ingredients',
-                    "Alcuni ingredienti non sono disponibili: {$names}"
-                );
+            // VERIFICA 2: Tutti gli ingredienti sono disponibili nel giorno dell'ordine
+            $order = $this->route('order');
+            if ($order) {
+                $order->loadMissing('workingDay');
+                if ($order->workingDay) {
+                    $unavailableIngredients = app(IngredientAvailabilityService::class)
+                        ->unavailableIngredientsForWorkingDay($ingredientIds, $order->workingDay);
+
+                    if ($unavailableIngredients->isNotEmpty()) {
+                        $names = $unavailableIngredients->pluck('name')->implode(', ');
+                        $validator->errors()->add(
+                            'ingredients',
+                            "Alcuni ingredienti non sono disponibili: {$names}"
+                        );
+                    }
+                }
             }
 
             // VERIFICA 3: Esattamente un pane

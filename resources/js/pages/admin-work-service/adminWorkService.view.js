@@ -27,6 +27,7 @@ export const workServiceView = {
             ordersPipeline: document.querySelector('[data-orders-pipeline]'),
 
             // Status rows
+            pendingRow: document.querySelector('[data-status-row="pending"]'),
             confirmedRow: document.querySelector('[data-status-row="confirmed"]'),
             readyRow: document.querySelector('[data-status-row="ready"]'),
             pickedUpRow: document.querySelector('[data-status-row="picked_up"]'),
@@ -48,6 +49,7 @@ export const workServiceView = {
     get schedulerSection() { return this._refs.schedulerSection; },
     get timeSlotsSection() { return this._refs.timeSlotsSection; },
     get ordersPipeline() { return this._refs.ordersPipeline; },
+    get pendingRow() { return this._refs.pendingRow; },
     get confirmedRow() { return this._refs.confirmedRow; },
     get readyRow() { return this._refs.readyRow; },
     get pickedUpRow() { return this._refs.pickedUpRow; },

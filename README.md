@@ -134,6 +134,7 @@ Dopo il seed puoi accedere con questi utenti. Tutte le password demo sono `passw
 | Admin | Admin | `admin@test.it` | `password` |
 
 L'utente admin puo accedere alle pagine di gestione come `/admin/work-service` e `/admin/service-planning`.
+Sono disponibili anche le pagine `/admin/users`, `/admin/ingredients` e `/admin/statistics`.
 
 ## Avvio del progetto in sviluppo
 
@@ -217,6 +218,9 @@ Una volta avviata l'app puoi visitare:
 - `/orders/create` creazione ordine
 - `/admin/work-service` gestione operativa ordini, solo admin
 - `/admin/service-planning` pianificazione servizio, solo admin
+- `/admin/users` gestione blocco/sblocco clienti, solo admin
+- `/admin/ingredients` catalogo ingredienti e disponibilita giornaliera, solo admin
+- `/admin/statistics` statistiche su ordini, ingredienti, fasce orarie e clienti, solo admin
 
 Le rotte admin richiedono login con `admin@test.it`.
 

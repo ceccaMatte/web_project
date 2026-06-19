@@ -10,6 +10,9 @@ const listenerRegistry = new WeakMap();
 
 // Status row configuration (empty messages)
 const STATUS_ROW_CONFIG = {
+    pending: {
+        emptyMessage: 'No pending orders',
+    },
     confirmed: {
         emptyMessage: 'No confirmed orders',
     },

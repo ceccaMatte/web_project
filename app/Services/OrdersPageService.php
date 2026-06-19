@@ -72,7 +72,8 @@ class OrdersPageService
     /**
      * Recupera gli ordini attivi dell'utente per una data specifica.
      *
-     * Ordini attivi = ordini NON in stato "picked_up" o "rejected"
+     * Ordini attivi = ordini non ancora ritirati.
+     * Gli ordini rejected restano visibili all'utente per trasparenza.
      *
      * @param string $date Data in formato YYYY-MM-DD
      * @return array
@@ -118,17 +119,17 @@ class OrdersPageService
             return [];
         }
 
-        // Ordini completati o di giorni passati
+        // Ordini completati, rejected o di giorni passati
         $orders = Order::where('user_id', $user->id)
             ->where(function ($query) {
                 // Ordini picked_up
                 $query->where('status', 'picked_up')
-                    // Oppure ordini di giorni passati (qualsiasi stato tranne rejected)
+                    ->orWhere('status', 'rejected')
+                    // Oppure ordini di giorni passati
                     ->orWhereHas('workingDay', function ($q) {
                         $q->where('day', '<', now()->toDateString());
                     });
             })
-            ->where('status', '!=', 'rejected')
             ->with(['timeSlot', 'ingredients', 'workingDay'])
             ->orderBy('created_at', 'desc')
             ->limit(20)

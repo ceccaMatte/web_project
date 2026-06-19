@@ -220,6 +220,56 @@ class AdminWorkServiceTest extends TestCase
     }
 
     /**
+     * Test: API include ordini pending nella pipeline.
+     */
+    public function test_api_includes_pending_orders(): void
+    {
+        $order = Order::factory()->create([
+            'user_id' => $this->user->id,
+            'time_slot_id' => $this->timeSlot->id,
+            'working_day_id' => $this->workingDay->id,
+            'status' => 'pending',
+            'daily_number' => 1,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->getJson('/api/admin/work-service?date=2026-01-08');
+
+        $response->assertStatus(200);
+        $this->assertEquals($order->id, $response->json('orders.0.id'));
+        $this->assertEquals('pending', $response->json('orders.0.status'));
+        $this->assertEquals(1, $response->json('timeSlots.0.counts.pending'));
+    }
+
+    /**
+     * Test: admin puo rifiutare un ordine pending.
+     */
+    public function test_admin_can_reject_pending_order_from_work_service(): void
+    {
+        $order = Order::factory()->create([
+            'user_id' => $this->user->id,
+            'time_slot_id' => $this->timeSlot->id,
+            'working_day_id' => $this->workingDay->id,
+            'status' => 'pending',
+            'daily_number' => 1,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->postJson("/api/admin/orders/{$order->id}/status", [
+                'status' => 'rejected',
+            ])
+            ->assertOk()
+            ->assertJsonPath('order.status', 'rejected');
+
+        $response = $this->actingAs($this->admin)
+            ->getJson('/api/admin/work-service?date=2026-01-08')
+            ->assertOk();
+
+        $this->assertEmpty($response->json('orders'));
+        $this->assertEquals(1, $response->json('timeSlots.0.counts.rejected'));
+    }
+
+    /**
      * Test: API richiede parametro date.
      */
     public function test_api_requires_date_parameter(): void

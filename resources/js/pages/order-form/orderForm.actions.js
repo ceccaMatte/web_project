@@ -124,6 +124,7 @@ export async function selectDay(dayId) {
         if (data.timeSlots) {
             mutateAvailability({
                 ...orderFormState.availability,
+                ingredients: data.ingredients || orderFormState.availability.ingredients,
                 timeSlots: data.timeSlots,
             });
         }

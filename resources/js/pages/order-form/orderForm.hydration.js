@@ -37,6 +37,7 @@ export function hydrateFromInlineData() {
             mutateUser({
                 authenticated: data.user.authenticated || false,
                 name: data.user.name || null,
+                enabled: Boolean(data.user.enabled),
             });
         }
         
@@ -44,7 +45,7 @@ export function hydrateFromInlineData() {
         mutateOrder({
             id: data.orderId || null,
             selectedDay: data.selectedDate || new Date().toISOString().split('T')[0],
-            selectedTimeSlotId: null,
+            selectedTimeSlotId: data.selectedTimeSlotId || null,
             selectedIngredients: [], // Reset - verranno applicati atomicamente dopo
         });
         

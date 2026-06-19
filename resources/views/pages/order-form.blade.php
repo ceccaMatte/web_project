@@ -166,6 +166,7 @@
             'mode' => $mode,
             'orderId' => $orderId ?? null,
             'selectedDate' => $selectedDate ?? now()->toDateString(),
+            'selectedTimeSlotId' => $selectedTimeSlotId ?? null,
             'user' => $user,
             'reorderIngredients' => $reorderIngredients ?? [],
         ]) !!}

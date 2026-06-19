@@ -5,7 +5,7 @@ export const orderFormState = {
     // Mode: 'create' | 'modify'
     mode: 'create',
     // User
-    user: { authenticated: false, name: null },
+    user: { authenticated: false, name: null, enabled: true },
     sidebarOpen: false,
     // Order data
     order: { id: null, selectedDay: null, selectedTimeSlotId: null, selectedIngredients: [] },
@@ -181,7 +181,7 @@ export function isOrderValid() {
 export function resetState() {
     orderFormState.ui = { isLoading: true, isSubmitting: false };
     orderFormState.mode = 'create';
-    orderFormState.user = { authenticated: false, name: null };
+    orderFormState.user = { authenticated: false, name: null, enabled: true };
     orderFormState.sidebarOpen = false;
     orderFormState.order = {
         id: null,

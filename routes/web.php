@@ -11,6 +11,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\AdminWorkServiceController;
 use App\Http\Controllers\ServicePlanningController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminIngredientController;
+use App\Http\Controllers\AdminStatisticsController;
 
 // ========================================
 // AUTH ROUTES
@@ -144,9 +147,35 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
         return 'Benvenuto nella dashboard admin!';
     });
 
-    Route::get('/admin/users', function () {
-        return 'Lista utenti (solo per admin)';
-    });
+    Route::get('/admin/users', [AdminUserController::class, 'index'])
+        ->name('admin.users');
+
+    Route::get('/api/admin/users', [AdminUserController::class, 'apiIndex'])
+        ->name('api.admin.users');
+
+    Route::patch('/api/admin/users/{user}/enabled', [AdminUserController::class, 'updateEnabled'])
+        ->name('api.admin.users.enabled');
+
+    Route::get('/admin/ingredients', [AdminIngredientController::class, 'index'])
+        ->name('admin.ingredients');
+
+    Route::get('/api/admin/ingredients', [AdminIngredientController::class, 'apiIndex'])
+        ->name('api.admin.ingredients');
+
+    Route::post('/api/admin/ingredients', [AdminIngredientController::class, 'store'])
+        ->name('api.admin.ingredients.store');
+
+    Route::patch('/api/admin/ingredients/{ingredient}', [AdminIngredientController::class, 'update'])
+        ->name('api.admin.ingredients.update');
+
+    Route::patch('/api/admin/ingredients/{ingredient}/availability', [AdminIngredientController::class, 'updateAvailability'])
+        ->name('api.admin.ingredients.availability');
+
+    Route::get('/admin/statistics', [AdminStatisticsController::class, 'index'])
+        ->name('admin.statistics');
+
+    Route::get('/api/admin/statistics', [AdminStatisticsController::class, 'apiIndex'])
+        ->name('api.admin.statistics');
 
     // Route per la configurazione settimanale
     // Permette all'admin di configurare i giorni lavorativi futuri
@@ -200,4 +229,3 @@ Route::middleware(MiddlewareAlias::ADMIN)->group(function () {
     Route::post('/api/admin/service-planning/week/{startDate}', [ServicePlanningController::class, 'saveWeek'])
         ->name('api.admin.service-planning.save');
 });
-

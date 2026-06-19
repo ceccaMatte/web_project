@@ -31,6 +31,18 @@ const pageRegistry = {
         const { initServicePlanningPage } = await import('./pages/service-planning/index.js');
         return initServicePlanningPage;
     },
+    'admin-users': async () => {
+        const { initAdminUsersPage } = await import('./pages/admin-users/index.js');
+        return initAdminUsersPage;
+    },
+    'admin-ingredients': async () => {
+        const { initAdminIngredientsPage } = await import('./pages/admin-ingredients/index.js');
+        return initAdminIngredientsPage;
+    },
+    'admin-statistics': async () => {
+        const { initAdminStatisticsPage } = await import('./pages/admin-statistics/index.js');
+        return initAdminStatisticsPage;
+    },
     // TODO: Aggiungere altre pagine qui
     // admin: async () => { ... },
 };

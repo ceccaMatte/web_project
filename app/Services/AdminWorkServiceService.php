@@ -26,16 +26,20 @@ use Illuminate\Support\Collection;
  */
 class AdminWorkServiceService
 {
+    public function __construct(
+        private OrderService $orderService
+    ) {}
+
     /**
      * Stati ordine visibili nella pipeline di lavoro.
      * pending NON è incluso (va solo nei conteggi time slot).
      */
-    private const PIPELINE_STATES = ['confirmed', 'ready', 'picked_up'];
+    private const PIPELINE_STATES = ['pending', 'confirmed', 'ready', 'picked_up'];
 
     /**
      * Tutti gli stati ordine (per conteggi).
      */
-    private const ALL_STATES = ['pending', 'confirmed', 'ready', 'picked_up'];
+    private const ALL_STATES = ['pending', 'confirmed', 'ready', 'picked_up', 'rejected'];
 
     /**
      * Categorie ingredienti nell'ordine corretto.
@@ -130,6 +134,7 @@ class AdminWorkServiceService
                     'confirmed' => $orders->where('status', 'confirmed')->count(),
                     'ready' => $orders->where('status', 'ready')->count(),
                     'picked_up' => $orders->where('status', 'picked_up')->count(),
+                    'rejected' => $orders->where('status', 'rejected')->count(),
                 ],
             ];
         })->values()->toArray();
@@ -270,15 +275,14 @@ class AdminWorkServiceService
     public function changeOrderStatus(Order $order, string $newStatus): Order
     {
         // Validazione stati ammessi
-        $allowedStates = ['pending', 'confirmed', 'ready', 'picked_up', 'rejected'];
+        $allowedStates = self::ALL_STATES;
         
         if (!in_array($newStatus, $allowedStates)) {
             throw new \InvalidArgumentException("Invalid status: {$newStatus}");
         }
 
-        $order->status = $newStatus;
-        $order->save();
-
-        return $order->fresh(['user', 'ingredients']);
+        return $this->orderService
+            ->changeStatus($order, $newStatus)
+            ->fresh(['user', 'ingredients']);
     }
 }

@@ -47,7 +47,10 @@ export function buildWorkOrderCardHTML(order, isSelected = false) {
     
     if (isSelected) {
         // Background più pieno basato sullo stato
-        if (status === 'confirmed') {
+        if (status === 'pending') {
+            selectedBgClass = 'bg-amber-500/30';
+            selectedClasses = 'ring-2 ring-amber-500/60 border-amber-500/40 shadow-lg shadow-amber-500/20';
+        } else if (status === 'confirmed') {
             selectedBgClass = 'bg-blue-500/30';
             selectedClasses = 'ring-2 ring-blue-500/60 border-blue-500/40 shadow-lg shadow-blue-500/20';
         } else if (status === 'ready') {

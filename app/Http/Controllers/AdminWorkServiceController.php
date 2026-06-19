@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Errors\DomainError;
 use App\Services\AdminWorkServiceService;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -72,6 +73,12 @@ class AdminWorkServiceController extends Controller
                     'status' => $updatedOrder->status,
                 ],
             ]);
+        } catch (DomainError $e) {
+            return response()->json([
+                'success' => false,
+                'code' => $e->code(),
+                'error' => $e->message(),
+            ], $e->httpStatus());
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

@@ -48,4 +48,9 @@ class WorkingDay extends Model
     {
         return $this->hasMany(TimeSlot::class);
     }
+
+    public function ingredientAvailabilities(): HasMany
+    {
+        return $this->hasMany(IngredientAvailability::class);
+    }
 }
