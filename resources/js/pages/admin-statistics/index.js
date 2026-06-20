@@ -22,6 +22,42 @@ function escapeHtml(value) {
         .replaceAll("'", '&#039;');
 }
 
+function parseDateInput(value) {
+    if (!value) return null;
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDateInput(date) {
+    return date.toISOString().slice(0, 10);
+}
+
+function shiftMonth(value, amount) {
+    const date = parseDateInput(value);
+    if (!date) return value;
+
+    const day = date.getDate();
+    date.setDate(1);
+    date.setMonth(date.getMonth() + amount);
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    date.setDate(Math.min(day, lastDay));
+
+    return formatDateInput(date);
+}
+
+function normalizeDateRange(changedInput, fromInput, toInput) {
+    const fromDate = parseDateInput(fromInput.value);
+    const toDate = parseDateInput(toInput.value);
+    if (!fromDate || !toDate || fromDate <= toDate) return;
+
+    if (changedInput === fromInput) {
+        toInput.value = shiftMonth(fromInput.value, 1);
+        return;
+    }
+
+    fromInput.value = shiftMonth(toInput.value, -1);
+}
+
 async function fetchStats(from, to) {
     const response = await fetch(`/api/admin/statistics?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, {
         headers: { Accept: 'application/json' },
@@ -58,6 +94,8 @@ function metric(label, value, icon, tone) {
 }
 
 function chartCard(title, subtitle, canvasId, rows, formatter) {
+    const tableId = `${canvasId}-table`;
+
     return `
         <section class="bg-card-dark border border-border-dark rounded-2xl overflow-hidden">
             <div class="px-4 py-3 border-b border-border-dark flex items-center justify-between gap-3">
@@ -65,13 +103,21 @@ function chartCard(title, subtitle, canvasId, rows, formatter) {
                     <h2 class="truncate text-sm font-bold text-white">${title}</h2>
                     <p class="mt-1 text-xs text-slate-500">${subtitle}</p>
                 </div>
+                <button
+                    type="button"
+                    data-action="toggle-chart-table"
+                    data-table-target="${tableId}"
+                    class="shrink-0 rounded-lg border border-border-dark bg-surface-dark px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-300 hover:text-white"
+                >
+                    View table
+                </button>
             </div>
             <div class="p-4">
-                <div class="relative h-72">
+                <div class="relative h-80">
                     <canvas id="${canvasId}"></canvas>
                 </div>
             </div>
-            <div class="border-t border-border-dark divide-y divide-border-dark">
+            <div id="${tableId}" class="hidden border-t border-border-dark divide-y divide-border-dark">
                 ${rows.length ? rows.slice(0, 6).map(row => `
                     <div class="px-4 py-3 flex items-center justify-between gap-4 text-sm">
                         <span class="min-w-0 truncate text-slate-300">${formatter(row)}</span>
@@ -131,9 +177,9 @@ function lineChartOptions() {
     };
 }
 
-function barChartOptions(indexAxis = 'x') {
+function barChartOptions() {
     return {
-        indexAxis,
+        indexAxis: 'x',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -149,15 +195,14 @@ function barChartOptions(indexAxis = 'x') {
         },
         scales: {
             x: {
-                beginAtZero: true,
-                ticks: { color: mutedColor, precision: 0 },
-                grid: { color: gridColor },
+                ticks: { color: mutedColor, maxRotation: 35, minRotation: 0, autoSkip: false },
+                grid: { color: 'transparent' },
                 border: { color: gridColor },
             },
             y: {
                 beginAtZero: true,
                 ticks: { color: mutedColor, precision: 0 },
-                grid: { color: indexAxis === 'y' ? gridColor : 'transparent' },
+                grid: { color: gridColor },
                 border: { color: gridColor },
             },
         },
@@ -210,7 +255,7 @@ function makeLineChart(canvasId, points) {
     }));
 }
 
-function makeBarChart(canvasId, rows, labeler, color, indexAxis = 'y') {
+function makeBarChart(canvasId, rows, labeler, color) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
@@ -226,10 +271,10 @@ function makeBarChart(canvasId, rows, labeler, color, indexAxis = 'y') {
                 borderColor: color,
                 borderRadius: 8,
                 borderSkipped: false,
-                maxBarThickness: 28,
+                maxBarThickness: 40,
             }],
         },
-        options: barChartOptions(indexAxis),
+        options: barChartOptions(),
     }));
 }
 
@@ -285,6 +330,14 @@ function closeSidebar() {
     document.querySelector('[data-sidebar-backdrop]')?.classList.add('hidden');
 }
 
+function toggleChartTable(button) {
+    const target = document.getElementById(button.dataset.tableTarget);
+    if (!target) return;
+
+    const isHidden = target.classList.toggle('hidden');
+    button.textContent = isHidden ? 'View table' : 'Hide table';
+}
+
 export async function initAdminStatisticsPage() {
     const defaultsScript = document.querySelector('[data-statistics-defaults]');
     const defaults = defaultsScript ? JSON.parse(defaultsScript.textContent) : {};
@@ -312,6 +365,13 @@ export async function initAdminStatisticsPage() {
         if (target.dataset.action === 'open-sidebar') return openSidebar();
         if (target.dataset.action === 'close-sidebar') return closeSidebar();
         if (target.dataset.action === 'refresh-statistics') return load();
+        if (target.dataset.action === 'toggle-chart-table') return toggleChartTable(target);
+    });
+
+    document.addEventListener('change', (event) => {
+        if (event.target === fromInput || event.target === toInput) {
+            normalizeDateRange(event.target, fromInput, toInput);
+        }
     });
 
     await load();
