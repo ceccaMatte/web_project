@@ -86,6 +86,98 @@ class AdminIngredientManagementTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_ingredient_for_working_day(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $workingDay = WorkingDay::factory()->create(['day' => '2026-03-01']);
+
+        $response = $this->actingAs($admin)
+            ->postJson('/api/admin/ingredients', [
+                'name' => 'Baguette',
+                'code' => 'BRD_BAG_TEST',
+                'category' => 'bread',
+                'working_day_id' => $workingDay->id,
+                'daily_available' => true,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('ingredient.name', 'Baguette')
+            ->assertJsonPath('ingredient.code', 'BRD_BAG_TEST')
+            ->assertJsonPath('ingredient.category', 'bread');
+
+        $ingredientId = $response->json('ingredient.id');
+
+        $this->assertDatabaseHas('ingredients', [
+            'id' => $ingredientId,
+            'name' => 'Baguette',
+            'code' => 'BRD_BAG_TEST',
+            'category' => 'bread',
+            'is_available' => false,
+        ]);
+
+        $this->assertDatabaseHas('ingredient_availabilities', [
+            'ingredient_id' => $ingredientId,
+            'working_day_id' => $workingDay->id,
+            'is_available' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/api/admin/ingredients?date=2026-03-01')
+            ->assertOk()
+            ->assertJsonFragment([
+                'name' => 'Baguette',
+                'daily_available' => true,
+                'override_available' => true,
+            ]);
+    }
+
+    public function test_admin_can_update_ingredient_for_working_day(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $workingDay = WorkingDay::factory()->create(['day' => '2026-03-02']);
+        $ingredient = Ingredient::create([
+            'name' => 'Old Cheese',
+            'code' => 'CHEESE_OLD_TEST',
+            'category' => 'cheese',
+            'is_available' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/admin/ingredients/{$ingredient->id}", [
+                'name' => 'Scamorza',
+                'code' => 'CHEESE_SCA_TEST',
+                'category' => 'cheese',
+                'working_day_id' => $workingDay->id,
+                'daily_available' => true,
+            ])
+            ->assertOk()
+            ->assertJsonPath('ingredient.name', 'Scamorza')
+            ->assertJsonPath('ingredient.code', 'CHEESE_SCA_TEST')
+            ->assertJsonPath('ingredient.category', 'cheese');
+
+        $this->assertDatabaseHas('ingredients', [
+            'id' => $ingredient->id,
+            'name' => 'Scamorza',
+            'code' => 'CHEESE_SCA_TEST',
+            'category' => 'cheese',
+            'is_available' => false,
+        ]);
+
+        $this->assertDatabaseHas('ingredient_availabilities', [
+            'ingredient_id' => $ingredient->id,
+            'working_day_id' => $workingDay->id,
+            'is_available' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/api/admin/ingredients?date=2026-03-02')
+            ->assertOk()
+            ->assertJsonFragment([
+                'name' => 'Scamorza',
+                'daily_available' => true,
+                'override_available' => true,
+            ]);
+    }
+
     public function test_daily_unavailable_ingredient_cannot_be_ordered(): void
     {
         $user = User::factory()->user()->create();

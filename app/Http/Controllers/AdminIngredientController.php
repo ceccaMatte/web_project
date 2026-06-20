@@ -8,7 +8,9 @@ use App\Models\WorkingDay;
 use App\Services\IngredientAvailabilityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AdminIngredientController extends Controller
@@ -55,6 +57,13 @@ class AdminIngredientController extends Controller
             ])
             ->values();
 
+        Log::debug('Admin ingredients index loaded', [
+            'user_id' => $request->user()?->id,
+            'selected_date' => $selectedDate,
+            'working_day_id' => $workingDay?->id,
+            'ingredient_count' => $ingredients->count(),
+        ]);
+
         return response()->json([
             'selected_date' => $selectedDate,
             'working_day' => $workingDay ? [
@@ -70,7 +79,7 @@ class AdminIngredientController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $this->validateIngredientPayload($request, 'store');
 
         $ingredient = Ingredient::create([
             'name' => $validated['name'],
@@ -91,6 +100,13 @@ class AdminIngredientController extends Controller
             );
         }
 
+        Log::info('Admin ingredient created', [
+            'user_id' => $request->user()?->id,
+            'ingredient_id' => $ingredient->id,
+            'working_day_id' => $validated['working_day_id'] ?? null,
+            'daily_available' => $validated['daily_available'] ?? null,
+        ]);
+
         return response()->json([
             'ingredient' => $ingredient,
         ], 201);
@@ -98,7 +114,7 @@ class AdminIngredientController extends Controller
 
     public function update(Request $request, Ingredient $ingredient): JsonResponse
     {
-        $validated = $request->validate($this->rules($ingredient));
+        $validated = $this->validateIngredientPayload($request, 'update', $ingredient);
 
         $ingredient->update([
             'name' => $validated['name'],
@@ -119,6 +135,13 @@ class AdminIngredientController extends Controller
             );
         }
 
+        Log::info('Admin ingredient updated', [
+            'user_id' => $request->user()?->id,
+            'ingredient_id' => $ingredient->id,
+            'working_day_id' => $validated['working_day_id'] ?? null,
+            'daily_available' => $validated['daily_available'] ?? null,
+        ]);
+
         return response()->json([
             'ingredient' => $ingredient->fresh(),
         ]);
@@ -135,10 +158,27 @@ class AdminIngredientController extends Controller
 
     public function updateAvailability(Request $request, Ingredient $ingredient): JsonResponse
     {
-        $validated = $request->validate([
-            'working_day_id' => ['required', 'integer', 'exists:working_days,id'],
-            'is_available' => ['required', 'boolean'],
+        Log::debug('Admin ingredient availability incoming', [
+            'user_id' => $request->user()?->id,
+            'ingredient_id' => $ingredient->id,
+            'payload' => $request->only(['working_day_id', 'is_available']),
         ]);
+
+        try {
+            $validated = $request->validate([
+                'working_day_id' => ['required', 'integer', 'exists:working_days,id'],
+                'is_available' => ['required', 'boolean'],
+            ]);
+        } catch (ValidationException $exception) {
+            Log::warning('Admin ingredient availability validation failed', [
+                'user_id' => $request->user()?->id,
+                'ingredient_id' => $ingredient->id,
+                'payload' => $request->only(['working_day_id', 'is_available']),
+                'errors' => $exception->errors(),
+            ]);
+
+            throw $exception;
+        }
 
         IngredientAvailability::updateOrCreate(
             [
@@ -150,11 +190,57 @@ class AdminIngredientController extends Controller
             ]
         );
 
+        Log::info('Admin ingredient availability updated', [
+            'user_id' => $request->user()?->id,
+            'ingredient_id' => $ingredient->id,
+            'working_day_id' => $validated['working_day_id'],
+            'is_available' => $validated['is_available'],
+        ]);
+
         return response()->json([
             'ingredient_id' => $ingredient->id,
             'working_day_id' => $validated['working_day_id'],
             'is_available' => $validated['is_available'],
         ]);
+    }
+
+    private function validateIngredientPayload(Request $request, string $action, ?Ingredient $ingredient = null): array
+    {
+        $payload = $request->only([
+            'name',
+            'code',
+            'category',
+            'is_available',
+            'working_day_id',
+            'daily_available',
+        ]);
+
+        Log::debug("Admin ingredient {$action} incoming", [
+            'user_id' => $request->user()?->id,
+            'ingredient_id' => $ingredient?->id,
+            'payload' => $payload,
+        ]);
+
+        try {
+            $validated = $request->validate($this->rules($ingredient));
+        } catch (ValidationException $exception) {
+            Log::warning("Admin ingredient {$action} validation failed", [
+                'user_id' => $request->user()?->id,
+                'ingredient_id' => $ingredient?->id,
+                'payload' => $payload,
+                'errors' => $exception->errors(),
+            ]);
+
+            throw $exception;
+        }
+
+        Log::debug("Admin ingredient {$action} validated", [
+            'user_id' => $request->user()?->id,
+            'ingredient_id' => $ingredient?->id,
+            'validated' => $validated,
+        ]);
+
+        return $validated;
     }
 
     private function rules(?Ingredient $ingredient = null): array

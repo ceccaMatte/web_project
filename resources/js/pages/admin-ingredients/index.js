@@ -6,6 +6,27 @@ const ingredientApi = {
     availability: ingredientId => `/api/admin/ingredients/${ingredientId}/availability`,
 };
 
+const debugPrefix = '[AdminIngredients]';
+const moduleVersion = 'ingredient-debug-20260620-1';
+
+const handledActions = new Set([
+    'open-sidebar',
+    'close-sidebar',
+    'toggle-category-dropdown',
+    'select-category-option',
+    'prepare-category-create',
+    'toggle-category-section',
+    'submit-ingredient',
+    'select-ingredient',
+    'toggle-daily-availability',
+    'reset-ingredient-form',
+    'delete-ingredient',
+]);
+
+function debugLog(message, context = {}) {
+    console.debug(`${debugPrefix} ${message}`, context);
+}
+
 const categoryMeta = {
     bread: { label: 'Bread', icon: 'bakery_dining' },
     meat: { label: 'Meat', icon: 'lunch_dining' },
@@ -38,23 +59,39 @@ function escapeHtml(value) {
 }
 
 async function requestJson(url, options = {}) {
+    const { headers: optionHeaders = {}, ...fetchOptions } = options;
     const method = String(options.method || 'GET').toUpperCase();
     if (method !== 'GET' && !String(url).startsWith('/api/')) {
         throw new Error(`Unsafe admin ingredient endpoint: ${url}`);
     }
 
+    debugLog('request:start', {
+        method,
+        url,
+        body: options.body ? JSON.parse(options.body) : null,
+    });
+
     const headers = {
         Accept: 'application/json',
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        ...(options.headers || {}),
+        ...optionHeaders,
     };
 
     const response = await fetch(url, {
+        ...fetchOptions,
         headers,
         credentials: 'same-origin',
-        ...options,
     });
     const data = await response.json().catch(() => ({}));
+
+    debugLog('request:response', {
+        method,
+        url,
+        ok: response.ok,
+        status: response.status,
+        data,
+    });
+
     if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
     return data;
 }
@@ -267,9 +304,15 @@ function readFormPayload() {
 
 function validateForm(payload) {
     if (!state.workingDay?.id) {
+        debugLog('submit:blocked-missing-working-day', {
+            selectedDate: state.selectedDate,
+            payload,
+            workingDay: state.workingDay,
+        });
         throw new Error('Configura prima il giorno di servizio per questa data.');
     }
     if (!payload.name || !payload.code) {
+        debugLog('submit:blocked-missing-fields', { payload });
         throw new Error('Name and code are required.');
     }
 }
@@ -281,6 +324,12 @@ async function load(date = null) {
     state.ingredients = data.ingredients || [];
     state.selectedDate = data.selected_date;
     state.workingDay = data.working_day || null;
+
+    debugLog('load:success', {
+        selectedDate: state.selectedDate,
+        workingDay: state.workingDay,
+        ingredientCount: state.ingredients.length,
+    });
 
     const dateInput = document.querySelector('[data-ingredient-date]');
     if (dateInput && dateInput.value !== state.selectedDate) {
@@ -300,6 +349,11 @@ async function load(date = null) {
 function selectIngredient(ingredientId) {
     const ingredient = state.ingredients.find(item => Number(item.id) === Number(ingredientId));
     if (!ingredient) return;
+
+    debugLog('ingredient:selected', {
+        ingredientId,
+        ingredient,
+    });
 
     state.selectedIngredientId = ingredient.id;
     state.selectedCategory = ingredient.category;
@@ -325,18 +379,42 @@ async function submitIngredient() {
         working_day_id: state.workingDay.id,
         daily_available: dailyAvailable,
     };
+    const url = ingredient ? ingredientApi.item(ingredientId) : ingredientApi.index;
+    const method = ingredient ? 'PATCH' : 'POST';
+
+    debugLog('submit:start', {
+        mode: ingredient ? 'update' : 'create',
+        selectedIngredientId: state.selectedIngredientId,
+        ingredientId,
+        url,
+        method,
+        payload,
+        body,
+        state: {
+            selectedDate: state.selectedDate,
+            workingDay: state.workingDay,
+            selectedCategory: state.selectedCategory,
+            openCategory: state.openCategory,
+            ingredientCount: state.ingredients.length,
+        },
+    });
 
     const response = ingredient
-        ? await requestJson(ingredientApi.item(ingredientId), {
+        ? await requestJson(url, {
             method: 'PATCH',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             body: JSON.stringify(body),
         })
-        : await requestJson(ingredientApi.index, {
+        : await requestJson(url, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             body: JSON.stringify(body),
         });
+
+    debugLog('submit:success', {
+        mode: ingredient ? 'update' : 'create',
+        response,
+    });
 
     state.selectedIngredientId = response.ingredient?.id || state.selectedIngredientId;
     state.selectedCategory = payload.category;
@@ -352,6 +430,11 @@ async function deleteIngredient() {
 
     const confirmed = window.confirm(`Delete ${ingredient.name}?`);
     if (!confirmed) return;
+
+    debugLog('delete:start', {
+        ingredientId: ingredient.id,
+        ingredient,
+    });
 
     await requestJson(ingredientApi.item(ingredient.id), {
         method: 'DELETE',
@@ -373,6 +456,13 @@ async function toggleDailyAvailability(target) {
         setMessage('Choose a configured service day before editing availability.', true);
         return;
     }
+
+    debugLog('availability:start', {
+        ingredientId,
+        workingDayId: state.workingDay.id,
+        from: current,
+        to: !current,
+    });
 
     await requestJson(ingredientApi.availability(ingredientId), {
         method: 'PATCH',
@@ -399,6 +489,16 @@ function closeSidebar() {
 }
 
 export async function initAdminIngredientsPage() {
+    window.__adminIngredientsListeners?.abort();
+    const listeners = new AbortController();
+    window.__adminIngredientsListeners = listeners;
+
+    debugLog('module:init', {
+        moduleVersion,
+        href: window.location.href,
+        viteHot: Boolean(import.meta.hot),
+    });
+
     renderCategoryOptions();
     setCategory('bread');
 
@@ -408,36 +508,44 @@ export async function initAdminIngredientsPage() {
 
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation();
         try {
             await submitIngredient();
         } catch (error) {
             setMessage(error.message || 'Unable to save ingredient.', true);
         }
-    });
+    }, { capture: true, signal: listeners.signal });
 
     document.addEventListener('click', async (event) => {
         const target = event.target.closest('[data-action]');
         if (!target) return;
 
         const action = target.dataset.action;
+        if (!handledActions.has(action)) return;
+
+        debugLog('click:action', {
+            action,
+            dataset: { ...target.dataset },
+        });
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
 
         if (action === 'open-sidebar') return openSidebar();
         if (action === 'close-sidebar') return closeSidebar();
 
         if (action === 'toggle-category-dropdown') {
-            event.preventDefault();
             return toggleCategoryDropdown();
         }
 
         if (action === 'select-category-option') {
-            event.preventDefault();
             setCategory(target.dataset.category);
             closeCategoryDropdown();
             return;
         }
 
         if (action === 'prepare-category-create') {
-            event.preventDefault();
             state.openCategory = target.dataset.category;
             resetForm(target.dataset.category);
             document.querySelector('[data-ingredient-name]')?.focus();
@@ -445,14 +553,12 @@ export async function initAdminIngredientsPage() {
         }
 
         if (action === 'toggle-category-section') {
-            event.preventDefault();
             state.openCategory = state.openCategory === target.dataset.category ? null : target.dataset.category;
             renderIngredients();
             return;
         }
 
         if (action === 'submit-ingredient') {
-            event.preventDefault();
             try {
                 await submitIngredient();
             } catch (error) {
@@ -462,14 +568,12 @@ export async function initAdminIngredientsPage() {
         }
 
         if (action === 'select-ingredient') {
-            event.preventDefault();
             selectIngredient(target.dataset.ingredientId);
             document.querySelector('[data-ingredient-name]')?.focus();
             return;
         }
 
         if (action === 'toggle-daily-availability') {
-            event.preventDefault();
             try {
                 await toggleDailyAvailability(target);
             } catch (error) {
@@ -479,21 +583,19 @@ export async function initAdminIngredientsPage() {
         }
 
         if (action === 'reset-ingredient-form') {
-            event.preventDefault();
             resetForm();
             document.querySelector('[data-ingredient-name]')?.focus();
             return;
         }
 
         if (action === 'delete-ingredient') {
-            event.preventDefault();
             try {
                 await deleteIngredient();
             } catch (error) {
                 setMessage(error.message || 'Unable to delete ingredient.', true);
             }
         }
-    });
+    }, { capture: true, signal: listeners.signal });
 
     document.addEventListener('change', async (event) => {
         const dateInput = event.target.closest('[data-ingredient-date]');
@@ -501,11 +603,11 @@ export async function initAdminIngredientsPage() {
 
         setMessage('');
         await load(dateInput.value || null);
-    });
+    }, { signal: listeners.signal });
 
     document.addEventListener('click', (event) => {
         if (!event.target.closest('[data-category-dropdown]')) closeCategoryDropdown();
-    });
+    }, { signal: listeners.signal });
 
     await load();
 }

@@ -36,7 +36,7 @@ const pageRegistry = {
         return initAdminUsersPage;
     },
     'admin-ingredients': async () => {
-        const { initAdminIngredientsPage } = await import('./pages/admin-ingredients/index.js');
+        const { initAdminIngredientsPage } = await import('./pages/admin-ingredients/index.js?v=ingredient-json-headers-20260620');
         return initAdminIngredientsPage;
     },
     'admin-statistics': async () => {
