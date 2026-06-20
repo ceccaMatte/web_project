@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\WorkingDay;
+use Carbon\Carbon;
 
 /**
  * SchedulerService
@@ -21,6 +22,7 @@ class SchedulerService
     public function buildWeekScheduler(?string $selectedDate = null): array
     {
         $today = now();
+        $todayDate = $today->toDateString();
         $startOfWeek = $today->copy()->startOfWeek(); // Lunedì
         $endOfWeek = $today->copy()->endOfWeek(); // Domenica
 
@@ -34,13 +36,14 @@ class SchedulerService
 
         $weekDays = [];
         $currentDay = $startOfWeek->copy();
+        $selectedDayId = $this->resolveSelectedDayId($selectedDate, $todayDate, $startOfWeek, $endOfWeek);
 
         while ($currentDay <= $endOfWeek) {
             $dateString = $currentDay->toDateString();
             $workingDay = $workingDays->get($dateString);
 
             $isActive = $workingDay !== null && (bool) ($workingDay->is_active ?? false);
-            $isDisabled = $workingDay === null || !$isActive || ($currentDay->isPast() && !$currentDay->isToday());
+            $isDisabled = $currentDay->isBefore($today->copy()->startOfDay());
 
             $weekDays[] = [
                 'id' => $dateString,
@@ -49,30 +52,10 @@ class SchedulerService
                 'isToday' => $currentDay->isToday(),
                 'isActive' => $isActive,
                 'isDisabled' => $isDisabled,
-                'isSelected' => $selectedDate ? ($dateString === $selectedDate) : $currentDay->isToday(),
+                'isSelected' => $dateString === $selectedDayId,
             ];
 
             $currentDay->addDay();
-        }
-
-        // Se è stata richiesta una specifica selectedDate e corrisponde a un giorno attivo, usala
-        if ($selectedDate) {
-            $selectedDay = collect($weekDays)->firstWhere('id', $selectedDate);
-            if ($selectedDay && !$selectedDay['isDisabled'] && $selectedDay['isActive']) {
-                $selectedDayId = $selectedDate;
-            } else {
-                $todayActive = collect($weekDays)->firstWhere(function ($day) {
-                    return $day['isToday'] && $day['isActive'];
-                });
-                $firstActiveDay = $todayActive ?: collect($weekDays)->firstWhere('isActive');
-                $selectedDayId = $firstActiveDay ? $firstActiveDay['id'] : $today->toDateString();
-            }
-        } else {
-            $todayActive = collect($weekDays)->firstWhere(function ($day) {
-                return $day['isToday'] && $day['isActive'];
-            });
-            $firstActiveDay = $todayActive ?: collect($weekDays)->firstWhere('isActive');
-            $selectedDayId = $firstActiveDay ? $firstActiveDay['id'] : $today->toDateString();
         }
 
         return [
@@ -83,5 +66,28 @@ class SchedulerService
             // keep 'weekDays' for backward compatibility with some API docs
             'weekDays' => $weekDays,
         ];
+    }
+
+    private function resolveSelectedDayId(?string $selectedDate, string $todayDate, Carbon $startOfWeek, Carbon $endOfWeek): string
+    {
+        if (!$selectedDate) {
+            return $todayDate;
+        }
+
+        try {
+            $requestedDate = Carbon::createFromFormat('Y-m-d', $selectedDate)->startOfDay();
+        } catch (\Throwable) {
+            return $todayDate;
+        }
+
+        $isInsideCurrentWeek = $requestedDate->betweenIncluded(
+            $startOfWeek->copy()->startOfDay(),
+            $endOfWeek->copy()->startOfDay()
+        );
+        $isPast = $requestedDate->isBefore(now()->copy()->startOfDay());
+
+        return $isInsideCurrentWeek && !$isPast
+            ? $requestedDate->toDateString()
+            : $todayDate;
     }
 }

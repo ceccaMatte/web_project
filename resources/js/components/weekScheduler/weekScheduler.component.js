@@ -46,19 +46,15 @@ export function renderWeekScheduler(container, props, callbacks) {
             weekdayColor = 'text-slate-400';
             circleClasses += ' text-slate-300 hover:bg-slate-800 active:scale-95 cursor-pointer';
         } else {
-            containerOpacity = 'opacity-40';
             weekdayColor = 'text-slate-500';
-            circleClasses += ' text-slate-400';
+            circleClasses += ' text-slate-500 hover:bg-slate-800 active:scale-95 cursor-pointer';
         }
 
-        // Dot indicator per "today" e "selected"
+        // Dot indicator: only today gets a marker.
         if (isToday && !isSelected) {
             dotHTML = '<div class="absolute top-[50px] mt-1 w-1 h-1 rounded-full bg-primary"></div>';
         } else if (isToday && isSelected) {
             dotHTML = '<div class="absolute top-[50px] mt-1 w-1 h-1 rounded-full bg-white"></div>';
-        } else if (isSelected && !isToday) {
-            // Pallino sotto al giorno selected (non today)
-            dotHTML = '<div class="absolute top-[50px] mt-1 w-1 h-1 rounded-full bg-primary"></div>';
         }
 
         const ariaLabel = a11y.scheduler.day(weekday, dayNumber, isToday, isDisabled);

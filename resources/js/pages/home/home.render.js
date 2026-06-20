@@ -112,19 +112,15 @@ export function renderHome() {
         ordersPreviewProps
     );
 
+    const selectedBooking = getSelectedBookingProps();
+
     // 7. Booking Header (data + location su 2 righe)
-    renderBookingHeader(
-        homeView.refs.bookingHeader,
-        {
-            dateLabel: homeState.booking.dateLabel,
-            locationLabel: homeState.booking.locationLabel,
-        }
-    );
+    renderBookingHeader(homeView.refs.bookingHeader, selectedBooking);
 
     // 8. Booking Slots (Time Slot Cards)
     renderTimeSlotsList(
         homeView.refs.bookingSlotsContainer,
-        homeState.booking,
+        selectedBooking,
         {} // No callbacks per ora (usano href)
     );
 }
@@ -189,7 +185,10 @@ function renderBookingHeader(container, props) {
 
     const { dateLabel, locationLabel } = props;
 
-    if (!dateLabel || !locationLabel) return;
+    if (!dateLabel || !locationLabel) {
+        container.innerHTML = '';
+        return;
+    }
 
     const html = `
         <h3 class="text-white text-sm font-bold mb-1">
@@ -201,6 +200,25 @@ function renderBookingHeader(container, props) {
     `;
 
     container.innerHTML = html;
+}
+
+function getSelectedBookingProps() {
+    return {
+        dateLabel: formatSelectedDate(homeState.selectedDate),
+        locationLabel: homeState.booking.locationLabel || 'Engineering Hub - Available Time Slots',
+        slots: homeState.timeSlots || [],
+    };
+}
+
+function formatSelectedDate(dateString) {
+    if (!dateString) return null;
+
+    const date = new Date(`${dateString}T00:00:00`);
+    return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+    });
 }
 
 /**

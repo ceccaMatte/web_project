@@ -92,7 +92,7 @@ export function closeSidebar() {
 export async function selectDay(dayId) {
     if (!dayId) return;
     const dayData = homeState.weekDays.find(day => day.id === dayId);
-    if (!dayData || dayData.isDisabled || !dayData.isActive) return;
+    if (!dayData || dayData.isDisabled) return;
     if (homeState.selectedDayId === dayId) return;
     mutateSelectedDay(dayId);
     
@@ -147,6 +147,11 @@ export async function loadTimeSlots(date) {
             timeSlots: timeSlots,
             loading: false,
             error: null 
+        });
+        mutateBooking({
+            dateLabel: timeSlotsData.dateLabel || null,
+            locationLabel: timeSlotsData.locationLabel || null,
+            slots: timeSlots,
         });
         
         // Re-render time slots and header

@@ -216,15 +216,15 @@ class HomeApiTest extends TestCase
     }
 
     /**
-     * Test: Sezione booking mostra slot di domani.
+     * Test: Sezione booking mostra slot del giorno selezionato.
      */
-    public function test_booking_section_shows_tomorrow_slots()
+    public function test_booking_section_shows_selected_day_slots()
     {
-        $tomorrow = now()->addDay();
+        $today = now();
         $workingDay = WorkingDay::factory()->create([
-            'day' => $tomorrow->toDateString(),
+            'day' => $today->toDateString(),
             'is_active' => true,
-            'location' => 'Tomorrow Hub',
+            'location' => 'Today Hub',
             'max_orders' => 5,
         ]);
 
@@ -237,8 +237,8 @@ class HomeApiTest extends TestCase
 
         $response->assertJson([
             'booking' => [
-                'dateLabel' => 'Tomorrow, ' . $tomorrow->format('F j'),
-                'locationLabel' => 'Tomorrow Hub',
+                'dateLabel' => $today->format('l, F j'),
+                'locationLabel' => 'Today Hub',
                 'slots' => [
                     [
                         'id' => $timeSlot->id,

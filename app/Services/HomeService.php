@@ -54,7 +54,7 @@ class HomeService
             'todayService' => $this->buildTodayServiceSection(),
             'scheduler' => $scheduler,
             'ordersPreview' => $this->buildOrdersPreviewSection(),
-            'booking' => $this->buildBookingSection(),
+            'booking' => $this->buildBookingSection($selectedDay),
             'initialTimeSlots' => $initialTimeSlots,
         ];
     }
@@ -232,17 +232,16 @@ class HomeService
      *
      * @return array
      */
-    private function buildBookingSection(): array
+    private function buildBookingSection(?string $dateString): array
     {
-        $tomorrow = now()->addDay()->toDateString();
-        $workingDay = WorkingDay::whereDate('day', $tomorrow)
+        $targetDate = $dateString ? \Carbon\Carbon::parse($dateString) : now();
+        $workingDay = WorkingDay::whereDate('day', $targetDate->toDateString())
             ->where('is_active', true)
             ->first();
 
         if (!$workingDay) {
-            // Nessun servizio domani
             return [
-                'dateLabel' => 'Tomorrow, ' . now()->addDay()->format('F j'),
+                'dateLabel' => $targetDate->format('l, F j'),
                 'locationLabel' => 'No service scheduled',
                 'slots' => [],
             ];
@@ -284,7 +283,7 @@ class HomeService
         }
 
         return [
-            'dateLabel' => 'Tomorrow, ' . now()->addDay()->format('F j'),
+            'dateLabel' => $targetDate->format('l, F j'),
             'locationLabel' => $workingDay->location,
             'slots' => $slots,
         ];
