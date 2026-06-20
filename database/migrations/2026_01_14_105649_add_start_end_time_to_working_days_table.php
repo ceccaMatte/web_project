@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('working_days', function (Blueprint $table) {
-            $table->time('start_time');
-            $table->time('end_time');
+            $table->time('start_time')->default('12:00:00');
+            $table->time('end_time')->default('14:00:00');
         });
     }
 

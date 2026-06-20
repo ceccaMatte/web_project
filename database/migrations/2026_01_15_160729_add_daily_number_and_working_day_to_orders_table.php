@@ -25,8 +25,7 @@ return new class extends Migration
             // Questo campo viene popolato automaticamente dalla relazione time_slot->working_day
             $table->foreignId('working_day_id')
                   ->after('time_slot_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                  ->nullable();
 
             // Numero progressivo giornaliero dell'ordine
             // Si azzera ogni giorno, cresce monotonicamente, non riutilizzato
@@ -36,7 +35,6 @@ return new class extends Migration
 
             // Constraint di unicità: ogni working_day può avere solo un ordine per daily_number
             // Questo garantisce che non ci siano duplicati giornalieri
-            $table->unique(['working_day_id', 'daily_number']);
         });
 
         // Popoliamo working_day_id per gli ordini esistenti
@@ -50,6 +48,20 @@ return new class extends Migration
             )
             WHERE working_day_id IS NULL
         ');
+
+        Schema::table('orders', function (Blueprint $table) {
+            $table->index('working_day_id', 'orders_working_day_id_index');
+
+            $table->foreign('working_day_id', 'orders_working_day_id_fk')
+                ->references('id')
+                ->on('working_days')
+                ->cascadeOnDelete();
+
+            $table->unique(
+                ['working_day_id', 'daily_number'],
+                'orders_working_day_daily_number_unique'
+            );
+        });
     }
 
     /**
@@ -59,7 +71,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropUnique(['working_day_id', 'daily_number']);
+            $table->dropUnique('orders_working_day_daily_number_unique');
+            $table->dropForeign('orders_working_day_id_fk');
+            $table->dropIndex('orders_working_day_id_index');
             $table->dropColumn(['daily_number', 'working_day_id']);
         });
     }
