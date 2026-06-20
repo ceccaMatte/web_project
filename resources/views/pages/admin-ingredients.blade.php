@@ -40,9 +40,6 @@
                         </label>
                     </div>
 
-                    <div class="p-4">
-                        <div data-category-tabs class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2"></div>
-                    </div>
                 </div>
 
                 <div data-ingredients-list class="space-y-4">
@@ -57,7 +54,7 @@
                     <p data-form-hint class="mt-1 text-xs text-slate-500">Select a category or an ingredient to edit it.</p>
                 </div>
 
-                <form data-ingredient-form class="p-4 space-y-4">
+                <form data-ingredient-form action="javascript:void(0)" method="dialog" class="p-4 space-y-4">
                     <input type="hidden" data-ingredient-id>
 
                     <label class="block">
@@ -86,7 +83,7 @@
                     </div>
 
                     <div class="grid grid-cols-[1fr_auto] gap-2">
-                        <button type="submit" data-action="submit-ingredient" class="rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-3">
+                        <button type="button" data-action="submit-ingredient" class="rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-3">
                             Create
                         </button>
                         <button type="button" data-action="reset-ingredient-form" class="rounded-xl border border-border-dark bg-surface-dark px-4 py-3 text-slate-300" aria-label="Reset form">

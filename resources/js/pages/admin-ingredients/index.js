@@ -1,5 +1,11 @@
 const categories = ['bread', 'meat', 'cheese', 'vegetable', 'sauce', 'other'];
 
+const ingredientApi = {
+    index: '/api/admin/ingredients',
+    item: ingredientId => `/api/admin/ingredients/${ingredientId}`,
+    availability: ingredientId => `/api/admin/ingredients/${ingredientId}/availability`,
+};
+
 const categoryMeta = {
     bread: { label: 'Bread', icon: 'bakery_dining' },
     meat: { label: 'Meat', icon: 'lunch_dining' },
@@ -14,6 +20,7 @@ const state = {
     selectedDate: null,
     workingDay: null,
     selectedCategory: 'bread',
+    openCategory: 'bread',
     selectedIngredientId: null,
 };
 
@@ -31,6 +38,11 @@ function escapeHtml(value) {
 }
 
 async function requestJson(url, options = {}) {
+    const method = String(options.method || 'GET').toUpperCase();
+    if (method !== 'GET' && !String(url).startsWith('/api/')) {
+        throw new Error(`Unsafe admin ingredient endpoint: ${url}`);
+    }
+
     const headers = {
         Accept: 'application/json',
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -114,7 +126,6 @@ function setCategory(category, syncForm = true) {
         if (icon) icon.textContent = categoryIcon(category);
     }
 
-    renderCategoryTabs();
     renderCategoryOptions();
 }
 
@@ -124,29 +135,6 @@ function closeCategoryDropdown() {
 
 function toggleCategoryDropdown() {
     document.querySelector('[data-category-menu]')?.classList.toggle('hidden');
-}
-
-function renderCategoryTabs() {
-    const container = document.querySelector('[data-category-tabs]');
-    if (!container) return;
-
-    container.innerHTML = categories.map(category => {
-        const active = category === state.selectedCategory;
-        return `
-            <button
-                type="button"
-                data-action="select-category-tab"
-                data-category="${category}"
-                class="min-h-20 rounded-xl border px-3 py-3 text-left transition ${active ? 'border-primary/60 bg-primary/15 text-white' : 'border-border-dark bg-input-bg/60 text-slate-300 hover:border-slate-600'}"
-            >
-                <span class="flex items-center justify-between gap-2">
-                    <span class="material-symbols-outlined text-[22px] ${active ? 'text-primary' : 'text-slate-500'}">${categoryIcon(category)}</span>
-                    <span class="text-lg font-black">${countByCategory(category)}</span>
-                </span>
-                <span class="mt-2 block text-xs font-bold uppercase tracking-widest">${categoryLabel(category)}</span>
-            </button>
-        `;
-    }).join('');
 }
 
 function availabilitySwitch(ingredient) {
@@ -162,31 +150,24 @@ function availabilitySwitch(ingredient) {
             data-ingredient-id="${ingredient.id}"
             data-current="${checked ? '1' : '0'}"
             ${disabled ? 'disabled' : ''}
-            class="relative h-7 w-12 shrink-0 rounded-full transition ${checked ? 'bg-primary' : 'bg-slate-700'} ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:ring-2 hover:ring-primary/30'}"
+            class="relative h-6 w-11 shrink-0 rounded-full transition ${checked ? 'bg-primary' : 'bg-slate-700'} ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:ring-2 hover:ring-primary/30'}"
         >
-            <span class="absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${checked ? 'left-6' : 'left-1'}"></span>
+            <span class="absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${checked ? 'left-6' : 'left-1'}"></span>
         </button>
     `;
 }
 
 function renderIngredientCard(ingredient) {
     const isSelected = Number(ingredient.id) === Number(state.selectedIngredientId);
-    const availabilityText = ingredient.daily_available ? 'Available' : 'Unavailable';
-    const availabilityClass = ingredient.daily_available ? 'text-emerald-300' : 'text-rose-300';
-
     return `
-        <article class="rounded-xl border overflow-hidden transition ${isSelected ? 'border-primary/70 bg-primary/10' : 'border-border-dark bg-input-bg/60 hover:border-slate-600'}">
-            <button type="button" data-action="select-ingredient" data-ingredient-id="${ingredient.id}" class="w-full min-h-24 p-3 text-left">
-                <span class="flex items-start justify-between gap-3">
-                    <span class="min-w-0">
-                        <span class="block truncate text-sm font-bold text-white">${escapeHtml(ingredient.name)}</span>
-                        <span class="mt-1 block truncate text-[11px] font-semibold uppercase tracking-wider text-slate-500">${escapeHtml(ingredient.code)}</span>
+        <article class="rounded-xl border transition ${isSelected ? 'border-primary/70 bg-primary/10' : 'border-border-dark bg-input-bg/60 hover:border-slate-600'}">
+            <div class="flex min-h-14 items-center gap-3 px-3 py-2">
+                <button type="button" data-action="select-ingredient" data-ingredient-id="${ingredient.id}" class="min-w-0 flex-1 text-left">
+                    <span class="flex min-w-0 items-center gap-2">
+                        <span class="truncate text-sm font-bold text-white">${escapeHtml(ingredient.name)}</span>
+                        <span class="shrink-0 rounded-md border border-border-dark bg-surface-dark px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">${escapeHtml(ingredient.code)}</span>
                     </span>
-                    <span class="material-symbols-outlined text-[20px] ${isSelected ? 'text-primary' : 'text-slate-600'}">edit</span>
-                </span>
-            </button>
-            <div class="border-t border-border-dark px-3 py-2 flex items-center justify-between gap-3">
-                <span class="text-xs font-semibold ${availabilityClass}">${availabilityText}</span>
+                </button>
                 ${availabilitySwitch(ingredient)}
             </div>
         </article>
@@ -220,16 +201,23 @@ function renderIngredients() {
                             <p class="text-xs text-slate-500">${ingredients.length} ingredients</p>
                         </div>
                     </div>
-                    <button type="button" data-action="prepare-category-create" data-category="${category}" class="rounded-lg border border-border-dark bg-surface-dark px-3 py-2 text-slate-300 hover:text-white" aria-label="Create in ${categoryLabel(category)}">
-                        <span class="material-symbols-outlined text-[19px]">add</span>
-                    </button>
+                    <div class="flex shrink-0 items-center gap-2">
+                        <button type="button" data-action="prepare-category-create" data-category="${category}" class="flex size-10 items-center justify-center rounded-lg border border-border-dark bg-surface-dark text-slate-300 hover:text-white" aria-label="Create in ${categoryLabel(category)}">
+                            <span class="material-symbols-outlined text-[20px]">add</span>
+                        </button>
+                        <button type="button" data-action="toggle-category-section" data-category="${category}" class="flex size-10 items-center justify-center rounded-lg border border-border-dark bg-surface-dark text-slate-300 hover:text-white" aria-label="Toggle ${categoryLabel(category)}">
+                            <span class="material-symbols-outlined text-[22px] transition ${state.openCategory === category ? 'rotate-180' : ''}">expand_more</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="grid gap-2 p-3 sm:grid-cols-2 xl:grid-cols-3">
-                    ${ingredients.length
-                        ? ingredients.map(renderIngredientCard).join('')
-                        : '<div class="rounded-xl border border-dashed border-border-dark p-4 text-sm text-slate-500 sm:col-span-2 xl:col-span-3">No ingredients in this category.</div>'
-                    }
-                </div>
+                ${state.openCategory === category ? `
+                    <div class="space-y-2 p-3">
+                        ${ingredients.length
+                            ? ingredients.map(renderIngredientCard).join('')
+                            : '<div class="rounded-xl border border-dashed border-border-dark p-4 text-sm text-slate-500">No ingredients in this category.</div>'
+                        }
+                    </div>
+                ` : ''}
             </section>
         `;
     }).join('');
@@ -279,7 +267,7 @@ function readFormPayload() {
 
 function validateForm(payload) {
     if (!state.workingDay?.id) {
-        throw new Error('Choose a configured service day before saving.');
+        throw new Error('Configura prima il giorno di servizio per questa data.');
     }
     if (!payload.name || !payload.code) {
         throw new Error('Name and code are required.');
@@ -287,7 +275,7 @@ function validateForm(payload) {
 }
 
 async function load(date = null) {
-    const url = date ? `/api/admin/ingredients?date=${encodeURIComponent(date)}` : '/api/admin/ingredients';
+    const url = date ? `${ingredientApi.index}?date=${encodeURIComponent(date)}` : ingredientApi.index;
     const data = await requestJson(url, { method: 'GET' });
 
     state.ingredients = data.ingredients || [];
@@ -304,7 +292,6 @@ async function load(date = null) {
     }
 
     updateSelectedDayLabel();
-    renderCategoryTabs();
     renderCategoryOptions();
     updateFormMode();
     renderIngredients();
@@ -316,6 +303,7 @@ function selectIngredient(ingredientId) {
 
     state.selectedIngredientId = ingredient.id;
     state.selectedCategory = ingredient.category;
+    state.openCategory = ingredient.category;
     fillForm(ingredient);
     setMessage('');
     renderIngredients();
@@ -326,6 +314,11 @@ async function submitIngredient() {
     validateForm(payload);
 
     const ingredient = selectedIngredient();
+    const ingredientId = Number(ingredient?.id || 0);
+    if (ingredient && !ingredientId) {
+        throw new Error('Selected ingredient is missing a valid id.');
+    }
+
     const dailyAvailable = ingredient ? Boolean(ingredient.daily_available) : true;
     const body = {
         ...payload,
@@ -334,12 +327,12 @@ async function submitIngredient() {
     };
 
     const response = ingredient
-        ? await requestJson(`/api/admin/ingredients/${ingredient.id}`, {
+        ? await requestJson(ingredientApi.item(ingredientId), {
             method: 'PATCH',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             body: JSON.stringify(body),
         })
-        : await requestJson('/api/admin/ingredients', {
+        : await requestJson(ingredientApi.index, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             body: JSON.stringify(body),
@@ -347,6 +340,7 @@ async function submitIngredient() {
 
     state.selectedIngredientId = response.ingredient?.id || state.selectedIngredientId;
     state.selectedCategory = payload.category;
+    state.openCategory = payload.category;
     await load(state.selectedDate);
     fillForm(selectedIngredient());
     setMessage(ingredient ? 'Ingredient updated.' : 'Ingredient created.');
@@ -359,7 +353,7 @@ async function deleteIngredient() {
     const confirmed = window.confirm(`Delete ${ingredient.name}?`);
     if (!confirmed) return;
 
-    await requestJson(`/api/admin/ingredients/${ingredient.id}`, {
+    await requestJson(ingredientApi.item(ingredient.id), {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': csrfToken() },
     });
@@ -380,7 +374,7 @@ async function toggleDailyAvailability(target) {
         return;
     }
 
-    await requestJson(`/api/admin/ingredients/${ingredientId}/availability`, {
+    await requestJson(ingredientApi.availability(ingredientId), {
         method: 'PATCH',
         headers: { 'X-CSRF-TOKEN': csrfToken() },
         body: JSON.stringify({
@@ -413,6 +407,7 @@ export async function initAdminIngredientsPage() {
         if (!form) return;
 
         event.preventDefault();
+        event.stopPropagation();
         try {
             await submitIngredient();
         } catch (error) {
@@ -441,17 +436,28 @@ export async function initAdminIngredientsPage() {
             return;
         }
 
-        if (action === 'select-category-tab') {
+        if (action === 'prepare-category-create') {
             event.preventDefault();
-            setCategory(target.dataset.category);
-            document.querySelector(`[data-category-section="${target.dataset.category}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            state.openCategory = target.dataset.category;
+            resetForm(target.dataset.category);
+            document.querySelector('[data-ingredient-name]')?.focus();
             return;
         }
 
-        if (action === 'prepare-category-create') {
+        if (action === 'toggle-category-section') {
             event.preventDefault();
-            resetForm(target.dataset.category);
-            document.querySelector('[data-ingredient-name]')?.focus();
+            state.openCategory = state.openCategory === target.dataset.category ? null : target.dataset.category;
+            renderIngredients();
+            return;
+        }
+
+        if (action === 'submit-ingredient') {
+            event.preventDefault();
+            try {
+                await submitIngredient();
+            } catch (error) {
+                setMessage(error.message || 'Unable to save ingredient.', true);
+            }
             return;
         }
 
